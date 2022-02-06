@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "mod_template",
+  "version": "${version}",
+  "name": "Mod Template",
+  "description": "Description",
+  "authors": [
+    "Luke Bemish"
+  ],
+  "contact": {
+    "sources": "https://github.com/lukebemish/mod_template"
+  },
+  "license": "LGPL v3",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "mod_template.fabric.ModTemplateFabric"
+    ],
+    "client": [
+      "mod_template.fabric.ModTemplateClientFabric"
+    ]
+  },
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.18",
+    "architectury": ">=3.4.9"
+  }
+}

@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[38,)"
+issueTrackerURL = "https://github.com/lukebemish/mod_template/issues"
+license = "LGPL v3"
+
+[[mods]]
+modId = "mod_template"
+version = "${version}"
+displayName = "Mod Template"
+authors = "Luke Bemish"
+description = '''
+Description here
+'''
+# logoFile = "icon.png"
+
+[[dependencies.mod_template]]
+modId = "forge"
+mandatory = true
+versionRange = "[38,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mod_template]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mod_template]]
+modId = "architectury"
+mandatory = true
+versionRange = "[3.3.7,)"
+ordering = "AFTER"
+side = "BOTH"
