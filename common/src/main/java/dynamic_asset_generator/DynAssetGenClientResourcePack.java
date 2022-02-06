@@ -1,27 +1,25 @@
-package palette_extractor;
+package dynamic_asset_generator;
 
+import dynamic_asset_generator.api.PrePackRepository;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public class PaletteExtractorClientResourcePack implements PackResources {
+public class DynAssetGenClientResourcePack implements PackResources {
 
-    private final Map<ResourceLocation, BufferedImage> images;
+    private final Map<ResourceLocation, Supplier<InputStream>> istreams;
 
-    public PaletteExtractorClientResourcePack() {
+    public DynAssetGenClientResourcePack() {
         PrePackRepository.resetResources();
-        images = PaletteExtractorPlanner.getImages();
+        istreams = DynAssetGenPlanner.getResources();
     }
 
     @Nullable
@@ -33,12 +31,13 @@ public class PaletteExtractorClientResourcePack implements PackResources {
     @Override
     public InputStream getResource(PackType packType, ResourceLocation location) throws IOException {
         if (packType == PackType.CLIENT_RESOURCES) {
-            if (images.containsKey(location)) {
-                BufferedImage image = images.get(location);
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                ImageIO.write(image, "png", os);
-                InputStream is = new ByteArrayInputStream(os.toByteArray());
-                return is;
+            if (istreams.containsKey(location)) {
+                InputStream stream = istreams.get(location).get();
+                if (stream != null) {
+                    return stream;
+                } else {
+                    throw new IOException("Resource is null: " + location.toString());
+                }
             }
         }
         throw new IOException("Could not find resource in generated resources: " + location.toString());
@@ -48,7 +47,7 @@ public class PaletteExtractorClientResourcePack implements PackResources {
     public Collection<ResourceLocation> getResources(PackType packType, String namespace, String directory, int depth, Predicate<String> predicate) {
         ArrayList<ResourceLocation> locations = new ArrayList<>();
         if (packType == PackType.CLIENT_RESOURCES) {
-            for (ResourceLocation key : images.keySet()) {
+            for (ResourceLocation key : istreams.keySet()) {
                 if (key.toString().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key.getPath())) {
                     // still need to figure out depth...
                     locations.add(key);
@@ -61,7 +60,7 @@ public class PaletteExtractorClientResourcePack implements PackResources {
     @Override
     public boolean hasResource(PackType packType, ResourceLocation location) {
         if (packType == PackType.CLIENT_RESOURCES) {
-            if (images.containsKey(location)) {
+            if (istreams.containsKey(location)) {
                 return true;
             }
         }
@@ -72,7 +71,7 @@ public class PaletteExtractorClientResourcePack implements PackResources {
     public Set<String> getNamespaces(PackType packType) {
         Set<String> namespaces = new HashSet<>();
         if (packType == PackType.CLIENT_RESOURCES) {
-            for (ResourceLocation key : images.keySet()) {
+            for (ResourceLocation key : istreams.keySet()) {
                 namespaces.add(key.getNamespace());
             }
         }
@@ -87,7 +86,7 @@ public class PaletteExtractorClientResourcePack implements PackResources {
 
     @Override
     public String getName() {
-        return PaletteExtractor.MOD_ID+"_generated";
+        return DynamicAssetGenerator.MOD_ID+"_generated";
     }
 
     @Override

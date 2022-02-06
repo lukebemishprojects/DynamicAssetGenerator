@@ -1,5 +1,6 @@
-package palette_extractor;
+package dynamic_asset_generator.util;
 
+import dynamic_asset_generator.api.PrePackRepository;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.imageio.ImageIO;

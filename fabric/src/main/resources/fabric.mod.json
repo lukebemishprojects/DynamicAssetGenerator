@@ -1,25 +1,25 @@
 {
   "schemaVersion": 1,
-  "id": "palette_extractor",
+  "id": "dynamic_asset_generator",
   "version": "${version}",
-  "name": "Palette Extractor",
+  "name": "Dynamic Asset Generator",
   "description": "Description",
   "authors": [
     "Luke Bemish"
   ],
   "contact": {
-    "sources": "https://github.com/lukebemish/palette_extractor"
+    "sources": "https://github.com/lukebemish/dynamic_asset_generator"
   },
   "license": "LGPL v3",
   "icon": "icon.png",
   "environment": "*",
   "entrypoints": {
     "client": [
-      "palette_extractor.fabric.PaletteExtractorClientFabric"
+      "dynamic_asset_generator.fabric.DynamicAssetGeneratorClientFabric"
     ]
   },
   "mixins": [
-    "mixin.palette_extractor.json"
+    "mixin.dynamic_asset_generator.json"
   ],
   "depends": {
     "minecraft": ">=1.18"

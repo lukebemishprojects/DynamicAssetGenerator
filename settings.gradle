@@ -15,4 +15,4 @@ include("common")
 include("fabric")
 include("forge")
 
-rootProject.name = "palette_extractor"
+rootProject.name = "dynamic_asset_generator"

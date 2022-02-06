@@ -11,7 +11,7 @@ architectury {
 
 loom {
     forge {
-        mixinConfig "mixin.palette_extractor.json"
+        mixinConfig "mixin.dynamic_asset_generator.json"
     }
 }
 
@@ -87,12 +87,12 @@ curseforge {
         apiKey = System.getenv('CURSEFORGE_KEY')
         project {
             id = 'project_id'
-            changelog = 'See: https://github.com/lukebemish/palette_extractor/blob/main/changelogs/CHANGELOG.md'
+            changelog = 'See: https://github.com/lukebemish/dynamic_asset_generator/blob/main/changelogs/CHANGELOG.md'
             releaseType = 'beta'
             addGameVersion '1.18.1'
             addGameVersion 'Forge'
             mainArtifact(remapJar) {
-                displayName = "Palette Extractor [Forge] v$project.version"
+                displayName = "Dynamic Asset Generator [Forge] v$project.version"
                 relations {
                     requiredDependency 'architectury-forge'
                 }

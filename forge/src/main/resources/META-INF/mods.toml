@@ -1,26 +1,26 @@
 modLoader = "javafml"
 loaderVersion = "[38,)"
-issueTrackerURL = "https://github.com/lukebemish/palette_extractor/issues"
+issueTrackerURL = "https://github.com/lukebemish/dynamic_asset_generator/issues"
 license = "LGPL v3"
 
 [[mods]]
-modId = "palette_extractor"
+modId = "dynamic_asset_generator"
 version = "${version}"
-displayName = "Palette Extractor"
+displayName = "Dynamic Asset Generator"
 authors = "Luke Bemish"
 description = '''
 Description here
 '''
 # logoFile = "icon.png"
 
-[[dependencies.palette_extractor]]
+[[dependencies.dynamic_asset_generator]]
 modId = "forge"
 mandatory = true
 versionRange = "[38,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.palette_extractor]]
+[[dependencies.dynamic_asset_generator]]
 modId = "minecraft"
 mandatory = true
 versionRange = "[1.18,)"

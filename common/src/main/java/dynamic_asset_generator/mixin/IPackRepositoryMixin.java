@@ -1,4 +1,4 @@
-package palette_extractor.mixin;
+package dynamic_asset_generator.mixin;
 
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;

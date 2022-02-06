@@ -1,4 +1,4 @@
-package palette_extractor;
+package dynamic_asset_generator.api;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.Minecraft;
@@ -6,13 +6,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
-import palette_extractor.mixin.IPackRepositoryMixin;
+import dynamic_asset_generator.mixin.IPackRepositoryMixin;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 public class PrePackRepository {
+    //Allows resources to be found while packs are being loaded... not sure how bad of an idea this is.
     private static List<PackResources> resources;
 
     public static void resetResources() {

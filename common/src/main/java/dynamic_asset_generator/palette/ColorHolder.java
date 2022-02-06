@@ -1,4 +1,4 @@
-package palette_extractor.palette;
+package dynamic_asset_generator.palette;
 
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;

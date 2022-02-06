@@ -79,12 +79,12 @@ curseforge {
         apiKey = System.getenv('CURSEFORGE_KEY')
         project {
             id = 'project_id'
-            changelog = 'See: https://github.com/lukebemish/palette_extractor/blob/main/changelogs/CHANGELOG.md'
+            changelog = 'See: https://github.com/lukebemish/dynamic_asset_generator/blob/main/changelogs/CHANGELOG.md'
             releaseType = 'beta'
             addGameVersion '1.18.1'
             addGameVersion 'Fabric'
             mainArtifact(remapJar) {
-                displayName = "Palette Extractor [Fabric] v$project.version"
+                displayName = "Dynamic Asset Generator [Fabric] v$project.version"
                 relations {
                     requiredDependency 'architectury-fabric'
                     requiredDependency 'fabric-api'

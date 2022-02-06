@@ -1,3 +1,3 @@
-# Palette Extractor
+# Dynamic Asset Generator
 
 README goes here
