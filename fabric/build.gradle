@@ -78,17 +78,17 @@ curseforge {
     if (System.getenv('CURSEFORGE_KEY') != null) {
         apiKey = System.getenv('CURSEFORGE_KEY')
         project {
-            id = 'project_id'
+            id = '577096'
             changelog = 'See: https://github.com/lukebemish/dynamic_asset_generator/blob/main/changelogs/CHANGELOG.md'
             releaseType = 'beta'
             addGameVersion '1.18.1'
             addGameVersion 'Fabric'
             mainArtifact(remapJar) {
                 displayName = "Dynamic Asset Generator [Fabric] v$project.version"
-                relations {
+                /*relations {
                     requiredDependency 'architectury-fabric'
                     requiredDependency 'fabric-api'
-                }
+                }*/
             }
         }
     }
@@ -105,7 +105,7 @@ task modrinth (type: TaskModrinthUpload){ // Make sure it runs after build!
     }
 
     token = System.getenv("MODRINTH_KEY") // An environment property called MODRINTH that is your token, set via Gradle CLI, GitHub Actions, Idea Run Configuration, or other
-    projectId = 'project_id'
+    projectId = '83pFEQVb'
     versionNumber = "$project.version-fabric" // Will fail if Modrinth has this version already
     // On fabric, use 'remapJar' instead of 'jar'
     versionType = "BETA"

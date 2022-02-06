@@ -1,4 +1,4 @@
-package dynamic_asset_generator.palette;
+package dynamic_asset_generator.client.palette;
 
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +25,13 @@ public class ColorHolder implements Comparable<ColorHolder> {
                 (color    &0xFF)/255f,
                 (color>>24&0xFF)/255f
         );
+    }
+
+    public ColorHolder(float v) {
+        this.r = v;
+        this.g = v;
+        this.b = v;
+        this.a = 1.0f;
     }
 
     public ColorHolder(float r, float g, float b) {
@@ -79,5 +86,11 @@ public class ColorHolder implements Comparable<ColorHolder> {
 
     public ColorHolder withA(float a) {
         return new ColorHolder(this.getR(),this.getG(),this.getB(),a);
+    }
+
+    public double distanceTo(ColorHolder c) {
+        return Math.sqrt((this.r-c.getR())*(this.r-c.getR())+
+                (this.g-c.getG())*(this.g-c.getG())+
+                (this.b-c.getB())*(this.b-c.getB()));
     }
 }

@@ -1,4 +1,4 @@
-package dynamic_asset_generator.api;
+package dynamic_asset_generator.client.api;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.client.Minecraft;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-public class PrePackRepository {
+public class ClientPrePackRepository {
     //Allows resources to be found while packs are being loaded... not sure how bad of an idea this is.
     private static List<PackResources> resources;
 

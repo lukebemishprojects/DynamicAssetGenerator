@@ -1,18 +1,17 @@
-package dynamic_asset_generator.palette;
+package dynamic_asset_generator.client.palette;
 
-import dynamic_asset_generator.api.PlannedPaletteCombinedImage;
+import dynamic_asset_generator.DynamicAssetGenerator;
+import dynamic_asset_generator.client.util.IPalettePlan;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
-import dynamic_asset_generator.util.ImageUtils;
-import dynamic_asset_generator.DynamicAssetGenerator;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.stream.Stream;
 
-@Environment(EnvType.CLIENT)
 public class Palette {
     private final ArrayList<ColorHolder> colors = new ArrayList<>();
     private final float inPaletteCutoff;
@@ -21,7 +20,7 @@ public class Palette {
         this.inPaletteCutoff = inPaletteCutoff;
     }
 
-    private boolean isInPalette(ColorHolder color) {
+    public boolean isInPalette(ColorHolder color) {
         for (ColorHolder c : colors) {
             if ((Math.abs(c.getR()-color.getR()) < this.inPaletteCutoff) &&
                     (Math.abs(c.getG()-color.getG()) < this.inPaletteCutoff) &&
@@ -30,6 +29,49 @@ public class Palette {
             }
         }
         return false;
+    }
+
+    public ColorHolder getColor(int i) {
+        return colors.get(i);
+    }
+
+    public Stream<ColorHolder> getStream() {
+        return colors.stream();
+    }
+
+    public void tryAdd(ColorHolder c) {
+        if (!this.isInPalette(c)) {
+            colors.add(c);
+            Collections.sort(colors);
+        }
+    }
+
+    public ColorHolder averageColor() {
+        int t = 0;
+        float r = 0;
+        float g = 0;
+        float b = 0;
+        for (ColorHolder c : colors) {
+            t++;
+            r += c.getR();
+            g += c.getG();
+            b += c.getB();
+        }
+        return new ColorHolder(r/t,g/t,b/t);
+    }
+
+    public int closestTo(ColorHolder holder) {
+        int index = 0;
+        int outIndex = 0;
+        double minDist = 2d;
+        for (ColorHolder c : colors) {
+            if (c.distanceTo(holder) < minDist) {
+                outIndex = index;
+                minDist = c.distanceTo(holder);
+            }
+            index++;
+        }
+        return outIndex;
     }
 
     public static Palette extractPalette(BufferedImage image, int extend) {
@@ -63,21 +105,22 @@ public class Palette {
         return colors.get(index);
     }
 
-    public static BufferedImage paletteCombinedImage(PlannedPaletteCombinedImage plan) {
-        ResourceLocation background = plan.background();
-        ResourceLocation overlay = plan.overlay();
-        ResourceLocation paletted = plan.paletted();
+    public int getSize() {
+        return colors.size();
+    }
+
+    public static BufferedImage paletteCombinedImage(ResourceLocation outLoc, IPalettePlan plan) {
         boolean includeBackground = plan.includeBackground();
         int extend = plan.extend();
         try {
-            BufferedImage b_img = ImageUtils.getImage(background);
-            BufferedImage o_img = ImageUtils.getImage(overlay);
-            BufferedImage p_img = ImageUtils.getImage(paletted);
-            if (!((b_img.getHeight() == b_img.getWidth()) && (o_img.getHeight() == o_img.getWidth()) && (p_img.getHeight() == p_img.getWidth()))) {
-                DynamicAssetGenerator.LOGGER.error("Images at locations are not square: {}, {}, {}",background.toString(),overlay.toString(),paletted.toString());
-                return null;
-            }
-            int w = Math.max(b_img.getWidth(), Math.max(o_img.getWidth(), p_img.getWidth()));
+            BufferedImage b_img = plan.getBackground();
+            BufferedImage o_img = plan.getOverlay();
+            BufferedImage p_img = plan.getPaletted();
+            //We don't care if they're square; we'll crop them. Currently, likely breaks animations...
+            int o_dim = Math.min(o_img.getHeight(),o_img.getWidth());
+            int b_dim = Math.min(b_img.getHeight(),b_img.getWidth());
+            int p_dim = Math.min(p_img.getHeight(),p_img.getWidth());
+            int w = Math.max(o_dim, Math.max(b_dim,p_dim));
             int os = w/o_img.getWidth();
             int bs = w/b_img.getWidth();
             int ps = w/p_img.getWidth();
@@ -126,7 +169,7 @@ public class Palette {
             }
             return out_img;
         } catch (IOException e) {
-            DynamicAssetGenerator.LOGGER.error("Error loading resources: {}, {}, {}",background.toString(),overlay.toString(),paletted.toString());
+            DynamicAssetGenerator.LOGGER.error("Error loading resources for image: {}",outLoc.toString());
             return null;
         }
     }

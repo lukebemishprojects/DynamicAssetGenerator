@@ -1,11 +1,15 @@
 package dynamic_asset_generator.mixin;
 
-import dynamic_asset_generator.DynAssetGenClientResourcePack;
+import dynamic_asset_generator.DynAssetGenServerDataPack;
 import dynamic_asset_generator.DynamicAssetGenerator;
+import dynamic_asset_generator.api.ServerPrePackRepository;
+import dynamic_asset_generator.client.DynAssetGenClientResourcePack;
 import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ReloadInstance;
 import net.minecraft.server.packs.resources.SimpleReloadableResourceManager;
 import net.minecraft.util.Unit;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,16 +23,37 @@ import java.util.concurrent.Executor;
 @Mixin(SimpleReloadableResourceManager.class)
 public abstract class SimpleReloadableResourceManagerMixin {
 
-    @Inject (method = "createReload", at = @At(value = "RETURN", shift = At.Shift.BEFORE))
-    private void registerARRPsAfter(Executor preparationExecutor,
-                                    Executor reloadExecutor,
-                                    CompletableFuture<Unit> afterPreparation,
-                                    List<PackResources> packs,
-                                    CallbackInfoReturnable<ReloadInstance> cir) {
-        DynamicAssetGenerator.LOGGER.info("Registering assets...");
-        add(new DynAssetGenClientResourcePack());
+
+    @Inject(method = "createReload", at = @At(value = "HEAD"))
+    private void dynamic_asset_generator_reloadPrePack(Executor preparationExecutor,
+                                                       Executor reloadExecutor,
+                                                       CompletableFuture<Unit> afterPreparation,
+                                                       List<PackResources> packs,
+                                                       CallbackInfoReturnable<ReloadInstance> cir) {
+        if (type == PackType.SERVER_DATA) {
+            ServerPrePackRepository.loadResources(packs);
+        }
+    }
+
+    @Inject(method = "createReload", at = @At(value = "RETURN", shift = At.Shift.BEFORE))
+    private void dynamic_asset_generator_insertResourcePack(Executor preparationExecutor,
+                                                            Executor reloadExecutor,
+                                                            CompletableFuture<Unit> afterPreparation,
+                                                            List<PackResources> packs,
+                                                            CallbackInfoReturnable<ReloadInstance> cir) {
+        if (type == PackType.CLIENT_RESOURCES) {
+            DynamicAssetGenerator.LOGGER.info("Registering assets...");
+            add(new DynAssetGenClientResourcePack());
+        } else if (type == PackType.SERVER_DATA) {
+            DynamicAssetGenerator.LOGGER.info("Registering data...");
+            add(new DynAssetGenServerDataPack());
+        }
     }
 
     @Shadow
     public abstract void add(PackResources pack);
+
+    @Shadow
+    @Final
+    private PackType type;
 }

@@ -1,6 +1,8 @@
-package dynamic_asset_generator;
+package dynamic_asset_generator.client;
 
-import dynamic_asset_generator.api.PrePackRepository;
+import dynamic_asset_generator.DynamicAssetGenerator;
+import dynamic_asset_generator.client.api.PaletteExtractor;
+import dynamic_asset_generator.client.api.ClientPrePackRepository;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -18,8 +20,9 @@ public class DynAssetGenClientResourcePack implements PackResources {
     private final Map<ResourceLocation, Supplier<InputStream>> istreams;
 
     public DynAssetGenClientResourcePack() {
-        PrePackRepository.resetResources();
-        istreams = DynAssetGenPlanner.getResources();
+        PaletteExtractor.refresh();
+        ClientPrePackRepository.resetResources();
+        istreams = DynAssetGenClientPlanner.getResources();
     }
 
     @Nullable
@@ -61,7 +64,7 @@ public class DynAssetGenClientResourcePack implements PackResources {
     public boolean hasResource(PackType packType, ResourceLocation location) {
         if (packType == PackType.CLIENT_RESOURCES) {
             if (istreams.containsKey(location)) {
-                return true;
+                return istreams.get(location).get() != null;
             }
         }
         return false;

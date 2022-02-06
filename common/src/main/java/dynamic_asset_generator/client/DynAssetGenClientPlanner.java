@@ -1,10 +1,9 @@
-package dynamic_asset_generator;
+package dynamic_asset_generator.client;
 
-import dynamic_asset_generator.api.PlannedPaletteCombinedImage;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import dynamic_asset_generator.DynamicAssetGenerator;
+import dynamic_asset_generator.client.palette.Palette;
+import dynamic_asset_generator.client.util.IPalettePlan;
 import net.minecraft.resources.ResourceLocation;
-import dynamic_asset_generator.palette.Palette;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -16,24 +15,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-@Environment(EnvType.CLIENT)
-public class DynAssetGenPlanner {
-    private static Map<ResourceLocation, Supplier<PlannedPaletteCombinedImage>> plannedPaletteCombinedImages = new HashMap<>();
+public class DynAssetGenClientPlanner {
+    private static Map<ResourceLocation, Supplier<IPalettePlan>> plannedPaletteCombinedImages = new HashMap<>();
     private static Map<ResourceLocation, Supplier<InputStream>> miscResources = new HashMap<>();
 
-    public static void planPaletteCombinedImage(ResourceLocation rl, PlannedPaletteCombinedImage image) {
+    public static void planPaletteCombinedImage(ResourceLocation rl, IPalettePlan image) {
         plannedPaletteCombinedImages.put(rl, () -> image);
     }
 
-    public static void planPaletteCombinedImage(ResourceLocation rl, Supplier<PlannedPaletteCombinedImage> image) {
+    public static void planPaletteCombinedImage(ResourceLocation rl, Supplier<IPalettePlan> image) {
         plannedPaletteCombinedImages.put(rl, image);
     }
 
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
         Map<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
         for (ResourceLocation key : plannedPaletteCombinedImages.keySet()) {
-            PlannedPaletteCombinedImage planned = plannedPaletteCombinedImages.get(key).get();
-            BufferedImage image = Palette.paletteCombinedImage(planned);
+            IPalettePlan planned = plannedPaletteCombinedImages.get(key).get();
+            BufferedImage image = Palette.paletteCombinedImage(key, planned);
             if (image != null) {
                 Supplier<InputStream> s = () -> {
                     try {
