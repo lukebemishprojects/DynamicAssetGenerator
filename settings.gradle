@@ -15,4 +15,4 @@ include("common")
 include("fabric")
 include("forge")
 
-rootProject.name = "mod_template"
+rootProject.name = "palette_extractor"

@@ -1,3 +1,3 @@
-# Mod Template
+# Palette Extractor
 
 README goes here
