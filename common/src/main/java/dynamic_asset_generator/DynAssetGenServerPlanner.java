@@ -13,4 +13,8 @@ public class DynAssetGenServerPlanner {
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
         return data;
     }
+
+    public static void planLoadingStream(ResourceLocation location, Supplier<InputStream> sup) {
+        data.put(location, sup);
+    }
 }

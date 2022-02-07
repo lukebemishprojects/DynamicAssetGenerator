@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.1.3
+
+- Add server data features.
+
 ### Dynamic Asset Generator v0.1.2
 
 - Fix out of bounds issue.
