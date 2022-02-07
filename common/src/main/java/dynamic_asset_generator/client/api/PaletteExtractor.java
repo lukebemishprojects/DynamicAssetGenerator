@@ -96,26 +96,41 @@ public class PaletteExtractor {
                 }
             }
         }
+        List<PostQueueEvent> postQueueQueue = new ArrayList<>();
         for (PostCalcEvent e : postQueue) {
             int x = e.x();
             int y = e.y();
             int distIndex = e.distIndex();
             ColorHolder wColor = e.wColor();
-            ColorHolder bColor = backgroundPalette.getColor(distIndex);
-            List<Double> dists = frontColors.getStream().map((c) -> wColor.distanceTo(ColorHolder.alphaBlend(c.withA(0.20f), bColor))).toList();
-            int lowIndex = 0;
+            int f_index = 0;
+            int b_index = 0;
             double lowest = 2d;
-            for (int i = 0; i < dists.size(); i++) {
-                if (dists.get(i) < lowest) {
-                    lowIndex = i;
-                    lowest = dists.get(i);
+            for (int f = 0; f < frontColors.getSize(); f++) {
+                for (int b = 0; b < backgroundPaletteSize; b++) {
+                    ColorHolder bColor = backgroundPalette.getColor(b);
+                    ColorHolder fColor = frontColors.getColor(f);
+                    double dist = wColor.distanceTo(ColorHolder.alphaBlend(fColor.withA(0.20f), bColor));
+                    if (dist < lowest) {
+                        lowest = dist;
+                        f_index = f;
+                        b_index = b;
+                    }
                 }
             }
-            o_img.setRGB(x,y,ColorHolder.toColorInt(frontColors.getColor(lowIndex).withA(.20f)));
+            if (lowest != 2d) {
+                p_img.setRGB(x, y, ColorHolder.toColorInt(new ColorHolder(1f / backgroundPaletteSize * b_index)));
+                o_img.setRGB(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(.20f)));
+            } else {
+                postQueueQueue.add(new PostQueueEvent(x,y,wColor));
+            }
+        }
+        for (PostQueueEvent e : postQueueQueue) {
+            o_img.setRGB(e.x,e.y, ColorHolder.toColorInt(e.cHolder.withA(1f)));
         }
         this.overlayImg = o_img;
         this.palettedImg = p_img;
     }
 
     private static record PostCalcEvent(int x, int y, int distIndex, ColorHolder wColor) {}
+    private static record PostQueueEvent(int x, int y, ColorHolder cHolder) {}
 }
