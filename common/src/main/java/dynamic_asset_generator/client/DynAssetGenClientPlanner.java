@@ -1,6 +1,7 @@
 package dynamic_asset_generator.client;
 
 import dynamic_asset_generator.DynamicAssetGenerator;
+import dynamic_asset_generator.api.ResettingSupplier;
 import dynamic_asset_generator.client.palette.Palette;
 import dynamic_asset_generator.client.util.IPalettePlan;
 import net.minecraft.resources.ResourceLocation;
@@ -48,6 +49,9 @@ public class DynAssetGenClientPlanner {
             }
         }
         for (ResourceLocation key : miscResources.keySet()) {
+            if (miscResources.get(key) instanceof ResettingSupplier) {
+                ((ResettingSupplier) miscResources.get(key)).reset();
+            }
             output.put(key, miscResources.get(key));
         }
         return output;

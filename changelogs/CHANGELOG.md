@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.1.4
+
+- Add resetting suppliers.
+
 ### Dynamic Asset Generator v0.1.3
 
 - Add server data features.
