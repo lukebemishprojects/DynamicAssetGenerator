@@ -20,7 +20,7 @@ public class PaletteExtractor {
         }
     }
 
-    private static final double CLOSE_CUTOFF = 0.3;
+    private final double closeCutoff;
 
     private final ResourceLocation background;
     private final ResourceLocation withOverlay;
@@ -31,17 +31,22 @@ public class PaletteExtractor {
     private BufferedImage overlayImg;
     private BufferedImage palettedImg;
 
-    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors) {
+    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
         this.background = background;
         this.withOverlay = withOverlay;
         this.extend = extend;
         this.trimTrailingPaletteLookup = trimTrailingPaletteLookup;
         this.forceOverlayNeighbors = forceOverlayNeighbors;
+        this.closeCutoff = closeCutoff;
         toRefresh.add(this);
     }
 
     public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend) {
-        this(background,withOverlay,extend,false,false);
+        this(background,withOverlay,extend,false,false,0.3);
+    }
+
+    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors) {
+        this(background,withOverlay,extend,trimTrailingPaletteLookup,forceOverlayNeighbors,0.3);
     }
 
     public BufferedImage getOverlayImg() throws IOException {
@@ -69,7 +74,7 @@ public class PaletteExtractor {
         //Assemble palette for b_img
         BufferedImage o_img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_ARGB);
         BufferedImage p_img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_ARGB);
-        Palette backgroundPalette = Palette.extractPalette(b_img, extend);
+        Palette backgroundPalette = Palette.extractPalette(b_img, 0);
         int backgroundPaletteSize = backgroundPalette.getSize();
 
         double maxDiff = 0;
@@ -94,7 +99,7 @@ public class PaletteExtractor {
                     int w_i = backgroundPalette.closestTo(w_c);
                     int b_i = backgroundPalette.closestTo(b_c);
                     if (w_i != b_i) {
-                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/backgroundPaletteSize*w_i)));
+                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*w_i)));
                     }
                 } else {
                     //the color sampled isn't in the palette. Now it gets painful...
@@ -103,9 +108,9 @@ public class PaletteExtractor {
                     int distIndex = backgroundPalette.closestTo(w_c);
                     ColorHolder closestP = backgroundPalette.getColor(distIndex);
                     //Now let's check how close it is.
-                    if (closestP.distanceTo(w_c) <= CLOSE_CUTOFF * maxDiff) {
+                    if (closestP.distanceTo(w_c) <= closeCutoff * maxDiff) {
                         //Add it to the post-processing queue
-                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/backgroundPaletteSize*distIndex)));
+                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*distIndex)));
                         postQueue.add(new PostCalcEvent(x,y,distIndex,w_c));
                     } else {
                         //It's too far away. Write to the overlay.
@@ -137,7 +142,7 @@ public class PaletteExtractor {
                 }
             }
             if (lowest != 2d) {
-                p_img.setRGB(x, y, ColorHolder.toColorInt(new ColorHolder(1f / backgroundPaletteSize * b_index)));
+                p_img.setRGB(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize-1) * b_index)));
                 o_img.setRGB(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(.20f)));
             } else {
                 postQueueQueue.add(new PostQueueEvent(x,y,wColor));
@@ -171,7 +176,7 @@ public class PaletteExtractor {
                     }
                     if (forceOverlayNeighbors && hasFullNeighbor && ColorHolder.fromColorInt(o_img.getRGB(x,y)).getA() == 0) {
                         ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
-                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f / backgroundPaletteSize * backgroundPalette.closestTo(w_c))));
+                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize-1) * backgroundPalette.closestTo(w_c))));
                     }
                 }
             }

@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.1.7
+
+- More palette extractor improvements, including the ability to change the closeness cutoff.
+
 ### Dynamic Asset Generator v0.1.6
 
 - More improvements to extractors - added two new settings targeted at extracting ore textures.
