@@ -25,15 +25,23 @@ public class PaletteExtractor {
     private final ResourceLocation background;
     private final ResourceLocation withOverlay;
     public final int extend;
+    public final boolean trimTrailingPaletteLookup;
+    private final boolean forceOverlayNeighbors;
 
     private BufferedImage overlayImg;
     private BufferedImage palettedImg;
 
-    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend) {
+    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors) {
         this.background = background;
         this.withOverlay = withOverlay;
         this.extend = extend;
+        this.trimTrailingPaletteLookup = trimTrailingPaletteLookup;
+        this.forceOverlayNeighbors = forceOverlayNeighbors;
         toRefresh.add(this);
+    }
+
+    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend) {
+        this(background,withOverlay,extend,false,false);
     }
 
     public BufferedImage getOverlayImg() throws IOException {
@@ -138,6 +146,37 @@ public class PaletteExtractor {
         for (PostQueueEvent e : postQueueQueue) {
             o_img.setRGB(e.x,e.y, ColorHolder.toColorInt(e.cHolder.withA(1f)));
         }
+
+        if (trimTrailingPaletteLookup || forceOverlayNeighbors) {
+            for (int x = 0; x < dim; x++) {
+                for (int y = 0; y < dim; y++) {
+                    boolean hasNeighbor = false;
+                    boolean hasFullNeighbor = false;
+                    int[] xs = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+                    int[] ys = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+                    for (int j = 0; j < xs.length; j++) {
+                        int xt = x + xs[j];
+                        int yt = y + ys[j];
+                        if (0 <= xt && xt < dim && 0 <= yt && yt < dim) {
+                            if (ColorHolder.fromColorInt(o_img.getRGB(xt, yt)).getA() != 0) {
+                                hasNeighbor = true;
+                            }
+                            if (ColorHolder.fromColorInt(o_img.getRGB(xt, yt)).getA() == 1f) {
+                                hasFullNeighbor = true;
+                            }
+                        }
+                    }
+                    if (trimTrailingPaletteLookup && !hasNeighbor) {
+                        p_img.setRGB(x, y, 0);
+                    }
+                    if (forceOverlayNeighbors && hasFullNeighbor && ColorHolder.fromColorInt(o_img.getRGB(x,y)).getA() == 0) {
+                        ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
+                        p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f / backgroundPaletteSize * backgroundPalette.closestTo(w_c))));
+                    }
+                }
+            }
+        }
+
         this.overlayImg = o_img;
         this.palettedImg = p_img;
     }

@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.1.6
+
+- More improvements to extractors - added two new settings targeted at extracting ore textures.
+
 ### Dynamic Asset Generator v0.1.5
 
 - General improvments to extracors
