@@ -89,8 +89,47 @@ public class ColorHolder implements Comparable<ColorHolder> {
     }
 
     public double distanceTo(ColorHolder c) {
-        return Math.sqrt((this.r-c.getR())*(this.r-c.getR())+
-                (this.g-c.getG())*(this.g-c.getG())+
-                (this.b-c.getB())*(this.b-c.getB()));
+        ColorHolder c1 = c.toHSL();
+        ColorHolder c2 = this.toHSL();
+        return Math.sqrt(//(c2.r-c1.getR())*(c2.r-c1.getR())+
+                (c2.g-c1.getG())*(c2.g-c1.getG())+
+                (c2.b-c1.getB())*(c2.b-c1.getB()));
+    }
+
+    public ColorHolder toHSL() {
+        float cMax = max(this.r,this.g,this.b);
+        float cMin = min(this.r,this.g,this.b);
+        float delta = cMax - cMin;
+        float l = (cMax + cMin)/2;
+        float s = 0;
+        float h = 0;
+        if (delta == 0) {
+            h = 0;
+            s = 0;
+        } else {
+            s = delta/(1-Math.abs(2*l-1));
+            if (cMax == this.r) {
+                h = (this.g-this.b)/delta;
+            } else if (cMax == this.g) {
+                h = 2 + (this.b-this.r)/delta;
+            } else if (cMax == this.b) {
+                h = 4 + (this.r-this.g)/delta;
+            }
+            h = h / 6;
+            if (h<0) {
+                h += 1;
+            } else if (h>1) {
+                h -= 1;
+            }
+        }
+        return new ColorHolder(h,s,l);
+    }
+
+    private static float max(float a, float b, float c) {
+        return Math.max(Math.max(a,b),c);
+    }
+
+    private static float min(float a, float b, float c) {
+        return Math.min(Math.min(a,b),c);
     }
 }

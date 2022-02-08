@@ -1,8 +1,6 @@
 package dynamic_asset_generator.mixin;
 
-import dynamic_asset_generator.DynAssetGenServerDataPack;
 import dynamic_asset_generator.DynamicAssetGenerator;
-import dynamic_asset_generator.api.ServerPrePackRepository;
 import dynamic_asset_generator.client.DynAssetGenClientResourcePack;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -23,18 +21,6 @@ import java.util.concurrent.Executor;
 @Mixin(SimpleReloadableResourceManager.class)
 public abstract class SimpleReloadableResourceManagerMixin {
 
-
-    @Inject(method = "createReload", at = @At(value = "HEAD"))
-    private void dynamic_asset_generator_reloadPrePack(Executor preparationExecutor,
-                                                       Executor reloadExecutor,
-                                                       CompletableFuture<Unit> afterPreparation,
-                                                       List<PackResources> packs,
-                                                       CallbackInfoReturnable<ReloadInstance> cir) {
-        if (type == PackType.SERVER_DATA) {
-            ServerPrePackRepository.loadResources(packs);
-        }
-    }
-
     @Inject(method = "createReload", at = @At(value = "RETURN", shift = At.Shift.BEFORE))
     private void dynamic_asset_generator_insertResourcePack(Executor preparationExecutor,
                                                             Executor reloadExecutor,
@@ -44,9 +30,6 @@ public abstract class SimpleReloadableResourceManagerMixin {
         if (type == PackType.CLIENT_RESOURCES) {
             DynamicAssetGenerator.LOGGER.info("Registering assets...");
             add(new DynAssetGenClientResourcePack());
-        } else if (type == PackType.SERVER_DATA) {
-            DynamicAssetGenerator.LOGGER.info("Registering data...");
-            add(new DynAssetGenServerDataPack());
         }
     }
 

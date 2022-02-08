@@ -1,5 +1,6 @@
 package dynamic_asset_generator;
 
+import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -18,12 +19,20 @@ public class DynAssetGenServerDataPack implements PackResources {
 
     public DynAssetGenServerDataPack() {
         istreams = DynAssetGenServerPlanner.getResources();
+        for (Supplier<InputStream> s : istreams.values()) {
+            s.get();
+        }
     }
 
     @Nullable
     @Override
     public InputStream getRootResource(String location) throws IOException {
-        throw new IOException("Could not find resource in generated data: " + location.toString());
+        if(!location.contains("/") && !location.contains("\\")) {
+            Supplier<InputStream> supplier = this.istreams.get(location);
+            return supplier.get();
+        } else {
+            throw new IllegalArgumentException("File name can't be a path");
+        }
     }
 
     @Override
@@ -79,7 +88,14 @@ public class DynAssetGenServerDataPack implements PackResources {
     @Nullable
     @Override
     public <T> T getMetadataSection(MetadataSectionSerializer<T> serializer) throws IOException {
-        return null;
+        if(serializer.getMetadataSectionName().equals("pack")) {
+            JsonObject object = new JsonObject();
+            object.addProperty("pack_format", 8);
+            object.addProperty("description", "runtime resource pack");
+            return serializer.fromJson(object);
+        }
+        DynamicAssetGenerator.LOGGER.info("'" + serializer.getMetadataSectionName() + "' is an unsupported metadata key!");
+        return serializer.fromJson(new JsonObject());
     }
 
     @Override

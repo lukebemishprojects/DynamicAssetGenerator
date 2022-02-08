@@ -20,7 +20,7 @@ public class PaletteExtractor {
         }
     }
 
-    private static final double CLOSE_CUTOFF = 0.2;
+    private static final double CLOSE_CUTOFF = 0.3;
 
     private final ResourceLocation background;
     private final ResourceLocation withOverlay;
@@ -64,6 +64,17 @@ public class PaletteExtractor {
         Palette backgroundPalette = Palette.extractPalette(b_img, extend);
         int backgroundPaletteSize = backgroundPalette.getSize();
 
+        double maxDiff = 0;
+        for (int x = 0; x < dim; x++) {
+            for (int y = 0; y < dim; y++) {
+                ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
+                double diff = w_c.distanceTo(backgroundPalette.getColor(backgroundPalette.closestTo(w_c)));
+                if (diff > maxDiff) {
+                    maxDiff = diff;
+                }
+            }
+        }
+
         Palette frontColors = new Palette(5f/255f);
         ArrayList<PostCalcEvent> postQueue = new ArrayList<>();
         //write paletted image base stuff
@@ -84,7 +95,7 @@ public class PaletteExtractor {
                     int distIndex = backgroundPalette.closestTo(w_c);
                     ColorHolder closestP = backgroundPalette.getColor(distIndex);
                     //Now let's check how close it is.
-                    if (closestP.distanceTo(w_c) <= CLOSE_CUTOFF) {
+                    if (closestP.distanceTo(w_c) <= CLOSE_CUTOFF * maxDiff) {
                         //Add it to the post-processing queue
                         p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/backgroundPaletteSize*distIndex)));
                         postQueue.add(new PostCalcEvent(x,y,distIndex,w_c));

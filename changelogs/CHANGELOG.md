@@ -1,3 +1,8 @@
+### Dynamic Asset Generator v0.1.5
+
+- General improvments to extracors
+- Server data is wack. Currently only works for tags that already exists, but whatever. Try to avoid using where possible.
+
 ### Dynamic Asset Generator v0.1.4
 
 - Add resetting suppliers.
