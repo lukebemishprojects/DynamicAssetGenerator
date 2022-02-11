@@ -74,7 +74,7 @@ public class PaletteExtractor {
         //Assemble palette for b_img
         BufferedImage o_img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_ARGB);
         BufferedImage p_img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_ARGB);
-        Palette backgroundPalette = Palette.extractPalette(b_img, 0);
+        Palette backgroundPalette = Palette.extractPalette(b_img, extend);
         int backgroundPaletteSize = backgroundPalette.getSize();
 
         double maxDiff = 0;

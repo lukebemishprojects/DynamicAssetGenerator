@@ -1,6 +1,7 @@
 package dynamic_asset_generator.client;
 
 import dynamic_asset_generator.DynamicAssetGenerator;
+import dynamic_asset_generator.ModConfig;
 import dynamic_asset_generator.api.ResettingSupplier;
 import dynamic_asset_generator.client.palette.Palette;
 import dynamic_asset_generator.client.util.IPalettePlan;
@@ -8,10 +9,10 @@ import net.minecraft.resources.ResourceLocation;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -21,10 +22,30 @@ public class DynAssetGenClientPlanner {
     private static Map<ResourceLocation, Supplier<InputStream>> miscResources = new HashMap<>();
 
     public static void planPaletteCombinedImage(ResourceLocation rl, IPalettePlan image) {
-        plannedPaletteCombinedImages.put(rl, () -> image);
+        planPaletteCombinedImage(rl, () -> image);
     }
 
     public static void planPaletteCombinedImage(ResourceLocation rl, Supplier<IPalettePlan> image) {
+        if(DynamicAssetGenerator.getConfig().cacheAssets) {
+            try {
+                if (!Files.exists(ModConfig.ASSET_CACHE_FOLDER)) Files.createDirectories(ModConfig.ASSET_CACHE_FOLDER);
+                if (Files.exists(ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()))) {
+                    miscResources.put(rl, () -> {
+                        try {
+                            File file = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()).toFile();
+                            if (file.isFile()) {
+                                return new FileInputStream(file);
+                            }
+                        } catch (IOException e) {
+                        }
+                        return null;
+                    });
+                    return;
+                }
+            } catch (IOException e) {
+                DynamicAssetGenerator.LOGGER.error("Could not cache asset...");
+            }
+        }
         plannedPaletteCombinedImages.put(rl, image);
     }
 
@@ -54,10 +75,45 @@ public class DynAssetGenClientPlanner {
             }
             output.put(key, miscResources.get(key));
         }
+        for (ResourceLocation rl : output.keySet()) {
+            Supplier<InputStream> d = output.get(rl);
+            InputStream stream = d.get();
+            if (DynamicAssetGenerator.getConfig().cacheAssets) {
+                try {
+                    Path path = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
+                    if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
+                    if (!Files.exists(path)) {
+                        Files.copy(stream,path, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (IOException e) {
+                    DynamicAssetGenerator.LOGGER.error("Could not save asset...",e);
+                }
+            }
+        }
         return output;
     }
 
     public static void planLoadingStream(ResourceLocation location, Supplier<InputStream> sup) {
+        if(DynamicAssetGenerator.getConfig().cacheAssets) {
+            try {
+                if (!Files.exists(ModConfig.ASSET_CACHE_FOLDER)) Files.createDirectories(ModConfig.ASSET_CACHE_FOLDER);
+                if (Files.exists(ModConfig.ASSET_CACHE_FOLDER.resolve(location.getNamespace()).resolve(location.getPath()))) {
+                    miscResources.put(location, () -> {
+                        try {
+                            File file = ModConfig.ASSET_CACHE_FOLDER.resolve(location.getNamespace()).resolve(location.getPath()).toFile();
+                            if (file.isFile()) {
+                                return new FileInputStream(file);
+                            }
+                        } catch (IOException e) {
+                        }
+                        return null;
+                    });
+                    return;
+                }
+            } catch (IOException e) {
+                DynamicAssetGenerator.LOGGER.error("Could not cache asset...",e);
+            }
+        }
         miscResources.put(location, sup);
     }
 }

@@ -8,4 +8,13 @@ public class DynamicAssetGenerator {
     public static final String MOD_ID = "dynamic_asset_generator";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(MOD_ID, "textures/empty.png");
+
+    private static ModConfig configs;
+
+    public static ModConfig getConfig() {
+        if (configs == null) {
+            configs = ModConfig.get();
+        }
+        return configs;
+    }
 }

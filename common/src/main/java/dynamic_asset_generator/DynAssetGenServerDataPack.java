@@ -19,9 +19,6 @@ public class DynAssetGenServerDataPack implements PackResources {
 
     public DynAssetGenServerDataPack() {
         istreams = DynAssetGenServerPlanner.getResources();
-        for (Supplier<InputStream> s : istreams.values()) {
-            s.get();
-        }
     }
 
     @Nullable

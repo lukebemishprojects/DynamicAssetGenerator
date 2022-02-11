@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.2.0
+
+- Ability to cache data between runs to save load time. Disabled by default.
+
 ### Dynamic Asset Generator v0.1.7
 
 - More palette extractor improvements, including the ability to change the closeness cutoff.

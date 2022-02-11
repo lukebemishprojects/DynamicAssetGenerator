@@ -7,15 +7,15 @@ public class DynamicAssetGeneratorClient {
         String background = "textures/block/stone.png";
         PaletteExtractor extractor = new PaletteExtractor(new ResourceLocation("minecraft","textures/block/stone.png"),
                 new ResourceLocation("minecraft","textures/block/copper_ore.png"),6,true, true,0.2);
-        IPalettePlan plan = new ForegroundTransferType(extractor, new ResourceLocation("minecraft",background),
+        IPalettePlan plan = new ForegroundTransferType(extractor, new ResourceLocation("minecraft","textures/block/calcite.png"),
                 true, false);
         PaletteExtractor extractor2 = new PaletteExtractor(new ResourceLocation("minecraft","textures/block/stone.png"),
-                new ResourceLocation("minecraft","textures/block/redstone_ore.png"), 6,true, true,0.2);
+                new ResourceLocation("minecraft","textures/block/copper_ore.png"), 6,true, true,0.2);
         IPalettePlan plan2 = new ForegroundTransferType(extractor2, new ResourceLocation("minecraft",background),
                 true, false);
         PaletteExtractor extractor3 = new PaletteExtractor(new ResourceLocation("minecraft","textures/block/stone.png"),
-                new ResourceLocation("minecraft","textures/block/coal_ore.png"), 6,true,true,0.2);
-        IPalettePlan plan3 = new ForegroundTransferType(extractor3, new ResourceLocation("minecraft",background),
+                new ResourceLocation("minecraft","textures/block/copper_ore.png"), 6,true,true,0.2);
+        IPalettePlan plan3 = new ForegroundTransferType(extractor3, new ResourceLocation("minecraft","textures/block/granite.png"),
                 true, false);
         DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/end_stone.png"), plan);
         DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/cobblestone.png"), plan2);
