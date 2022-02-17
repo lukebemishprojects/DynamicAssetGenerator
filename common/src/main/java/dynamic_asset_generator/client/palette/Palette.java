@@ -71,9 +71,9 @@ public class Palette {
         int outIndex = 0;
         double minDist = 2d;
         for (ColorHolder c : colors) {
-            if (c.distanceToLS(holder) < minDist) {
+            if (c.distanceToLab(holder) < minDist) {
                 outIndex = index;
-                minDist = c.distanceToLS(holder);
+                minDist = c.distanceToLab(holder);
             }
             index++;
         }

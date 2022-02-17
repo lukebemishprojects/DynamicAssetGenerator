@@ -37,7 +37,7 @@ public class PaletteExtractor {
         this.extend = extend;
         this.trimTrailingPaletteLookup = trimTrailingPaletteLookup;
         this.forceOverlayNeighbors = forceOverlayNeighbors;
-        this.closeCutoff = closeCutoff;
+        this.closeCutoff = closeCutoff*1.5;
         toRefresh.add(this);
     }
 
@@ -77,22 +77,11 @@ public class PaletteExtractor {
         Palette backgroundPalette = Palette.extractPalette(b_img, extend);
         int backgroundPaletteSize = backgroundPalette.getSize();
 
-        float rAvg = 0;
-        float gAvg = 0;
-        float bAvg = 0;
-        for (ColorHolder x : backgroundPalette.getStream().toList()) {
-            rAvg+=x.getR();
-            gAvg+=x.getG();
-            bAvg+=x.getB();
-        }
-
-        ColorHolder avgBackgroundColor = new ColorHolder(rAvg/backgroundPaletteSize,gAvg/backgroundPaletteSize,bAvg/backgroundPaletteSize);
-
         double maxDiff = 0;
         for (int x = 0; x < dim; x++) {
             for (int y = 0; y < dim; y++) {
                 ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
-                double diff = w_c.distanceToLS(avgBackgroundColor);
+                double diff = w_c.distanceToLS(backgroundPalette.getColor(backgroundPalette.closestTo(w_c)));
                 if (diff > maxDiff) {
                     maxDiff = diff;
                 }
@@ -122,7 +111,7 @@ public class PaletteExtractor {
                     if (closestP.distanceToLS(w_c) <= closeCutoff * maxDiff) {
                         //Add it to the post-processing queue
                         p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*distIndex)));
-                        postQueue.add(new PostCalcEvent(x,y,w_c));
+                        postQueue.add(new PostCalcEvent(x,y,w_c,closestP.distanceToLS(w_c)));
                     } else {
                         //It's too far away. Write to the overlay.
                         o_img.setRGB(x,y,ColorHolder.toColorInt(w_c));
@@ -131,38 +120,41 @@ public class PaletteExtractor {
                 }
             }
         }
-        List<PostQueueEvent> postQueueQueue = new ArrayList<>();
         for (PostCalcEvent e : postQueue) {
             int x = e.x();
             int y = e.y();
             ColorHolder wColor = e.wColor();
             int f_index = 0;
             int b_index = 0;
-            double lowest = closeCutoff * maxDiff;
-            for (int f = 0; f < frontColors.getSize(); f++) {
-                for (int b = 0; b < backgroundPaletteSize; b++) {
-                    ColorHolder bColor = backgroundPalette.getColor(b);
-                    ColorHolder fColor = frontColors.getColor(f);
-                    double dist = wColor.distanceToLS(ColorHolder.alphaBlend(fColor.withA(0.20f), bColor));
-                    if (dist < lowest) {
-                        lowest = dist;
-                        f_index = f;
-                        b_index = b;
+            double lowest = maxDiff*closeCutoff;
+            float alpha = 0f;
+            for (float a = 0.1f; a <= 0.25f; a+=0.05) {
+                for (int f = 0; f < frontColors.getSize(); f++) {
+                    for (int b = 0; b < backgroundPaletteSize; b++) {
+                        ColorHolder bColor = backgroundPalette.getColor(b);
+                        ColorHolder fColor = frontColors.getColor(f);
+                        double dist = wColor.distanceToLS(ColorHolder.alphaBlend(fColor.withA(a), bColor));
+                        if (dist < lowest) {
+                            lowest = dist;
+                            alpha = a;
+                            f_index = f;
+                            b_index = b;
+                        }
                     }
                 }
             }
+            int frontIndex = frontColors.closestTo(wColor);
             int closeIndex = backgroundPalette.closestTo(wColor);
-            if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) < lowest) {
+            if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) > wColor.distanceToLS(frontColors.getColor(frontIndex))) {
+                o_img.setRGB(x,y,ColorHolder.toColorInt(wColor.withA(1.0f)));
+            } else if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) < lowest) {
                 p_img.setRGB(x,y,ColorHolder.toColorInt(backgroundPalette.getColor(closeIndex)));
-            } else if (lowest < closeCutoff * maxDiff) {
+            } else if (lowest < maxDiff*closeCutoff) {
                 p_img.setRGB(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize-1) * b_index)));
-                o_img.setRGB(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(.20f)));
+                o_img.setRGB(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(alpha)));
             } else {
-                postQueueQueue.add(new PostQueueEvent(x,y,wColor));
+                o_img.setRGB(x,y,ColorHolder.toColorInt(wColor.withA(1.0f)));
             }
-        }
-        for (PostQueueEvent e : postQueueQueue) {
-            o_img.setRGB(e.x,e.y, ColorHolder.toColorInt(e.cHolder.withA(1f)));
         }
 
         if (trimTrailingPaletteLookup || forceOverlayNeighbors) {
@@ -199,6 +191,5 @@ public class PaletteExtractor {
         this.palettedImg = p_img;
     }
 
-    private static record PostCalcEvent(int x, int y, ColorHolder wColor) {}
-    private static record PostQueueEvent(int x, int y, ColorHolder cHolder) {}
+    private static record PostCalcEvent(int x, int y, ColorHolder wColor,double dist) {}
 }

@@ -119,7 +119,7 @@ public class ColorHolder implements Comparable<ColorHolder> {
         ColorHolder c1 = c.toCIELAB();
         ColorHolder c2 = this.toCIELAB();
         return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
-                (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/6;
+                (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/2;
     }
 
     public ColorHolder toHLS() {
