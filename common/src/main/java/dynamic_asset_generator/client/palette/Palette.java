@@ -2,25 +2,31 @@ package dynamic_asset_generator.client.palette;
 
 import dynamic_asset_generator.DynamicAssetGenerator;
 import dynamic_asset_generator.client.util.IPalettePlan;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class Palette {
-    private final ArrayList<ColorHolder> colors = new ArrayList<>();
+    private final ArrayList<ColorHolder> colors;
     private final float inPaletteCutoff;
 
     public Palette(float inPaletteCutoff) {
+        this.colors = new ArrayList<>();
         this.inPaletteCutoff = inPaletteCutoff;
+    }
+    public Palette(List<ColorHolder> colors) {
+        this.colors = new ArrayList<>(colors);
+        this.colors.sort(ColorHolder::compareTo);
+        this.inPaletteCutoff = 5f/255f;
     }
 
     public boolean isInPalette(ColorHolder color) {
+        if (color.getA() == 0) return false;
         for (ColorHolder c : colors) {
             if ((Math.abs(c.getR()-color.getR()) < this.inPaletteCutoff) &&
                     (Math.abs(c.getG()-color.getG()) < this.inPaletteCutoff) &&
@@ -65,9 +71,9 @@ public class Palette {
         int outIndex = 0;
         double minDist = 2d;
         for (ColorHolder c : colors) {
-            if (c.distanceTo(holder) < minDist) {
+            if (c.distanceToLS(holder) < minDist) {
                 outIndex = index;
-                minDist = c.distanceTo(holder);
+                minDist = c.distanceToLS(holder);
             }
             index++;
         }
@@ -82,22 +88,27 @@ public class Palette {
             for (int y = 0; y < h; y++) {
                 int c_int = image.getRGB(x,y);
                 ColorHolder c = ColorHolder.fromColorInt(c_int);
-                if (!palette.isInPalette(c)) {
+                if (c.getA()!=0 && !palette.isInPalette(c)) {
                     palette.colors.add(new ColorHolder(c.getR(), c.getG(), c.getB()));
                 }
             }
         }
-        Collections.sort(palette.colors);
+        palette.extendPalette(extend);
+        return palette;
+    }
+
+    public Palette extendPalette(int extend) {
+        Collections.sort(this.colors);
         // Extend the palette if necessary (if it's less than 6 colors)
-        while (palette.colors.size() < extend) {
-            ColorHolder high = palette.colors.get(palette.colors.size()-1);
-            ColorHolder low = palette.colors.get(0);
+        while (this.colors.size() < extend) {
+            ColorHolder high = this.colors.get(this.colors.size()-1);
+            ColorHolder low = this.colors.get(0);
             ColorHolder highNew = new ColorHolder(high.getR() * .9f + .1f, high.getG() * .9f + .1f, high.getB() * .9f + .1f);
             ColorHolder lowNew = new ColorHolder(low.getR() * .9f, low.getG() * .9f, low.getB() * .9f);
-            palette.colors.add(highNew);
-            palette.colors.add(0,lowNew);
+            this.colors.add(highNew);
+            this.colors.add(0,lowNew);
         }
-        return palette;
+        return this;
     }
 
     public ColorHolder getColorAtRamp(float pos) {

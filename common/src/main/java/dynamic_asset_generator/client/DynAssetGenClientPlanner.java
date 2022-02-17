@@ -18,8 +18,9 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class DynAssetGenClientPlanner {
-    private static Map<ResourceLocation, Supplier<IPalettePlan>> plannedPaletteCombinedImages = new HashMap<>();
-    private static Map<ResourceLocation, Supplier<InputStream>> miscResources = new HashMap<>();
+    private static final Map<ResourceLocation, Supplier<IPalettePlan>> plannedPaletteCombinedImages = new HashMap<>();
+    private static final Map<ResourceLocation, Supplier<InputStream>> miscResources = new HashMap<>();
+    private static final Map<ResourceLocation, Supplier<BufferedImage>> bufferMap = new HashMap<>();
 
     public static void planPaletteCombinedImage(ResourceLocation rl, IPalettePlan image) {
         planPaletteCombinedImage(rl, () -> image);
@@ -36,7 +37,7 @@ public class DynAssetGenClientPlanner {
                             if (file.isFile()) {
                                 return new FileInputStream(file);
                             }
-                        } catch (IOException e) {
+                        } catch (IOException ignored) {
                         }
                         return null;
                     });
@@ -47,6 +48,30 @@ public class DynAssetGenClientPlanner {
             }
         }
         plannedPaletteCombinedImages.put(rl, image);
+    }
+
+    public static void planBufferedImage(ResourceLocation rl, Supplier<BufferedImage> supplier) {
+        if(DynamicAssetGenerator.getConfig().cacheAssets) {
+            try {
+                if (!Files.exists(ModConfig.ASSET_CACHE_FOLDER)) Files.createDirectories(ModConfig.ASSET_CACHE_FOLDER);
+                if (Files.exists(ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()))) {
+                    miscResources.put(rl, () -> {
+                        try {
+                            File file = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()).toFile();
+                            if (file.isFile()) {
+                                return new FileInputStream(file);
+                            }
+                        } catch (IOException ignored) {
+                        }
+                        return null;
+                    });
+                    return;
+                }
+            } catch (IOException e) {
+                DynamicAssetGenerator.LOGGER.error("Could not cache asset...");
+            }
+        }
+        bufferMap.put(rl, supplier);
     }
 
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
@@ -69,9 +94,26 @@ public class DynAssetGenClientPlanner {
                 output.put(key, s);
             }
         }
+        for (ResourceLocation key : bufferMap.keySet()) {
+            BufferedImage image = bufferMap.get(key).get();
+            if (image != null) {
+                Supplier<InputStream> s = () -> {
+                    try {
+                        ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        ImageIO.write(image, "png", os);
+                        InputStream is = new ByteArrayInputStream(os.toByteArray());
+                        return is;
+                    } catch (IOException e) {
+                        DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + key.toString());
+                    }
+                    return null;
+                };
+                output.put(key, s);
+            }
+        }
         for (ResourceLocation key : miscResources.keySet()) {
-            if (miscResources.get(key) instanceof ResettingSupplier) {
-                ((ResettingSupplier) miscResources.get(key)).reset();
+            if (miscResources.get(key) instanceof ResettingSupplier<InputStream> rs) {
+                rs.reset();
             }
             output.put(key, miscResources.get(key));
         }

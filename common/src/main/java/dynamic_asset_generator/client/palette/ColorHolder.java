@@ -1,7 +1,10 @@
 package dynamic_asset_generator.client.palette;
 
+import dynamic_asset_generator.CIELABSpace;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 public class ColorHolder implements Comparable<ColorHolder> {
     private final float r;
@@ -11,10 +14,10 @@ public class ColorHolder implements Comparable<ColorHolder> {
 
     public static int toColorInt(ColorHolder color) {
         int ret = 0;
-        ret |= (Math.round(Mth.clamp(color.getA()*255, 0, 255))&0xFF)<<24;
-        ret |= (Math.round(Mth.clamp(color.getR()*255, 0, 255))&0xFF)<<16;
-        ret |= (Math.round(Mth.clamp(color.getG()*255, 0, 255))&0xFF)<< 8;
-        ret |= (Math.round(Mth.clamp(color.getB()*255, 0, 255))&0xFF);
+        ret |= (Math.round(Mth.clamp(color.a*255, 0, 255))&0xFF)<<24;
+        ret |= (Math.round(Mth.clamp(color.r*255, 0, 255))&0xFF)<<16;
+        ret |= (Math.round(Mth.clamp(color.g*255, 0, 255))&0xFF)<< 8;
+        ret |= (Math.round(Mth.clamp(color.b*255, 0, 255))&0xFF);
         return ret;
     }
 
@@ -66,8 +69,10 @@ public class ColorHolder implements Comparable<ColorHolder> {
 
     @Override
     public int compareTo(@NotNull ColorHolder o) {
-        float mySum = this.r+this.g+this.b;
-        float otherSum = o.r+o.g+o.b;
+        ColorHolder c1 = this.toCIELAB();
+        ColorHolder c2 = o.toCIELAB();
+        float mySum = c1.r;
+        float otherSum = c2.r;
         if (mySum > otherSum) {
             return 1;
         } else if (mySum < otherSum) {
@@ -77,52 +82,114 @@ public class ColorHolder implements Comparable<ColorHolder> {
     }
 
     public static ColorHolder alphaBlend(ColorHolder over, ColorHolder under) {
-        float a0 = over.getA() + under.getA() * (1-over.getA());
-        float r0 = (over.getR()* over.getA() + under.getR()* under.getA()*(1-over.getA()))/a0;
-        float g0 = (over.getG()* over.getA() + under.getG()* under.getA()*(1-over.getA()))/a0;
-        float b0 = (over.getB()* over.getA() + under.getB()* under.getA()*(1-over.getA()))/a0;
+        float a0 = over.a + under.a * (1-over.a);
+        float r0 = (over.r* over.a + under.r* under.a*(1-over.a))/a0;
+        float g0 = (over.g* over.a + under.g* under.a*(1-over.a))/a0;
+        float b0 = (over.b* over.a + under.b* under.a*(1-over.a))/a0;
         return new ColorHolder(r0,g0,b0,a0);
     }
 
     public ColorHolder withA(float a) {
-        return new ColorHolder(this.getR(),this.getG(),this.getB(),a);
+        return new ColorHolder(this.r,this.g,this.b,a);
     }
 
-    public double distanceTo(ColorHolder c) {
-        ColorHolder c1 = c.toHSL();
-        ColorHolder c2 = this.toHSL();
-        return Math.sqrt(//(c2.r-c1.getR())*(c2.r-c1.getR())+
-                (c2.g-c1.getG())*(c2.g-c1.getG())+
-                (c2.b-c1.getB())*(c2.b-c1.getB()));
+    public double distanceToLS(ColorHolder c) {
+        ColorHolder c1 = c.toHLS();
+        ColorHolder c2 = this.toHLS();
+        return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
+                        (c2.b-c1.b)*(c2.b-c1.b));
     }
 
-    public ColorHolder toHSL() {
-        float cMax = max(this.r,this.g,this.b);
-        float cMin = min(this.r,this.g,this.b);
-        float delta = cMax - cMin;
-        float l = (cMax + cMin)/2;
-        float s = 0;
-        float h = 0;
-        if (delta == 0) {
-            h = 0;
-            s = 0;
+    public double distanceToHLS(ColorHolder c) {
+        ColorHolder c1 = c.toHLS();
+        ColorHolder c2 = this.toHLS();
+        return Math.sqrt((c2.r-c1.r)*(c2.r-c1.r)+
+                (c2.g-c1.g)*(c2.g-c1.g)+
+                (c2.b-c1.b)*(c2.b-c1.b));
+    }
+
+    public double distanceToRGB(ColorHolder c) {
+        ColorHolder c2 = this;
+        return Math.sqrt((c2.r- c.r)*(c2.r- c.r)+
+                (c2.g- c.g)*(c2.g- c.g)+
+                (c2.b- c.b)*(c2.b- c.b));
+    }
+
+    public double distanceToLab(ColorHolder c) {
+        ColorHolder c1 = c.toCIELAB();
+        ColorHolder c2 = this.toCIELAB();
+        return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
+                (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/6;
+    }
+
+    public ColorHolder toHLS() {
+        float max = max(r,g,b);
+        float min = min(r,g,b);
+        float h,s,l;
+        h = s = l = (max+min)/2;
+        if (max==min) {
+            h=s=0;
         } else {
-            s = delta/(1-Math.abs(2*l-1));
-            if (cMax == this.r) {
-                h = (this.g-this.b)/delta;
-            } else if (cMax == this.g) {
-                h = 2 + (this.b-this.r)/delta;
-            } else if (cMax == this.b) {
-                h = 4 + (this.r-this.g)/delta;
-            }
-            h = h / 6;
-            if (h<0) {
-                h += 1;
-            } else if (h>1) {
-                h -= 1;
-            }
+            float d = max-min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            int m = max==r ? 0 : max==g ? 1 : 2;
+            h = switch (m) {
+                case 0 -> (g - b) / d + (g < b ? 6 : 0);
+                case 1 -> (b - r) / d + 2;
+                default -> (r - g) / d + 4;
+            };
+            h/=6;
         }
-        return new ColorHolder(h,s,l);
+        return new ColorHolder(h,l,s);
+    }
+
+    public ColorHolder fromHLS() {
+        float h = r;
+        float l = g;
+        float s = b;
+        float _a, _b, _c, _d, _e;
+
+        if (s == 0) {
+            _c = _d = _e = l;
+        } else {
+            _a = l < 0.5 ? (l * (1 + s)) : (l + s - l * s);
+            _b = 2 * l - _a;
+            _c = hlsRgbHelper(_b, _a, h + 1.0f / 3);
+            _d = hlsRgbHelper(_b, _a, h);
+            _e = hlsRgbHelper(_b, _a, h - 1.0f / 3);
+        }
+        return new ColorHolder(_c,_d,_e);
+    }
+
+    private static float hlsRgbHelper(float p, float q, float h) {
+        if (h < 0) {
+            h += 1;
+        }
+        if (h > 1) {
+            h -= 1;
+        }
+        if (6 * h < 1) {
+            return p + ((q - p) * 6 * h);
+        }
+        if (2 * h < 1) {
+            return q;
+        }
+        if (3 * h < 2) {
+            return p + ((q - p) * 6 * ((2.0f / 3.0f) - h));
+        }
+        return p;
+    }
+
+    public ColorHolder toCIELAB() {
+        float[] c = new float[3];
+        Color color = new Color(this.r,this.g,this.b);
+        color.getColorComponents(CIELABSpace.getInstance(),c);
+        return new ColorHolder(c[0],c[1],c[2]);
+    }
+
+    public ColorHolder fromCIELAB() {
+        Color color = new Color(CIELABSpace.getInstance(), new float[] {this.r,this.g,this.b}, 1f);
+        return new ColorHolder(color.getRed(),color.getGreen(),color.getBlue());
     }
 
     private static float max(float a, float b, float c) {
@@ -131,5 +198,29 @@ public class ColorHolder implements Comparable<ColorHolder> {
 
     private static float min(float a, float b, float c) {
         return Math.min(Math.min(a,b),c);
+    }
+
+    public float get_L() {
+        return this.r;
+    }
+
+    public float get_a() {
+        return this.g;
+    }
+
+    public float get_b() {
+        return this.b;
+    }
+
+    public float getH() {
+        return this.r;
+    }
+
+    public float getL() {
+        return this.g;
+    }
+
+    public float getS() {
+        return this.b;
     }
 }

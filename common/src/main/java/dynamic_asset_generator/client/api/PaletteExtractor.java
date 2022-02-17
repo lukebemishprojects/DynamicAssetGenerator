@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PaletteExtractor {
-    private static List<PaletteExtractor> toRefresh = new ArrayList<>();
+    private static final List<PaletteExtractor> toRefresh = new ArrayList<>();
 
     public static void refresh() {
         for (PaletteExtractor i : toRefresh) {
@@ -77,11 +77,22 @@ public class PaletteExtractor {
         Palette backgroundPalette = Palette.extractPalette(b_img, extend);
         int backgroundPaletteSize = backgroundPalette.getSize();
 
+        float rAvg = 0;
+        float gAvg = 0;
+        float bAvg = 0;
+        for (ColorHolder x : backgroundPalette.getStream().toList()) {
+            rAvg+=x.getR();
+            gAvg+=x.getG();
+            bAvg+=x.getB();
+        }
+
+        ColorHolder avgBackgroundColor = new ColorHolder(rAvg/backgroundPaletteSize,gAvg/backgroundPaletteSize,bAvg/backgroundPaletteSize);
+
         double maxDiff = 0;
         for (int x = 0; x < dim; x++) {
             for (int y = 0; y < dim; y++) {
                 ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
-                double diff = w_c.distanceTo(backgroundPalette.getColor(backgroundPalette.closestTo(w_c)));
+                double diff = w_c.distanceToLS(avgBackgroundColor);
                 if (diff > maxDiff) {
                     maxDiff = diff;
                 }
@@ -108,10 +119,10 @@ public class PaletteExtractor {
                     int distIndex = backgroundPalette.closestTo(w_c);
                     ColorHolder closestP = backgroundPalette.getColor(distIndex);
                     //Now let's check how close it is.
-                    if (closestP.distanceTo(w_c) <= closeCutoff * maxDiff) {
+                    if (closestP.distanceToLS(w_c) <= closeCutoff * maxDiff) {
                         //Add it to the post-processing queue
                         p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*distIndex)));
-                        postQueue.add(new PostCalcEvent(x,y,distIndex,w_c));
+                        postQueue.add(new PostCalcEvent(x,y,w_c));
                     } else {
                         //It's too far away. Write to the overlay.
                         o_img.setRGB(x,y,ColorHolder.toColorInt(w_c));
@@ -124,16 +135,15 @@ public class PaletteExtractor {
         for (PostCalcEvent e : postQueue) {
             int x = e.x();
             int y = e.y();
-            int distIndex = e.distIndex();
             ColorHolder wColor = e.wColor();
             int f_index = 0;
             int b_index = 0;
-            double lowest = 2d;
+            double lowest = closeCutoff * maxDiff;
             for (int f = 0; f < frontColors.getSize(); f++) {
                 for (int b = 0; b < backgroundPaletteSize; b++) {
                     ColorHolder bColor = backgroundPalette.getColor(b);
                     ColorHolder fColor = frontColors.getColor(f);
-                    double dist = wColor.distanceTo(ColorHolder.alphaBlend(fColor.withA(0.20f), bColor));
+                    double dist = wColor.distanceToLS(ColorHolder.alphaBlend(fColor.withA(0.20f), bColor));
                     if (dist < lowest) {
                         lowest = dist;
                         f_index = f;
@@ -141,7 +151,10 @@ public class PaletteExtractor {
                     }
                 }
             }
-            if (lowest != 2d) {
+            int closeIndex = backgroundPalette.closestTo(wColor);
+            if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) < lowest) {
+                p_img.setRGB(x,y,ColorHolder.toColorInt(backgroundPalette.getColor(closeIndex)));
+            } else if (lowest < closeCutoff * maxDiff) {
                 p_img.setRGB(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize-1) * b_index)));
                 o_img.setRGB(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(.20f)));
             } else {
@@ -186,6 +199,6 @@ public class PaletteExtractor {
         this.palettedImg = p_img;
     }
 
-    private static record PostCalcEvent(int x, int y, int distIndex, ColorHolder wColor) {}
+    private static record PostCalcEvent(int x, int y, ColorHolder wColor) {}
     private static record PostQueueEvent(int x, int y, ColorHolder cHolder) {}
 }
