@@ -1,4 +1,8 @@
-### Dynamic Asset Generator c0.3.0
+### Dynamic Asset Generator v0.3.1
+
+- Fix crash caused by mixin weirdness.
+
+### Dynamic Asset Generator v0.3.0
 
 - Add JSON-controlled generation of textures; change backend to Forge API or ARRP (on Fabric).
 
