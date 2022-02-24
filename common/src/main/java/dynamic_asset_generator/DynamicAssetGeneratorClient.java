@@ -13,6 +13,7 @@ public class DynamicAssetGeneratorClient {
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"crop"),new Crop());
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"transform"),new Transform());
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),new ForegroundTransfer());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"color"),new ColorSource());
         //testing
 /*
         IPalettePlan p = new PlannedPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/stone.png"),
