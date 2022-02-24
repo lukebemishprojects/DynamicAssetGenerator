@@ -11,8 +11,8 @@ import java.util.List;
 
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
-    @ModifyVariable(method = {"reloadResourcePacks(Z)Ljava/util/concurrent/CompletableFuture;", "<init>"}, name = {"list"},
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/packs/repository/PackRepository;openAllSelected()Ljava/util/List;",shift = At.Shift.BY,by=2))
+    @ModifyVariable(method = {"reloadResourcePacks(Z)Ljava/util/concurrent/CompletableFuture;", "<init>"}, ordinal = 0, require = 0,
+            at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/server/packs/repository/PackRepository;openAllSelected()Ljava/util/List;",shift = At.Shift.AFTER))
     private List<PackResources> dynamic_assets_modifyList(List<PackResources> resources) {
         ClientPrePackRepository.resetResources();
         return resources;
