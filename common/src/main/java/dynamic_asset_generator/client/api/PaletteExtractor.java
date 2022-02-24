@@ -3,6 +3,7 @@ package dynamic_asset_generator.client.api;
 import dynamic_asset_generator.client.palette.ColorHolder;
 import dynamic_asset_generator.client.palette.Palette;
 import dynamic_asset_generator.client.util.ImageUtils;
+import dynamic_asset_generator.client.util.SupplierWithException;
 import net.minecraft.resources.ResourceLocation;
 
 import java.awt.image.BufferedImage;
@@ -22,8 +23,8 @@ public class PaletteExtractor {
 
     private final double closeCutoff;
 
-    private final ResourceLocation background;
-    private final ResourceLocation withOverlay;
+    private final SupplierWithException<BufferedImage,IOException> background;
+    private final SupplierWithException<BufferedImage,IOException> withOverlay;
     public final int extend;
     public final boolean trimTrailingPaletteLookup;
     private final boolean forceOverlayNeighbors;
@@ -31,7 +32,7 @@ public class PaletteExtractor {
     private BufferedImage overlayImg;
     private BufferedImage palettedImg;
 
-    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
+    public PaletteExtractor(SupplierWithException<BufferedImage,IOException> background, SupplierWithException<BufferedImage,IOException> withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
         this.background = background;
         this.withOverlay = withOverlay;
         this.extend = extend;
@@ -39,6 +40,10 @@ public class PaletteExtractor {
         this.forceOverlayNeighbors = forceOverlayNeighbors;
         this.closeCutoff = closeCutoff*1.5;
         toRefresh.add(this);
+    }
+
+    public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
+        this(()->ImageUtils.getImage(background),()->ImageUtils.getImage(withOverlay),extend,trimTrailingPaletteLookup,forceOverlayNeighbors,closeCutoff);
     }
 
     public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend) {
@@ -64,8 +69,8 @@ public class PaletteExtractor {
     }
 
     private void recalcImages() throws IOException {
-        BufferedImage b_img = ImageUtils.getImage(background);
-        BufferedImage w_img = ImageUtils.getImage(withOverlay);
+        BufferedImage b_img = background.get();
+        BufferedImage w_img = withOverlay.get();
         int b_dim = Math.min(b_img.getHeight(),b_img.getWidth());
         int w_dim = Math.min(w_img.getHeight(),w_img.getWidth());
         int dim = Math.max(b_dim,w_dim);

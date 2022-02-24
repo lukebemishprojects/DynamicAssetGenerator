@@ -1,19 +1,21 @@
 package dynamic_asset_generator.api;
 
+import dynamic_asset_generator.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServerPrePackRepository {
         //Allows resources to be found while packs are being loaded... not sure how bad of an idea this is.
-        private static List<PackResources> resources;
+        private static List<PackResources> resources = new ArrayList<>();
 
         public static void resetResources() {
-            resources = null;
+            resources = new ArrayList<>();
         }
 
         public static void loadResources(List<PackResources> r) {
@@ -23,7 +25,7 @@ public class ServerPrePackRepository {
         public static InputStream getResource(ResourceLocation rl) throws IOException {
             InputStream resource = null;
             for (PackResources r : resources) {
-                if (r.hasResource(PackType.SERVER_DATA, rl)) {
+                if (!r.getName().equals(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
                     resource = r.getResource(PackType.SERVER_DATA, rl);
                 }
             }

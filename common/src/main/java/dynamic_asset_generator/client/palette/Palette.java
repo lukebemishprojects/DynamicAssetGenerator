@@ -2,7 +2,6 @@ package dynamic_asset_generator.client.palette;
 
 import dynamic_asset_generator.DynamicAssetGenerator;
 import dynamic_asset_generator.client.util.IPalettePlan;
-import net.minecraft.resources.ResourceLocation;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -120,7 +119,7 @@ public class Palette {
         return colors.size();
     }
 
-    public static BufferedImage paletteCombinedImage(ResourceLocation outLoc, IPalettePlan plan) {
+    public static BufferedImage paletteCombinedImage(IPalettePlan plan) {
         boolean includeBackground = plan.includeBackground();
         int extend = plan.extend();
         try {
@@ -180,7 +179,7 @@ public class Palette {
             }
             return out_img;
         } catch (IOException e) {
-            DynamicAssetGenerator.LOGGER.error("Error loading resources for image: {}",outLoc.toString());
+            DynamicAssetGenerator.LOGGER.error("Error loading resources for image: {}", e);
             return null;
         }
     }

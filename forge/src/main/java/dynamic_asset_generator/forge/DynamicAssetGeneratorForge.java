@@ -13,5 +13,6 @@ public class DynamicAssetGeneratorForge {
     public DynamicAssetGeneratorForge() {
         IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> DynamicAssetGeneratorClient::init);
+        modbus.addListener(EventHandler::addResourcePack);
     }
 }

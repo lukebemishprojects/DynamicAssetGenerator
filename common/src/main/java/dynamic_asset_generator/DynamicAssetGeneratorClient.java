@@ -1,8 +1,24 @@
 package dynamic_asset_generator;
 
+import dynamic_asset_generator.client.api.JsonReaderAPI;
+import dynamic_asset_generator.client.json.*;
+import net.minecraft.resources.ResourceLocation;
+
 public class DynamicAssetGeneratorClient {
     public static void init() {
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),new TextureReader());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"combined_paletted_image"),new CombinedPaletteImage());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"overlay"),new Overlay());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"mask"),new Mask());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"crop"),new Crop());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"transform"),new Transform());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),new ForegroundTransfer());
         //testing
+/*
+        IPalettePlan p = new PlannedPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/stone.png"),
+                DynamicAssetGenerator.EMPTY_TEXTURE, new ResourceLocation("minecraft","textures/item/gold_ingot.png"),true,0,true);
+        DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/end_stone.png"),p);
+*/
 /*
         String background = "textures/block/calcite.png";
         PaletteExtractor extractor = new PaletteExtractor(new ResourceLocation("minecraft","textures/block/stone.png"),

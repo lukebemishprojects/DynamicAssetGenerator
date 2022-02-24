@@ -1,8 +1,11 @@
 package dynamic_asset_generator.client;
 
+import com.google.gson.JsonSyntaxException;
 import dynamic_asset_generator.DynamicAssetGenerator;
 import dynamic_asset_generator.ModConfig;
 import dynamic_asset_generator.api.ResettingSupplier;
+import dynamic_asset_generator.client.api.ClientPrePackRepository;
+import dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import dynamic_asset_generator.client.palette.Palette;
 import dynamic_asset_generator.client.util.IPalettePlan;
 import net.minecraft.resources.ResourceLocation;
@@ -78,7 +81,7 @@ public class DynAssetGenClientPlanner {
         Map<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
         for (ResourceLocation key : plannedPaletteCombinedImages.keySet()) {
             IPalettePlan planned = plannedPaletteCombinedImages.get(key).get();
-            BufferedImage image = Palette.paletteCombinedImage(key, planned);
+            BufferedImage image = Palette.paletteCombinedImage(planned);
             if (image != null) {
                 Supplier<InputStream> s = () -> {
                     try {
@@ -117,10 +120,41 @@ public class DynAssetGenClientPlanner {
             }
             output.put(key, miscResources.get(key));
         }
+
+        HashMap<ResourceLocation, String> sources = ClientPrePackRepository.getSourceJsons();
+        for (ResourceLocation rl : sources.keySet()) {
+            String s = sources.get(rl);
+            if (s != null) {
+                DynamicTextureJson source = DynamicTextureJson.fromJson(s);
+                if (source != null) {
+                    ResourceLocation orig_rl = ResourceLocation.of(source.output_location, ':');
+                    ResourceLocation out_rl = new ResourceLocation(orig_rl.getNamespace(), "textures/" + orig_rl.getPath() + ".png");
+                    Supplier<InputStream> sup = () -> {
+                        BufferedImage image = source.source.get();
+                        if (image != null) {
+                            try {
+                                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                                ImageIO.write(image, "png", os);
+                                InputStream is = new ByteArrayInputStream(os.toByteArray());
+                                return is;
+                            } catch (IOException e) {
+                                DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + out_rl.toString());
+                            } catch (JsonSyntaxException e) {
+                                DynamicAssetGenerator.LOGGER.error("Issue loading texture source JSON: "+rl.toString());
+                            }
+                        }
+                        return null;
+                    };
+                    output.put(out_rl, sup);
+                }
+            }
+        }
+
+
         for (ResourceLocation rl : output.keySet()) {
             Supplier<InputStream> d = output.get(rl);
-            InputStream stream = d.get();
             if (DynamicAssetGenerator.getConfig().cacheAssets) {
+                InputStream stream = d.get();
                 try {
                     Path path = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
                     if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
@@ -132,6 +166,7 @@ public class DynAssetGenClientPlanner {
                 }
             }
         }
+
         return output;
     }
 

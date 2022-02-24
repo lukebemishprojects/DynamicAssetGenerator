@@ -10,5 +10,5 @@ import java.util.List;
 @Mixin(PackRepository.class)
 public interface IPackRepositoryMixin {
     @Accessor
-    public List<Pack> getSelected();
+    List<Pack> getSelected();
 }
