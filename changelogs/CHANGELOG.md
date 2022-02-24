@@ -1,3 +1,7 @@
+### Dynamic Asset Generator c0.3.0
+
+- Add JSON-controlled generation of textures; change backend to Forge API or ARRP (on Fabric).
+
 ### Dynamic Asset Generator v0.2.0
 
 - Ability to cache data between runs to save load time. Disabled by default.
