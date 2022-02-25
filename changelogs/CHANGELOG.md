@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.3.2
+
+- Fix crash with caching
+
 ### Dynamic Asset Generator v0.3.1
 
 - Fix crash caused by mixin weirdness.

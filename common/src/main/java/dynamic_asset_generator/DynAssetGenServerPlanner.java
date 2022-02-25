@@ -18,18 +18,20 @@ public class DynAssetGenServerPlanner {
         for (ResourceLocation rl : data.keySet()) {
             Supplier<InputStream> d = data.get(rl);
             if (d instanceof ResettingSupplier) {
-                ((ResettingSupplier) d).reset();
+                ((ResettingSupplier<InputStream>) d).reset();
             }
-            InputStream stream = d.get();
             if (DynamicAssetGenerator.getConfig().cacheData) {
-                try {
-                    Path path = ModConfig.DATA_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
-                    if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
-                    if (!Files.exists(path)) {
-                        Files.copy(stream,path, StandardCopyOption.REPLACE_EXISTING);
+                InputStream stream = d.get();
+                if (stream!=null) {
+                    try {
+                        Path path = ModConfig.DATA_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
+                        if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
+                        if (!Files.exists(path)) {
+                            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    } catch (IOException e) {
+                        DynamicAssetGenerator.LOGGER.error("Could not save data...", e);
                     }
-                } catch (IOException e) {
-                    DynamicAssetGenerator.LOGGER.error("Could not save data...",e);
                 }
             }
         }

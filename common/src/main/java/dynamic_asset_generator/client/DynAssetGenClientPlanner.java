@@ -155,14 +155,16 @@ public class DynAssetGenClientPlanner {
             Supplier<InputStream> d = output.get(rl);
             if (DynamicAssetGenerator.getConfig().cacheAssets) {
                 InputStream stream = d.get();
-                try {
-                    Path path = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
-                    if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
-                    if (!Files.exists(path)) {
-                        Files.copy(stream,path, StandardCopyOption.REPLACE_EXISTING);
+                if (stream != null) {
+                    try {
+                        Path path = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
+                        if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
+                        if (!Files.exists(path)) {
+                            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    } catch (IOException e) {
+                        DynamicAssetGenerator.LOGGER.error("Could not save asset...", e);
                     }
-                } catch (IOException e) {
-                    DynamicAssetGenerator.LOGGER.error("Could not save asset...",e);
                 }
             }
         }
