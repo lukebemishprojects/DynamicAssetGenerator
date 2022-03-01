@@ -1,5 +1,6 @@
 package dynamic_asset_generator.mixin;
 
+import dynamic_asset_generator.api.ServerPrePackRepository;
 import dynamic_asset_generator.client.api.ClientPrePackRepository;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -27,6 +28,9 @@ public abstract class SimpleReloadableResourceManagerMixin {
                                                             CallbackInfoReturnable<ReloadInstance> cir) {
         if (type == PackType.CLIENT_RESOURCES) {
             ClientPrePackRepository.resetResources();
+        }
+        if (type == PackType.SERVER_DATA) {
+            ServerPrePackRepository.loadResources(packs);
         }
     }
 
