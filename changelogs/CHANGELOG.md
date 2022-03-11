@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.3.5
+
+- Update to 1.18.2 - *This version is not backwards compatible*
+
 ### Dynamic Asset Generator v0.3.2
 
 - Fix crash with caching
