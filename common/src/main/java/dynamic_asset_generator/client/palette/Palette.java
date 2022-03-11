@@ -179,7 +179,7 @@ public class Palette {
             }
             return out_img;
         } catch (IOException e) {
-            DynamicAssetGenerator.LOGGER.error("Error loading resources for image: {}", e);
+            DynamicAssetGenerator.LOGGER.error("Error loading resources for image", e);
             return null;
         }
     }

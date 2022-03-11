@@ -21,11 +21,16 @@ public class DynamicAssetGeneratorFabric implements ModInitializer {
             DATA_PACK = RuntimeResourcePack.create(DynamicAssetGenerator.SERVER_PACK);
             Map<ResourceLocation, Supplier<InputStream>> map = DynAssetGenServerPlanner.getResources();
             for (ResourceLocation rl : map.keySet()) {
-                InputStream stream = map.get(rl).get();
+                Supplier<InputStream> stream = map.get(rl);
                 if (stream != null) {
-                    try {
-                        DATA_PACK.addResource(PackType.SERVER_DATA, rl, stream.readAllBytes());
-                    } catch (IOException ignored) {}
+                    DATA_PACK.addLazyResource(PackType.SERVER_DATA, rl, (i,r)-> {
+                        try {
+                            return stream.get().readAllBytes();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    });
                 }
             }
             a.add(DATA_PACK);

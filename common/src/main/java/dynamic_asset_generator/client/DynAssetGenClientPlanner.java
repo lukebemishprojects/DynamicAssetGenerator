@@ -80,27 +80,26 @@ public class DynAssetGenClientPlanner {
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
         Map<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
         for (ResourceLocation key : plannedPaletteCombinedImages.keySet()) {
-            IPalettePlan planned = plannedPaletteCombinedImages.get(key).get();
-            BufferedImage image = Palette.paletteCombinedImage(planned);
-            if (image != null) {
-                Supplier<InputStream> s = () -> {
+            Supplier<InputStream> s = () -> {
+                IPalettePlan planned = plannedPaletteCombinedImages.get(key).get();
+                BufferedImage image = Palette.paletteCombinedImage(planned);
+                if (image != null) {
                     try {
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
                         ImageIO.write(image, "png", os);
-                        InputStream is = new ByteArrayInputStream(os.toByteArray());
-                        return is;
+                        return (InputStream) new ByteArrayInputStream(os.toByteArray());
                     } catch (IOException e) {
                         DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + key.toString());
                     }
-                    return null;
-                };
-                output.put(key, s);
-            }
+                }
+                return null;
+            };
+            output.put(key, s);
         }
         for (ResourceLocation key : bufferMap.keySet()) {
+            Supplier<InputStream> s = () -> {
             BufferedImage image = bufferMap.get(key).get();
-            if (image != null) {
-                Supplier<InputStream> s = () -> {
+                if (image != null) {
                     try {
                         ByteArrayOutputStream os = new ByteArrayOutputStream();
                         ImageIO.write(image, "png", os);
@@ -109,10 +108,10 @@ public class DynAssetGenClientPlanner {
                     } catch (IOException e) {
                         DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + key.toString());
                     }
-                    return null;
-                };
-                output.put(key, s);
-            }
+                }
+                return null;
+            };
+            output.put(key, s);
         }
         for (ResourceLocation key : miscResources.keySet()) {
             if (miscResources.get(key) instanceof ResettingSupplier<InputStream> rs) {

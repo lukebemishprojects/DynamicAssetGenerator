@@ -1,7 +1,10 @@
 package dynamic_asset_generator;
 
+import dynamic_asset_generator.client.api.DynAssetGeneratorClientAPI;
 import dynamic_asset_generator.client.api.JsonReaderAPI;
+import dynamic_asset_generator.client.api.PlannedPaletteCombinedImage;
 import dynamic_asset_generator.client.json.*;
+import dynamic_asset_generator.client.util.IPalettePlan;
 import net.minecraft.resources.ResourceLocation;
 
 public class DynamicAssetGeneratorClient {
@@ -15,11 +18,11 @@ public class DynamicAssetGeneratorClient {
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),new ForegroundTransfer());
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"color"),new ColorSource());
         //testing
-/*
+
         IPalettePlan p = new PlannedPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/stone.png"),
-                DynamicAssetGenerator.EMPTY_TEXTURE, new ResourceLocation("minecraft","textures/item/gold_ingot.png"),true,0,true);
+                new ResourceLocation("minecraft","textures/item/apple.png"), new ResourceLocation("minecraft","textures/item/gold_ingot.png"),true,0,true);
         DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/end_stone.png"),p);
-*/
+
 /*
         String background = "textures/block/calcite.png";
         PaletteExtractor extractor = new PaletteExtractor(new ResourceLocation("minecraft","textures/block/stone.png"),

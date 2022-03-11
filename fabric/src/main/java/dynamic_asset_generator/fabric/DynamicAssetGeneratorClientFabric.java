@@ -10,6 +10,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,11 +27,16 @@ public class DynamicAssetGeneratorClientFabric implements ClientModInitializer {
             RESOURCE_PACK = RuntimeResourcePack.create(DynamicAssetGenerator.CLIENT_PACK);
             Map<ResourceLocation, Supplier<InputStream>> map = DynAssetGenClientPlanner.getResources();
             for (ResourceLocation rl : map.keySet()) {
-                InputStream stream = map.get(rl).get();
+                Supplier<InputStream> stream = map.get(rl);
                 if (stream != null) {
-                    try {
-                        RESOURCE_PACK.addAsset(rl, stream.readAllBytes());
-                    } catch (IOException ignored) {}
+                    RESOURCE_PACK.addLazyResource(PackType.CLIENT_RESOURCES, rl, (i,r)-> {
+                        try {
+                            return stream.get().readAllBytes();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    });
                 }
             }
             a.add(RESOURCE_PACK);
