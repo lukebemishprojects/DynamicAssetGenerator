@@ -5,7 +5,7 @@ import dynamic_asset_generator.client.api.ClientPrePackRepository;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ReloadInstance;
-import net.minecraft.server.packs.resources.SimpleReloadableResourceManager;
+import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.util.Unit;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-@Mixin(SimpleReloadableResourceManager.class)
-public abstract class SimpleReloadableResourceManagerMixin {
+@Mixin(ReloadableResourceManager.class)
+public abstract class ReloadableResourceManagerMixin {
     @Inject(method = "createReload", at = @At(value = "HEAD"))
     private void dynamic_asset_generator_insertResourcePack(Executor preparationExecutor,
                                                             Executor reloadExecutor,

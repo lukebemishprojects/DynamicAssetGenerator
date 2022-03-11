@@ -4,7 +4,7 @@
   "package": "dynamic_asset_generator.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "SimpleReloadableResourceManagerMixin",
+    "ReloadableResourceManagerMixin",
     "IPackRepositoryMixin"
   ],
   "client": [
