@@ -15,10 +15,10 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "dynamic_asset_generator.fabric.DynamicAssetGeneratorClientFabric"
+      "com.github.lukebemish.dynamic_asset_generator.fabric.DynamicAssetGeneratorClientFabric"
     ],
     "main" : [
-      "dynamic_asset_generator.fabric.DynamicAssetGeneratorFabric"
+      "com.github.lukebemish.dynamic_asset_generator.fabric.DynamicAssetGeneratorFabric"
     ]
   },
   "mixins": [

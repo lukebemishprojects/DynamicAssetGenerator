@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dynamic_asset_generator.mixin",
+  "package": "com.github.lukebemish.dynamic_asset_generator.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "ReloadableResourceManagerMixin",
