@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.4.1
+
+- Fix `ServerPrePackRepository` not working right.
+
 ### Dynamic Asset Generator v0.3.5
 
 - Update to 1.18.2 - *This version is not backwards compatible*
