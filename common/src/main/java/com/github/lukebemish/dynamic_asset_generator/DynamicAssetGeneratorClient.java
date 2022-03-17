@@ -5,7 +5,6 @@ import com.github.lukebemish.dynamic_asset_generator.client.api.JsonReaderAPI;
 import com.github.lukebemish.dynamic_asset_generator.client.api.PlannedPaletteCombinedImage;
 import com.github.lukebemish.dynamic_asset_generator.client.json.*;
 import com.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
-import dynamic_asset_generator.client.json.*;
 import net.minecraft.resources.ResourceLocation;
 
 public class DynamicAssetGeneratorClient {
