@@ -30,8 +30,8 @@ public class ClientPrePackRepository {
     private static List<PackResources> getResources() {
         if (resources == null || resources.size() == 0) {
             resources = ((IPackRepositoryMixin) Minecraft.getInstance().getResourcePackRepository()).getSelected().stream()
-                    .filter((p)->!(p.getId().equals(DynamicAssetGenerator.CLIENT_PACK) || p.getId().equals(DynamicAssetGenerator.SERVER_PACK))).map(Pack::open)
-                    .filter((p)->!(p.getName().equals(DynamicAssetGenerator.CLIENT_PACK) || p.getName().equals(DynamicAssetGenerator.SERVER_PACK))).collect(ImmutableList.toImmutableList());
+                    .filter((p)->!(p.getId().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getId().contains(DynamicAssetGenerator.SERVER_PACK))).map(Pack::open)
+                    .filter((p)->!(p.getName().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getName().contains(DynamicAssetGenerator.SERVER_PACK))).collect(ImmutableList.toImmutableList());
         }
         return resources;
     }
