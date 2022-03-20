@@ -13,6 +13,11 @@ loom {
     forge {
         mixinConfig "mixin.dynamic_asset_generator.json"
     }
+    runs {
+        client {
+            vmArgs "-Ddevenv=true"
+        }
+    }
 }
 
 configurations {

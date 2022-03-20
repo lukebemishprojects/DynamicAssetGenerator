@@ -9,6 +9,14 @@ architectury {
     fabric()
 }
 
+loom {
+    runs {
+        client {
+            vmArgs "-Ddevenv=true"
+        }
+    }
+}
+
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
