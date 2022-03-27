@@ -18,11 +18,11 @@ public class DynamicAssetGeneratorClient {
         //testing
 
         if (Boolean.getBoolean("devenv")) {
-            IPalettePlan p = new PlannedPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/stone.png"),
-                    new ResourceLocation("minecraft", "textures/item/apple.png"), new ResourceLocation("minecraft", "textures/item/gold_ingot.png"), true, 0, true);
-            DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/end_stone.png"), p);
-            /*
-            String background = "textures/block/calcite.png";
+            //IPalettePlan p = new PlannedPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/stone.png"),
+            //        new ResourceLocation("minecraft", "textures/item/apple.png"), new ResourceLocation("minecraft", "textures/item/gold_ingot.png"), true, 0, true);
+            //DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/end_stone.png"), p);
+
+            String background = "textures/block/dripstone_block.png";
             PaletteExtractor extractor = new PaletteExtractor(new ResourceLocation("minecraft", "textures/block/stone.png"),
                     new ResourceLocation("minecraft", "textures/block/gold_ore.png"), 6, true, true, 0.2);
             IPalettePlan plan = new ForegroundTransferType(extractor, new ResourceLocation("minecraft", background),
@@ -43,11 +43,9 @@ public class DynamicAssetGeneratorClient {
             DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/cobblestone.png"), plan2);
             DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/tuff.png"), plan3);
             DynAssetGeneratorClientAPI.planPaletteCombinedImage(new ResourceLocation("minecraft", "textures/block/netherrack.png"), plan4);
-            */
-            /*
-            DynAssetGenClientPlanner.planPaletteCombinedImage(new ResourceLocation("minecraft","textures/item/gold_ingot.png"),
-                    new PlannedPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/moss_block.png"), new ResourceLocation("dynamic_asset_generator","textures/empty.png"), new ResourceLocation("minecraft","textures/item/copper_ingot.png"), false, 6, true));
-            */
+
+            //DynAssetGenClientPlanner.planPaletteCombinedImage(new ResourceLocation("minecraft","textures/item/gold_ingot.png"),
+            //        new PlannedPaletteCombinedImage(new ResourceLocation("minecraft","textures/block/moss_block.png"), new ResourceLocation("dynamic_asset_generator","textures/empty.png"), new ResourceLocation("minecraft","textures/item/copper_ingot.png"), false, 6, true));
         }
     }
 }

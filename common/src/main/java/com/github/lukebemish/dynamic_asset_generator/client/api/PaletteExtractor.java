@@ -80,16 +80,14 @@ public class PaletteExtractor {
         BufferedImage o_img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_ARGB);
         BufferedImage p_img = new BufferedImage(dim, dim, BufferedImage.TYPE_INT_ARGB);
         Palette backgroundPalette = Palette.extractPalette(b_img, extend);
+        Palette withOverlayPalette = Palette.extractPalette(w_img, extend);
         int backgroundPaletteSize = backgroundPalette.getSize();
 
         double maxDiff = 0;
-        for (int x = 0; x < dim; x++) {
-            for (int y = 0; y < dim; y++) {
-                ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
-                double diff = w_c.distanceToLS(backgroundPalette.getColor(backgroundPalette.closestTo(w_c)));
-                if (diff > maxDiff) {
-                    maxDiff = diff;
-                }
+        for (ColorHolder c1 : withOverlayPalette.getStream().toList()) {
+            for (ColorHolder c2 : withOverlayPalette.getStream().toList()) {
+                double diff = c1.distanceToLS(c2);
+                if (diff > maxDiff) maxDiff = diff;
             }
         }
 

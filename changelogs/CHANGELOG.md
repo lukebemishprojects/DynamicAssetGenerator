@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.4.2
+
+- Improve palette extractions
+
 ### Dynamic Asset Generator v0.4.1
 
 - Fix `ServerPrePackRepository` not working right.
