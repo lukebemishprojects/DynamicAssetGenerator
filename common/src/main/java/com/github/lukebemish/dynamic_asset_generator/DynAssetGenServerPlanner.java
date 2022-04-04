@@ -21,17 +21,24 @@ public class DynAssetGenServerPlanner {
                 ((ResettingSupplier<InputStream>) d).reset();
             }
             if (DynamicAssetGenerator.getConfig().cacheData) {
-                InputStream stream = d.get();
-                if (stream!=null) {
-                    try {
-                        Path path = ModConfig.DATA_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
-                        if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
-                        if (!Files.exists(path)) {
-                            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+                if (!(d instanceof WrappedSupplier<InputStream>)) {
+                    Supplier<InputStream> supplier = new WrappedSupplier<>(() -> {
+                        InputStream stream = d.get();
+                        if (stream != null) {
+                            try {
+                                Path path = ModConfig.DATA_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
+                                if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
+                                if (!Files.exists(path)) {
+                                    Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+                                }
+                                return new BufferedInputStream(Files.newInputStream(path));
+                            } catch (IOException e) {
+                                DynamicAssetGenerator.LOGGER.error("Could not save data...", e);
+                            }
                         }
-                    } catch (IOException e) {
-                        DynamicAssetGenerator.LOGGER.error("Could not save data...", e);
-                    }
+                        return stream;
+                    });
+                    data.put(rl, supplier);
                 }
             }
         }
@@ -47,9 +54,10 @@ public class DynAssetGenServerPlanner {
                         try {
                             File file = ModConfig.DATA_CACHE_FOLDER.resolve(location.getNamespace()).resolve(location.getPath()).toFile();
                             if (file.isFile()) {
-                                return new FileInputStream(file);
+                                return new BufferedInputStream(new FileInputStream(file));
                             }
                         } catch (IOException e) {
+                            DynamicAssetGenerator.LOGGER.error("Could not load cached data...",e);
                         }
                         return null;
                     });

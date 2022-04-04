@@ -2,6 +2,7 @@ package com.github.lukebemish.dynamic_asset_generator.client;
 
 import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.github.lukebemish.dynamic_asset_generator.ModConfig;
+import com.github.lukebemish.dynamic_asset_generator.WrappedSupplier;
 import com.github.lukebemish.dynamic_asset_generator.api.ResettingSupplier;
 import com.github.lukebemish.dynamic_asset_generator.client.api.ClientPrePackRepository;
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
@@ -38,7 +39,7 @@ public class DynAssetGenClientPlanner {
                         try {
                             File file = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()).toFile();
                             if (file.isFile()) {
-                                return new FileInputStream(file);
+                                return new BufferedInputStream(new FileInputStream(file));
                             }
                         } catch (IOException ignored) {
                         }
@@ -62,7 +63,7 @@ public class DynAssetGenClientPlanner {
                         try {
                             File file = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()).toFile();
                             if (file.isFile()) {
-                                return new FileInputStream(file);
+                                return new BufferedInputStream(new FileInputStream(file));
                             }
                         } catch (IOException ignored) {
                         }
@@ -153,17 +154,24 @@ public class DynAssetGenClientPlanner {
         for (ResourceLocation rl : output.keySet()) {
             Supplier<InputStream> d = output.get(rl);
             if (DynamicAssetGenerator.getConfig().cacheAssets) {
-                InputStream stream = d.get();
-                if (stream != null) {
-                    try {
-                        Path path = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
-                        if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
-                        if (!Files.exists(path)) {
-                            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+                if (!(d instanceof WrappedSupplier<InputStream>)) {
+                    Supplier<InputStream> supplier = new WrappedSupplier<>(() -> {
+                        InputStream stream = d.get();
+                        if (stream != null) {
+                            try {
+                                Path path = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath());
+                                if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
+                                if (!Files.exists(path)) {
+                                    Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+                                }
+                                return new BufferedInputStream(Files.newInputStream(path));
+                            } catch (IOException e) {
+                                DynamicAssetGenerator.LOGGER.error("Could not save asset...", e);
+                            }
                         }
-                    } catch (IOException e) {
-                        DynamicAssetGenerator.LOGGER.error("Could not save asset...", e);
-                    }
+                        return stream;
+                    });
+                    output.put(rl, supplier);
                 }
             }
         }
@@ -180,7 +188,7 @@ public class DynAssetGenClientPlanner {
                         try {
                             File file = ModConfig.ASSET_CACHE_FOLDER.resolve(location.getNamespace()).resolve(location.getPath()).toFile();
                             if (file.isFile()) {
-                                return new FileInputStream(file);
+                                return new BufferedInputStream(new FileInputStream(file));
                             }
                         } catch (IOException e) {
                         }
