@@ -1,6 +1,14 @@
 ### Dynamic Asset Generator v0.4.2
 
-- Improve palette extractions
+- Shrink default cutoff for palette colors and add handling for empty palettes during extraction.
+
+### Dynamic Asset Generator v0.4.3
+
+- Fix data caching and generation.
+
+### Dynamic Asset Generator v0.4.2
+
+- Improve palette extractions.
 
 ### Dynamic Asset Generator v0.4.1
 
@@ -8,11 +16,11 @@
 
 ### Dynamic Asset Generator v0.3.5
 
-- Update to 1.18.2 - *This version is not backwards compatible*
+- Update to 1.18.2 - *This version is not backwards compatible*.
 
 ### Dynamic Asset Generator v0.3.2
 
-- Fix crash with caching
+- Fix crash with caching.
 
 ### Dynamic Asset Generator v0.3.1
 

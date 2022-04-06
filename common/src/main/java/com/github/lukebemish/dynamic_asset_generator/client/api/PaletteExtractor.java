@@ -1,5 +1,6 @@
 package com.github.lukebemish.dynamic_asset_generator.client.api;
 
+import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
 import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import com.github.lukebemish.dynamic_asset_generator.client.util.ImageUtils;
@@ -43,7 +44,7 @@ public class PaletteExtractor {
     }
 
     public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
-        this(()->ImageUtils.getImage(background),()->ImageUtils.getImage(withOverlay),extend,trimTrailingPaletteLookup,forceOverlayNeighbors,closeCutoff);
+        this(new ImageUtils.ImageGetter(background),new ImageUtils.ImageGetter(withOverlay),extend,trimTrailingPaletteLookup,forceOverlayNeighbors,closeCutoff);
     }
 
     public PaletteExtractor(ResourceLocation background, ResourceLocation withOverlay, int extend) {
@@ -123,6 +124,31 @@ public class PaletteExtractor {
                 }
             }
         }
+
+        if (frontColors.getSize() == 0 || backgroundPalette.getSize() == 0) {
+            this.overlayImg = o_img;
+            this.palettedImg = p_img;
+            for (int x = 0; x < dim; x++) {
+                for (int y = 0; y < dim; y++) {
+                    overlayImg.setRGB(x,y,0);
+                    ColorHolder b_c = ColorHolder.fromColorInt(b_img.getRGB(x/bs,y/bs));
+                    ColorHolder w_c = ColorHolder.fromColorInt(w_img.getRGB(x/ws,y/ws));
+                    int w_i = backgroundPalette.closestTo(w_c);
+                    int b_i = backgroundPalette.closestTo(b_c);
+                    if (w_i != b_i) p_img.setRGB(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*w_i)));
+                    else p_img.setRGB(x,y,0);
+                }
+            }
+            String key = "";
+            if (background instanceof ImageUtils.ImageGetter ig) key += " "+ig.rl.toString();
+            if (withOverlay instanceof ImageUtils.ImageGetter ig) {
+                if (key.length()!=0) key+=",";
+                key += " "+ig.rl.toString();
+            }
+            DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained no differing colors; only extracting palette shifts",key);
+            return;
+        }
+
         for (PostCalcEvent e : postQueue) {
             int x = e.x();
             int y = e.y();

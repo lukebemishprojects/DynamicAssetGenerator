@@ -79,10 +79,10 @@ public class Palette {
         return outIndex;
     }
 
-    public static Palette extractPalette(BufferedImage image, int extend) {
+    public static Palette extractPalette(BufferedImage image, int extend, float inPaletteCutoff) {
         int w = image.getWidth();
         int h = image.getHeight();
-        Palette palette = new Palette(5f/255f);
+        Palette palette = new Palette(inPaletteCutoff);
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
                 int c_int = image.getRGB(x,y);
@@ -94,6 +94,10 @@ public class Palette {
         }
         palette.extendPalette(extend);
         return palette;
+    }
+
+    public static Palette extractPalette(BufferedImage image, int extend) {
+        return extractPalette(image,extend,1f/255f);
     }
 
     public Palette extendPalette(int extend) {
@@ -135,7 +139,7 @@ public class Palette {
             int bs = w/b_img.getWidth();
             int ps = w/p_img.getWidth();
             BufferedImage out_img = new BufferedImage(w,w,BufferedImage.TYPE_INT_ARGB);
-            Palette backgroundPalette = extractPalette(b_img, extend);
+            Palette backgroundPalette = extractPalette(b_img, extend,1f/255f);
             ColorHolder maxPaletteKey = new ColorHolder(0,0,0);
             ColorHolder minPaletteKey = new ColorHolder(1,1,1);
             if (plan.stretchPaletted()) {

@@ -9,7 +9,16 @@ import java.io.IOException;
 
 public class ImageUtils {
     public static BufferedImage getImage(ResourceLocation location) throws IOException {
-        BufferedImage image = ImageIO.read(ClientPrePackRepository.getResource(location));
-        return image;
+        return ImageIO.read(ClientPrePackRepository.getResource(location));
+    }
+
+    public static class ImageGetter implements SupplierWithException<BufferedImage,IOException> {
+        public ImageGetter(ResourceLocation rl) {this.rl = rl;}
+        public final ResourceLocation rl;
+
+        @Override
+        public BufferedImage get() throws IOException {
+            return getImage(rl);
+        }
     }
 }
