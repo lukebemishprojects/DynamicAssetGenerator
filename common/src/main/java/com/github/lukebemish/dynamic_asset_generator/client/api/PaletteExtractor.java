@@ -92,7 +92,7 @@ public class PaletteExtractor {
             }
         }
 
-        Palette frontColors = new Palette(5f/255f);
+        Palette frontColors = new Palette(Palette.DEFAULT_CUTOFF);
         ArrayList<PostCalcEvent> postQueue = new ArrayList<>();
         //write paletted image base stuff
         for (int x = 0; x < dim; x++) {
