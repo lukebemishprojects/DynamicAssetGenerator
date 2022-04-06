@@ -27,9 +27,7 @@ public class Palette {
     public boolean isInPalette(ColorHolder color) {
         if (color.getA() == 0) return false;
         for (ColorHolder c : colors) {
-            if ((Math.abs(c.getR()-color.getR()) < this.inPaletteCutoff) &&
-                    (Math.abs(c.getG()-color.getG()) < this.inPaletteCutoff) &&
-                    (Math.abs(c.getB()-color.getB()) < this.inPaletteCutoff)) {
+            if (Math.abs(c.getR()-color.getR())+Math.abs(c.getG()-color.getG())+Math.abs(c.getB()-color.getB()) < this.inPaletteCutoff) {
                 return true;
             }
         }
