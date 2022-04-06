@@ -1,4 +1,8 @@
-### Dynamic Asset Generator v0.4.2
+### Dynamic Asset Generator v0.4.5
+
+- Shrink default cutoff for palette colors even more, to prevent weirdness.
+
+### Dynamic Asset Generator v0.4.4
 
 - Shrink default cutoff for palette colors and add handling for empty palettes during extraction.
 

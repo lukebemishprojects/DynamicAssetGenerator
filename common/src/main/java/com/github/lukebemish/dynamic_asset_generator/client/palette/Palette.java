@@ -21,7 +21,7 @@ public class Palette {
     public Palette(List<ColorHolder> colors) {
         this.colors = new ArrayList<>(colors);
         this.colors.sort(ColorHolder::compareTo);
-        this.inPaletteCutoff = 5f/255f;
+        this.inPaletteCutoff = DEFAULT_CUTOFF;
     }
 
     public boolean isInPalette(ColorHolder color) {
@@ -96,8 +96,10 @@ public class Palette {
         return palette;
     }
 
+    public static final float DEFAULT_CUTOFF = 2f/255f;
+
     public static Palette extractPalette(BufferedImage image, int extend) {
-        return extractPalette(image,extend,1f/255f);
+        return extractPalette(image,extend,DEFAULT_CUTOFF);
     }
 
     public Palette extendPalette(int extend) {
