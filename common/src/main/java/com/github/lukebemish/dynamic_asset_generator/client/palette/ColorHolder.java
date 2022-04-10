@@ -1,10 +1,12 @@
 package com.github.lukebemish.dynamic_asset_generator.client.palette;
 
 import com.github.lukebemish.dynamic_asset_generator.CIELABSpace;
+import com.mojang.math.Vector3f;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.Objects;
 
 public class ColorHolder implements Comparable<ColorHolder> {
     private final float r;
@@ -121,6 +123,19 @@ public class ColorHolder implements Comparable<ColorHolder> {
         return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
                 (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/2;
     }
+    public double distanceToLab(ColorHolder c, float weightL) {
+        ColorHolder c1 = c.toCIELAB();
+        ColorHolder c2 = this.toCIELAB();
+        return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
+                (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/2*weightL;
+    }
+
+    public Vector3f toVector3f() {
+        return new Vector3f(r,g,b);
+    }
+    public static ColorHolder fromVector3f(Vector3f v) {
+        return new ColorHolder(v.x(),v.y(),v.z());
+    }
 
     public ColorHolder toHLS() {
         float max = max(r,g,b);
@@ -222,5 +237,18 @@ public class ColorHolder implements Comparable<ColorHolder> {
 
     public float getS() {
         return this.b;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ColorHolder that = (ColorHolder) o;
+        return that.r == r && that.g == g && that.b == b && that.a == a;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(r, g, b, a);
     }
 }

@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 public class Palette {
@@ -22,6 +24,34 @@ public class Palette {
         this.colors = new ArrayList<>(colors);
         this.colors.sort(ColorHolder::compareTo);
         this.inPaletteCutoff = DEFAULT_CUTOFF;
+    }
+    public Palette() {
+        this(DEFAULT_CUTOFF);
+    }
+
+    public ColorHolder getCentroid() {
+        AtomicReference<Float> x= new AtomicReference<>((float) 0);
+        AtomicReference<Float> y= new AtomicReference<>((float) 0);
+        AtomicReference<Float> z= new AtomicReference<>((float) 0);
+        AtomicInteger count= new AtomicInteger();
+        getStream().forEach((c)->{
+            x.updateAndGet(v -> (float) (v + c.getR()));
+            y.updateAndGet(v -> (float) (v + c.getG()));
+            z.updateAndGet(v -> (float) (v + c.getB()));
+            count.getAndIncrement();
+        });
+        int c = count.get();
+        return new ColorHolder(x.get()/c,y.get()/c,z.get()/c);
+    }
+
+    public double getStdDev() {
+        AtomicReference<Double> sum = new AtomicReference<>((double) 0);
+        ColorHolder c = getCentroid();
+        getStream().forEach(x->{
+            double d = c.distanceToLab(x);
+            sum.updateAndGet(v -> v + d * d);
+        });
+        return Math.sqrt(sum.get());
     }
 
     public boolean isInPalette(ColorHolder color) {
@@ -186,5 +216,16 @@ public class Palette {
             DynamicAssetGenerator.LOGGER.error("Error loading resources for image", e);
             return null;
         }
+    }
+
+    public double dist(Palette other) {
+        double d = 0;
+        int c = 0;
+        ColorHolder cent = other.getCentroid();
+        for (ColorHolder c1 : this.colors) {
+            c++;
+            d+=c1.distanceToLS(cent);
+        }
+        return d/c;
     }
 }

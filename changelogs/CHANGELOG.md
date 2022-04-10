@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.4.6
+
+- Add alternate clustering palette extractor as a fallback. Other uses for this will be added at some point.
+
 ### Dynamic Asset Generator v0.4.5
 
 - Shrink default cutoff for palette colors even more, to prevent weirdness.
