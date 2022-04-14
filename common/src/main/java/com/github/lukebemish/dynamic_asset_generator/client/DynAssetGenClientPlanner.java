@@ -9,10 +9,9 @@ import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicText
 import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import com.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 import com.google.gson.JsonSyntaxException;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.resources.ResourceLocation;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,98 +21,43 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class DynAssetGenClientPlanner {
-    private static final Map<ResourceLocation, Supplier<IPalettePlan>> plannedPaletteCombinedImages = new HashMap<>();
     private static final Map<ResourceLocation, Supplier<InputStream>> miscResources = new HashMap<>();
-    private static final Map<ResourceLocation, Supplier<BufferedImage>> bufferMap = new HashMap<>();
 
     public static void planPaletteCombinedImage(ResourceLocation rl, IPalettePlan image) {
         planPaletteCombinedImage(rl, () -> image);
     }
 
-    public static void planPaletteCombinedImage(ResourceLocation rl, Supplier<IPalettePlan> image) {
-        if(DynamicAssetGenerator.getConfig().cacheAssets) {
-            try {
-                if (!Files.exists(ModConfig.ASSET_CACHE_FOLDER)) Files.createDirectories(ModConfig.ASSET_CACHE_FOLDER);
-                if (Files.exists(ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()))) {
-                    miscResources.put(rl, () -> {
-                        try {
-                            File file = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()).toFile();
-                            if (file.isFile()) {
-                                return new BufferedInputStream(new FileInputStream(file));
-                            }
-                        } catch (IOException ignored) {
-                        }
-                        return null;
-                    });
-                    return;
+    public static void planPaletteCombinedImage(ResourceLocation rl, Supplier<IPalettePlan> plan_sup) {
+        Supplier<InputStream> s = () -> {
+            IPalettePlan planned = plan_sup.get();
+            try (NativeImage image = Palette.paletteCombinedImage(planned)) {
+                if (image != null) {
+                    return (InputStream) new ByteArrayInputStream(image.asByteArray());
                 }
             } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Could not cache asset...");
+                DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: {}...\n",rl, e);
             }
-        }
-        plannedPaletteCombinedImages.put(rl, image);
+            return null;
+        };
+        miscResources.put(rl,ResettingSupplier.of(s,plan_sup));
     }
 
-    public static void planBufferedImage(ResourceLocation rl, Supplier<BufferedImage> supplier) {
-        if(DynamicAssetGenerator.getConfig().cacheAssets) {
-            try {
-                if (!Files.exists(ModConfig.ASSET_CACHE_FOLDER)) Files.createDirectories(ModConfig.ASSET_CACHE_FOLDER);
-                if (Files.exists(ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()))) {
-                    miscResources.put(rl, () -> {
-                        try {
-                            File file = ModConfig.ASSET_CACHE_FOLDER.resolve(rl.getNamespace()).resolve(rl.getPath()).toFile();
-                            if (file.isFile()) {
-                                return new BufferedInputStream(new FileInputStream(file));
-                            }
-                        } catch (IOException ignored) {
-                        }
-                        return null;
-                    });
-                    return;
+    public static void planNativeImage(ResourceLocation rl, Supplier<NativeImage> supplier) {
+        Supplier<InputStream> s = () -> {
+            try (NativeImage image = supplier.get()) {
+                if (image != null) {
+                    return (InputStream) new ByteArrayInputStream(image.asByteArray());
                 }
             } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Could not cache asset...");
+                DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: {}...\n",rl, e);
             }
-        }
-        bufferMap.put(rl, supplier);
+            return null;
+        };
+        miscResources.put(rl,ResettingSupplier.of(s,supplier));
     }
 
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
         Map<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
-        for (ResourceLocation key : plannedPaletteCombinedImages.keySet()) {
-            Supplier<InputStream> s = () -> {
-                IPalettePlan planned = plannedPaletteCombinedImages.get(key).get();
-                BufferedImage image = Palette.paletteCombinedImage(planned);
-                if (image != null) {
-                    try {
-                        ByteArrayOutputStream os = new ByteArrayOutputStream();
-                        ImageIO.write(image, "png", os);
-                        return (InputStream) new ByteArrayInputStream(os.toByteArray());
-                    } catch (IOException e) {
-                        DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + key.toString());
-                    }
-                }
-                return null;
-            };
-            output.put(key, s);
-        }
-        for (ResourceLocation key : bufferMap.keySet()) {
-            Supplier<InputStream> s = () -> {
-            BufferedImage image = bufferMap.get(key).get();
-                if (image != null) {
-                    try {
-                        ByteArrayOutputStream os = new ByteArrayOutputStream();
-                        ImageIO.write(image, "png", os);
-                        InputStream is = new ByteArrayInputStream(os.toByteArray());
-                        return is;
-                    } catch (IOException e) {
-                        DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + key.toString());
-                    }
-                }
-                return null;
-            };
-            output.put(key, s);
-        }
         for (ResourceLocation key : miscResources.keySet()) {
             if (miscResources.get(key) instanceof ResettingSupplier<InputStream> rs) {
                 rs.reset();
@@ -130,18 +74,14 @@ public class DynAssetGenClientPlanner {
                     ResourceLocation orig_rl = ResourceLocation.of(source.output_location, ':');
                     ResourceLocation out_rl = new ResourceLocation(orig_rl.getNamespace(), "textures/" + orig_rl.getPath() + ".png");
                     Supplier<InputStream> sup = () -> {
-                        BufferedImage image = source.source.get();
-                        if (image != null) {
-                            try {
-                                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                                ImageIO.write(image, "png", os);
-                                InputStream is = new ByteArrayInputStream(os.toByteArray());
-                                return is;
-                            } catch (IOException e) {
-                                DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + out_rl.toString());
-                            } catch (JsonSyntaxException e) {
-                                DynamicAssetGenerator.LOGGER.error("Issue loading texture source JSON: "+rl.toString());
+                        try (NativeImage image = source.source.get()) {
+                            if (image != null) {
+                                return (InputStream) new ByteArrayInputStream(image.asByteArray());
                             }
+                        } catch (IOException e) {
+                            DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: " + out_rl.toString());
+                        } catch (JsonSyntaxException e) {
+                            DynamicAssetGenerator.LOGGER.error("Issue loading texture source JSON: "+rl.toString());
                         }
                         return null;
                     };
@@ -191,6 +131,7 @@ public class DynAssetGenClientPlanner {
                                 return new BufferedInputStream(new FileInputStream(file));
                             }
                         } catch (IOException e) {
+                            DynamicAssetGenerator.LOGGER.error("Issue with cached asset...", e);
                         }
                         return null;
                     });

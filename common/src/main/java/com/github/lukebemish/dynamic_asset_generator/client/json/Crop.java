@@ -1,16 +1,17 @@
 package com.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import com.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
+import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
+import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
+import com.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
-import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
-import com.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
+import com.mojang.blaze3d.platform.NativeImage;
 
-import java.awt.image.BufferedImage;
 import java.util.function.Supplier;
 
 public class Crop implements ITexSource {
@@ -19,16 +20,16 @@ public class Crop implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<BufferedImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
+        Supplier<NativeImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
 
         return () -> {
             if (input == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
                 return null;
             }
-            BufferedImage inImg = input.get();
+            NativeImage inImg = input.get();
             if (inImg == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
                 return null;
@@ -50,11 +51,11 @@ public class Crop implements ITexSource {
                 return null;
             }
 
-            BufferedImage out = new BufferedImage(distX, distY, BufferedImage.TYPE_INT_ARGB);
+            NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
             for (int x = 0; x < distX; x++) {
                 for (int y = 0; y < distY; y++) {
                     int c = SafeImageExtraction.get(inImg,(x + locationSource.start_x*scale), (y + locationSource.start_y*scale));
-                    out.setRGB(x, y, c);
+                    out.setPixelRGBA(x, y, c);
                 }
             }
             return out;

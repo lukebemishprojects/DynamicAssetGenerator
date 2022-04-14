@@ -1,15 +1,15 @@
 package com.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
 import com.github.lukebemish.dynamic_asset_generator.client.util.ImageUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.resources.ResourceLocation;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.function.Supplier;
 
@@ -19,7 +19,7 @@ public class TextureReader implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException{
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException{
         LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
         ResourceLocation rl = ResourceLocation.of(locationSource.path,':');
         ResourceLocation out_rl = new ResourceLocation(rl.getNamespace(), "textures/"+rl.getPath()+".png");

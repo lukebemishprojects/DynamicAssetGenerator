@@ -2,15 +2,15 @@ package com.github.lukebemish.dynamic_asset_generator.client.json;
 
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
+import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import com.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
+import com.mojang.blaze3d.platform.NativeImage;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.function.Supplier;
 
@@ -20,7 +20,7 @@ public class CombinedPaletteImage implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         PaletteInfo info = gson.fromJson(inputStr, PaletteInfo.class);
         PalettePlanner planner = PalettePlanner.of(info);
         if (planner == null) return null;
@@ -46,9 +46,9 @@ public class CombinedPaletteImage implements ITexSource {
 
     public static class PalettePlanner implements IPalettePlan {
         private final PaletteInfo info;
-        private Supplier<BufferedImage> overlay;
-        private Supplier<BufferedImage> background;
-        private Supplier<BufferedImage> paletted;
+        private Supplier<NativeImage> overlay;
+        private Supplier<NativeImage> background;
+        private Supplier<NativeImage> paletted;
 
         private PalettePlanner(PaletteInfo info) {
             this.info = info;
@@ -64,17 +64,17 @@ public class CombinedPaletteImage implements ITexSource {
         }
 
         @Override
-        public BufferedImage getBackground() throws IOException {
+        public NativeImage getBackground() throws IOException {
             return background.get();
         }
 
         @Override
-        public BufferedImage getOverlay() throws IOException {
+        public NativeImage getOverlay() throws IOException {
             return overlay.get();
         }
 
         @Override
-        public BufferedImage getPaletted() throws IOException {
+        public NativeImage getPaletted() throws IOException {
             return paletted.get();
         }
 

@@ -1,17 +1,18 @@
 package com.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import com.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
+import com.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
+import com.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import com.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
-import com.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
+import com.mojang.blaze3d.platform.NativeImage;
 
-import java.awt.image.BufferedImage;
 import java.util.function.Supplier;
 
 public class Mask implements ITexSource {
@@ -20,18 +21,18 @@ public class Mask implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<BufferedImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
-        Supplier<BufferedImage> mask = DynamicTextureJson.readSupplierFromSource(locationSource.mask);
+        Supplier<NativeImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
+        Supplier<NativeImage> mask = DynamicTextureJson.readSupplierFromSource(locationSource.mask);
 
         return () -> {
             if (input == null || mask == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
                 return null;
             }
-            BufferedImage inImg = input.get();
-            BufferedImage maskImg = mask.get();
+            NativeImage inImg = input.get();
+            NativeImage maskImg = mask.get();
             if (maskImg == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.mask.toString());
                 return null;
@@ -57,13 +58,13 @@ public class Mask implements ITexSource {
                 ixs = inImg.getHeight()/maxX;
                 iys = inImg.getHeight()/maxY;
             }
-            BufferedImage out = new BufferedImage(maxX, maxY, BufferedImage.TYPE_INT_ARGB);
+            NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, maxX, maxY, false);
             for (int x = 0; x < maxX; x++) {
                 for (int y = 0; y < maxY; y++) {
                     ColorHolder mC = ColorHolder.fromColorInt(SafeImageExtraction.get(maskImg,x/mxs,y/mys));
                     ColorHolder iC = ColorHolder.fromColorInt(SafeImageExtraction.get(inImg,x/ixs,y/iys));
                     ColorHolder o = iC.withA(mC.getA() * iC.getA());
-                    out.setRGB(x,y,ColorHolder.toColorInt(o));
+                    out.setPixelRGBA(x,y,ColorHolder.toColorInt(o));
                 }
             }
             return out;

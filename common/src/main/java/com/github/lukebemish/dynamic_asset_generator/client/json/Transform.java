@@ -1,16 +1,17 @@
 package com.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import com.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
+import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
+import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
+import com.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
-import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
-import com.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
+import com.mojang.blaze3d.platform.NativeImage;
 
-import java.awt.image.BufferedImage;
 import java.util.function.Supplier;
 
 public class Transform implements ITexSource {
@@ -19,29 +20,29 @@ public class Transform implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<BufferedImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
+        Supplier<NativeImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
 
         return () -> {
             if (input == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
                 return null;
             }
-            BufferedImage inImg = input.get();
+            NativeImage inImg = input.get();
             if (inImg == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
                 return null;
             }
-            BufferedImage output = inImg;
+            NativeImage output = inImg;
             for (int i = 0; i < locationSource.rotate; i++) {
                 output = clockwiseRotate(output);
             }
             if (locationSource.flip) {
-                BufferedImage output2 = new BufferedImage(output.getWidth(), output.getHeight(), output.getType());
+                NativeImage output2 = NativeImageHelper.of(output.format(), output.getWidth(), output.getHeight(), false);
                 for (int x = 0; x < output.getWidth(); x++) {
                     for (int y = 0; y < output.getHeight(); y++) {
-                        output2.setRGB((output.getWidth()-1-x),y,SafeImageExtraction.get(output,x,y));
+                        output2.setPixelRGBA((output.getWidth()-1-x),y,SafeImageExtraction.get(output,x,y));
                     }
                 }
                 output = output2;
@@ -50,13 +51,13 @@ public class Transform implements ITexSource {
         };
     }
 
-    private static BufferedImage clockwiseRotate(BufferedImage input) {
+    private static NativeImage clockwiseRotate(NativeImage input) {
         int w = input.getWidth();
         int h = input.getHeight();
-        BufferedImage output = new BufferedImage(h, w, input.getType());
+        NativeImage output = NativeImageHelper.of(input.format(), h, w, false);
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
-                output.setRGB(y, w - x - 1, SafeImageExtraction.get(input,x, y));
+                output.setPixelRGBA(y, w - x - 1, SafeImageExtraction.get(input,x, y));
         return output;
     }
 

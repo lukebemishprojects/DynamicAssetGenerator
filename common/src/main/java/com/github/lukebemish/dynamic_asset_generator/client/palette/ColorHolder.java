@@ -1,11 +1,10 @@
 package com.github.lukebemish.dynamic_asset_generator.client.palette;
 
-import com.github.lukebemish.dynamic_asset_generator.CIELABSpace;
+import com.github.lukebemish.dynamic_asset_generator.client.ColorConversionUtils;
 import com.mojang.math.Vector3f;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.Objects;
 
 public class ColorHolder implements Comparable<ColorHolder> {
@@ -196,15 +195,11 @@ public class ColorHolder implements Comparable<ColorHolder> {
     }
 
     public ColorHolder toCIELAB() {
-        float[] c = new float[3];
-        Color color = new Color(this.r,this.g,this.b);
-        color.getColorComponents(CIELABSpace.getInstance(),c);
-        return new ColorHolder(c[0],c[1],c[2]);
+        return ColorConversionUtils.rgb2lab(this);
     }
 
     public ColorHolder fromCIELAB() {
-        Color color = new Color(CIELABSpace.getInstance(), new float[] {this.r,this.g,this.b}, 1f);
-        return new ColorHolder(color.getRed(),color.getGreen(),color.getBlue());
+        return ColorConversionUtils.lab2rgb(this);
     }
 
     private static float max(float a, float b, float c) {
@@ -250,5 +245,15 @@ public class ColorHolder implements Comparable<ColorHolder> {
     @Override
     public int hashCode() {
         return Objects.hash(r, g, b, a);
+    }
+
+    public float getX() {
+        return r;
+    }
+    public float getY() {
+        return g;
+    }
+    public float getZ() {
+        return b;
     }
 }

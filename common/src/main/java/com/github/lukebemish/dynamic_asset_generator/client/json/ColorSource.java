@@ -1,12 +1,13 @@
 package com.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
+import com.mojang.blaze3d.platform.NativeImage;
 
-import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -16,7 +17,7 @@ public class ColorSource implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         LocationSource lS = gson.fromJson(inputStr, LocationSource.class);
         return () -> {
             int len = Math.min(128*128,lS.color.size());
@@ -27,14 +28,14 @@ public class ColorSource implements ITexSource {
                     break;
                 }
             }
-            BufferedImage out = new BufferedImage(sideLength,sideLength,BufferedImage.TYPE_INT_ARGB);
+            NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA,sideLength,sideLength,false);
             outer:
             for (int y = 0; y < sideLength; y++) {
                 for (int x = 0; x < sideLength; x++) {
                     if (x+sideLength*y >= len) {
                         break outer;
                     }
-                    out.setRGB(x,y,lS.color.get(x+sideLength*y));
+                    out.setPixelRGBA(x,y,lS.color.get(x+sideLength*y));
                 }
             }
             return out;
