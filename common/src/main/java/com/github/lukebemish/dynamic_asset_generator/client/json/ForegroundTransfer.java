@@ -1,18 +1,18 @@
 package com.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
+import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
+import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
+import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
+import com.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import com.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
-import com.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
-import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
-import com.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
+import com.mojang.blaze3d.platform.NativeImage;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.function.Supplier;
 
@@ -22,20 +22,20 @@ public class ForegroundTransfer implements ITexSource {
             .create();
 
     @Override
-    public Supplier<BufferedImage> getSupplier(String inputStr) throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         LocationSource lS = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<BufferedImage> background = DynamicTextureJson.readSupplierFromSource(lS.background);
-        Supplier<BufferedImage> new_background = DynamicTextureJson.readSupplierFromSource(lS.new_background);
-        Supplier<BufferedImage> full = DynamicTextureJson.readSupplierFromSource(lS.full);
+        Supplier<NativeImage> background = DynamicTextureJson.readSupplierFromSource(lS.background);
+        Supplier<NativeImage> new_background = DynamicTextureJson.readSupplierFromSource(lS.new_background);
+        Supplier<NativeImage> full = DynamicTextureJson.readSupplierFromSource(lS.full);
 
         return () -> {
             if (background == null || full == null || new_background == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
                 return null;
             }
-            BufferedImage bImg = background.get();
-            BufferedImage nImg = new_background.get();
-            BufferedImage fImg = full.get();
+            NativeImage bImg = background.get();
+            NativeImage nImg = new_background.get();
+            NativeImage fImg = full.get();
             if (bImg == null) {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.background.toString());
                 return null;
@@ -56,31 +56,31 @@ public class ForegroundTransfer implements ITexSource {
 
     public static class PalettePlanner implements IPalettePlan {
         private final LocationSource info;
-        private final BufferedImage nImg;
+        private final NativeImage nImg;
         private final PaletteExtractor extractor;
 
-        private PalettePlanner(LocationSource info, PaletteExtractor extractor, BufferedImage nImg) {
+        private PalettePlanner(LocationSource info, PaletteExtractor extractor, NativeImage nImg) {
             this.info = info;
             this.extractor = extractor;
             this.nImg = nImg;
         }
 
-        public static PalettePlanner of(LocationSource info, PaletteExtractor extractor, BufferedImage nImg) {
+        public static PalettePlanner of(LocationSource info, PaletteExtractor extractor, NativeImage nImg) {
             return new PalettePlanner(info, extractor, nImg);
         }
 
         @Override
-        public BufferedImage getBackground() throws IOException {
+        public NativeImage getBackground() throws IOException {
             return nImg;
         }
 
         @Override
-        public BufferedImage getOverlay() throws IOException {
+        public NativeImage getOverlay() throws IOException {
             return extractor.getOverlayImg();
         }
 
         @Override
-        public BufferedImage getPaletted() throws IOException {
+        public NativeImage getPaletted() throws IOException {
             return extractor.getPalettedImg();
         }
 

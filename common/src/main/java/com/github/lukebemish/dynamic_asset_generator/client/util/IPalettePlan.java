@@ -1,13 +1,14 @@
 package com.github.lukebemish.dynamic_asset_generator.client.util;
 
-import java.awt.image.BufferedImage;
+import com.mojang.blaze3d.platform.NativeImage;
+
 import java.io.IOException;
 
 public interface IPalettePlan {
-    public BufferedImage getBackground() throws IOException;
-    public BufferedImage getOverlay() throws IOException;
-    public BufferedImage getPaletted() throws IOException;
-    public boolean includeBackground();
-    public boolean stretchPaletted();
-    public int extend();
+    NativeImage getBackground() throws IOException;
+    NativeImage getOverlay() throws IOException;
+    NativeImage getPaletted() throws IOException;
+    boolean includeBackground();
+    boolean stretchPaletted();
+    int extend();
 }
