@@ -1,7 +1,6 @@
 package com.github.lukebemish.dynamic_asset_generator.client.palette;
 
 import com.github.lukebemish.dynamic_asset_generator.client.ColorConversionUtils;
-import com.mojang.math.Vector3f;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
@@ -117,23 +116,19 @@ public class ColorHolder implements Comparable<ColorHolder> {
     }
 
     public double distanceToLab(ColorHolder c) {
+        return distanceToLab(c,1);
+    }
+    public double euDistanceToLab(ColorHolder c) {
         ColorHolder c1 = c.toCIELAB();
         ColorHolder c2 = this.toCIELAB();
         return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
-                (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/2;
+                (c2.b-c1.b)*(c2.b-c1.b)+(c2.r-c1.r)*(c2.r-c1.r));
     }
     public double distanceToLab(ColorHolder c, float weightL) {
         ColorHolder c1 = c.toCIELAB();
         ColorHolder c2 = this.toCIELAB();
         return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
                 (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/2*weightL;
-    }
-
-    public Vector3f toVector3f() {
-        return new Vector3f(r,g,b);
-    }
-    public static ColorHolder fromVector3f(Vector3f v) {
-        return new ColorHolder(v.x(),v.y(),v.z());
     }
 
     public ColorHolder toHLS() {
@@ -255,5 +250,9 @@ public class ColorHolder implements Comparable<ColorHolder> {
     }
     public float getZ() {
         return b;
+    }
+
+    public int toInt() {
+        return ColorHolder.toColorInt(this);
     }
 }

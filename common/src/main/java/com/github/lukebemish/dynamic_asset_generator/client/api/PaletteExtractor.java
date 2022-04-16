@@ -101,15 +101,25 @@ public class PaletteExtractor {
         Palette nbColors = new Palette();
         withOverlayPalette.getStream().forEach((c)-> {if (!backgroundPalette.isInPalette(c)) nbColors.tryAdd(c);});
 
-        Clusterer clusterer = Clusterer.createFromPalettes(backgroundPalette,nbColors);
+        Clusterer clusterer = Clusterer.createFromPalettes(0.0d, Clusterer.Cluster::minDist, backgroundPalette, nbColors);
+
+        if (1==2) {
+            for (int x = 0; x < dim; x++) {
+                for (int y = 0; y < dim; y++) {
+                    ColorHolder w_c = ColorHolder.fromColorInt(w_img.getPixelRGBA(x/ws,y/ws));
+                    o_img.setPixelRGBA(x,y,new ColorHolder(clusterer.getCategory(w_c)*1f/clusterer.numCategories()).toInt());
+                }
+            }
+            return new Holder(o_img,p_img,nbColors.dist(nbColors)<nbColors.dist(backgroundPalette));
+        }
 
         Palette fColors = new Palette();
 
-        int bgCat = clusterer.getCategory(backgroundPalette.getColor(0).toCIELAB().toVector3f());
+        int bgCat = clusterer.getCategory(backgroundPalette.getColor(0));
 
         if (nbColors.getSize() != 0) {
             nbColors.getStream().forEach((c) -> {
-                if (clusterer.getCategory(c.toCIELAB().toVector3f())!=bgCat) {
+                if (clusterer.getCategory(c)!=bgCat) {
                     fColors.tryAdd(c);
                 }
             });
@@ -167,23 +177,36 @@ public class PaletteExtractor {
                                     alpha = a;
                                     f_index = f;
                                     b_index = b;
+                                    skipO = false;
                                 }
                             }
                             for (int b1 = 0; b1 < backgroundPalette.getSize(); b1++) {
                                 ColorHolder bColor = backgroundPalette.getColor(b);
                                 ColorHolder fColor = backgroundPalette.getColor(b1);
-                                double dist = w_c.distanceToLab(ColorHolder.alphaBlend(fColor.withA(a), bColor));
+                                ColorHolder blend = ColorHolder.alphaBlend(fColor.withA(a), bColor);
+                                double dist = w_c.distanceToLab(blend);
                                 if (dist < lowest) {
                                     lowest = dist;
                                     alpha = a;
-                                    b_index = (b+b1)/2;
+                                    b_index = backgroundPalette.closestTo(blend);
                                     skipO = true;
                                 }
                             }
                         }
                     }
+                    for (int f = 0; f < fColors.getSize(); f++) {
+                        ColorHolder fColor = fColors.getColor(f);
+                        double dist = w_c.distanceToLab(fColor);
+                        if (dist < lowest) {
+                            lowest = dist;
+                            alpha = 1.0f;
+                            f_index = f;
+                            skipO = false;
+                        }
+                    }
                     p_img.setPixelRGBA(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*b_index)));
-                    if (!skipO) o_img.setPixelRGBA(x,y,ColorHolder.toColorInt(fColors.getColor(f_index).withA(alpha)));
+                    if (!skipO) o_img.setPixelRGBA(x,y,fColors.getColor(f_index).withA(alpha).toInt());
+                    if (alpha>=1.0f) p_img.setPixelRGBA(x,y,new ColorHolder(0f).withA(0f).toInt());
                 }
             }
         }
@@ -284,7 +307,7 @@ public class PaletteExtractor {
                 if (key.length()!=0) key+=",";
                 key += " "+ig.rl.toString();
             }
-            DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained no differing colors; attempting clustering color extraction.",key);
+            DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained few differing colors; attempting clustering color extraction.",key);
             this.overlayImg = alt.o();
             this.palettedImg = alt.p();
             return;
@@ -307,35 +330,56 @@ public class PaletteExtractor {
             ColorHolder wColor = e.wColor();
             int f_index = 0;
             int b_index = 0;
-            double lowest = maxDiff*closeCutoff;
+            double lowest = 200f;
             float alpha = 0f;
+            boolean skipO = false;
             for (float a = 0.1f; a <= 0.25f; a+=0.05) {
-                for (int f = 0; f < frontColors.getSize(); f++) {
-                    for (int b = 0; b < backgroundPaletteSize; b++) {
+                for (int b = 0; b < backgroundPaletteSize; b++) {
+                    for (int f = 0; f < frontColors.getSize(); f++) {
                         ColorHolder bColor = backgroundPalette.getColor(b);
                         ColorHolder fColor = frontColors.getColor(f);
-                        double dist = wColor.distanceToLS(ColorHolder.alphaBlend(fColor.withA(a), bColor));
+                        double dist = wColor.distanceToLab(ColorHolder.alphaBlend(fColor.withA(a), bColor));
                         if (dist < lowest) {
                             lowest = dist;
                             alpha = a;
                             f_index = f;
                             b_index = b;
+                            skipO = false;
+                        }
+                    }
+                    for (int b1 = 0; b1 < backgroundPalette.getSize(); b1++) {
+                        ColorHolder bColor = backgroundPalette.getColor(b);
+                        ColorHolder fColor = backgroundPalette.getColor(b1);
+                        ColorHolder blend = ColorHolder.alphaBlend(fColor.withA(a), bColor);
+                        double dist = wColor.distanceToLab(blend);
+                        if (dist < lowest) {
+                            lowest = dist;
+                            alpha = a;
+                            b_index = backgroundPalette.closestTo(blend);
+                            skipO = true;
                         }
                     }
                 }
             }
+            for (int f = 0; f < frontColors.getSize(); f++) {
+                ColorHolder fColor = frontColors.getColor(f);
+                double dist = wColor.distanceToLab(fColor);
+                if (dist < lowest) {
+                    lowest = dist;
+                    alpha = 1.0f;
+                    f_index = f;
+                    skipO = false;
+                }
+            }
+            p_img.setPixelRGBA(x,y,ColorHolder.toColorInt(new ColorHolder(1f/(backgroundPaletteSize-1)*b_index)));
+            if (!skipO) o_img.setPixelRGBA(x,y,ColorHolder.toColorInt(frontColors.getColor(f_index).withA(alpha)));
             int frontIndex = frontColors.closestTo(wColor);
             int closeIndex = backgroundPalette.closestTo(wColor);
             if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) > wColor.distanceToLS(frontColors.getColor(frontIndex))) {
                 o_img.setPixelRGBA(x,y,ColorHolder.toColorInt(wColor.withA(1.0f)));
-            } else if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) < lowest) {
-                p_img.setPixelRGBA(x,y,ColorHolder.toColorInt(backgroundPalette.getColor(closeIndex)));
-            } else if (lowest < maxDiff*closeCutoff*N_CUTOFF_SCALE) {
-                p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize-1) * b_index)));
-                o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(alpha)));
-            } else {
-                o_img.setPixelRGBA(x,y,ColorHolder.toColorInt(wColor.withA(1.0f)));
+                alpha=1.0f;
             }
+            if (alpha>=1.0f) p_img.setPixelRGBA(x,y,new ColorHolder(0f).withA(0f).toInt());
         }
 
         if (trimTrailingPaletteLookup || forceOverlayNeighbors) {
@@ -372,7 +416,7 @@ public class PaletteExtractor {
         this.palettedImg = p_img;
     }
 
-    private static record PostCalcEvent(int x, int y, ColorHolder wColor,double dist) {}
+    private record PostCalcEvent(int x, int y, ColorHolder wColor, double dist) {}
 
-    private static record Holder(NativeImage o, NativeImage p, boolean shouldUse) {}
+    private record Holder(NativeImage o, NativeImage p, boolean shouldUse) {}
 }
