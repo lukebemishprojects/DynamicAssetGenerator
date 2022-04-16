@@ -1,3 +1,8 @@
+### Dynamic Asset Generator v0.4.7
+
+- Switch from AWT BufferedImage to Mojang's NativeImage.
+- Change logic on clustering extractor and hybrid pixels.
+
 ### Dynamic Asset Generator v0.4.6
 
 - Add alternate clustering palette extractor as a fallback. Other uses for this will be added at some point.
