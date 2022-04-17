@@ -31,7 +31,6 @@ public class Clusterer {
                 }
             }
             if (cutoff<0 || minNon0Dist<cutoff ) {
-                System.out.println(minNon0Dist+" "+cutoff);
                 Cluster toAdd = sampleList.get(xF);
                 toAdd.merge(sampleList.remove(yF));
             } else {

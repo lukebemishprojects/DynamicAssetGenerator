@@ -7,16 +7,26 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public class DynAssetGenServerPlanner {
     private static Map<ResourceLocation, Supplier<InputStream>> data = new HashMap<>();
+    private static final List<Supplier<Map<ResourceLocation,Supplier<InputStream>>>> unresolved = new ArrayList<>();
 
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
-        for (ResourceLocation rl : data.keySet()) {
-            Supplier<InputStream> d = data.get(rl);
+        var outMap = new HashMap<>(data);
+        for (Supplier<Map<ResourceLocation,Supplier<InputStream>>> l : unresolved) {
+            if (l instanceof ResettingSupplier r) {
+                r.reset();
+            }
+            outMap.putAll(l.get());
+        }
+        for (ResourceLocation rl : outMap.keySet()) {
+            Supplier<InputStream> d = outMap.get(rl);
             if (d instanceof ResettingSupplier) {
                 ((ResettingSupplier<InputStream>) d).reset();
             }
@@ -38,11 +48,11 @@ public class DynAssetGenServerPlanner {
                         }
                         return stream;
                     });
-                    data.put(rl, supplier);
+                    outMap.put(rl, supplier);
                 }
             }
         }
-        return data;
+        return outMap;
     }
 
     public static void planLoadingStream(ResourceLocation location, Supplier<InputStream> sup) {
@@ -68,5 +78,37 @@ public class DynAssetGenServerPlanner {
             }
         }
         data.put(location, sup);
+    }
+
+    public static void planLoaders(Supplier<Map<ResourceLocation, Supplier<InputStream>>> suppliers) {
+        unresolved.add(()->{
+            var map = suppliers.get();
+            Map<ResourceLocation,Supplier<InputStream>> out = new HashMap<>();
+            for (ResourceLocation location : map.keySet()) {
+                if(DynamicAssetGenerator.getConfig().cacheData) {
+                    try {
+                        if (!Files.exists(ModConfig.DATA_CACHE_FOLDER)) Files.createDirectories(ModConfig.DATA_CACHE_FOLDER);
+                        if (Files.exists(ModConfig.DATA_CACHE_FOLDER.resolve(location.getNamespace()).resolve(location.getPath()))) {
+                            out.put(location, () -> {
+                                try {
+                                    File file = ModConfig.DATA_CACHE_FOLDER.resolve(location.getNamespace()).resolve(location.getPath()).toFile();
+                                    if (file.isFile()) {
+                                        return new BufferedInputStream(new FileInputStream(file));
+                                    }
+                                } catch (IOException e) {
+                                    DynamicAssetGenerator.LOGGER.error("Could not load cached data...",e);
+                                }
+                                return null;
+                            });
+                            continue;
+                        }
+                    } catch (IOException e) {
+                        DynamicAssetGenerator.LOGGER.error("Could not cache data...",e);
+                    }
+                }
+                out.put(location,map.get(location));
+            }
+            return out;
+        });
     }
 }

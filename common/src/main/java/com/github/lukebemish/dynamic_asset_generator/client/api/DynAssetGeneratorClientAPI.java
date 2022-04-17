@@ -5,6 +5,7 @@ import com.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class DynAssetGeneratorClientAPI {
@@ -27,6 +28,10 @@ public class DynAssetGeneratorClientAPI {
 
     public static void planLoadingStream(ResourceLocation location, Supplier<InputStream> sup) {
         DynAssetGenClientPlanner.planLoadingStream(location, sup);
+    }
+
+    public static void planLoaders(Supplier<Map<ResourceLocation,Supplier<InputStream>>> suppliers) {
+        DynAssetGenClientPlanner.planLoaders(suppliers);
     }
 
 }
