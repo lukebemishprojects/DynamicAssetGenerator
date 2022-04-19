@@ -24,6 +24,7 @@ public class PaletteExtractor {
         }
     }
 
+    private boolean[] hasLogged = new boolean[2];
     private final double closeCutoff;
 
     private final SupplierWithException<NativeImage, IOException> background;
@@ -140,7 +141,8 @@ public class PaletteExtractor {
                     if (key.length() != 0) key += ",";
                     key += " " + ig.rl.toString();
                 }
-                DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained no differing colors; only extracting palette shifts", key);
+                if (!hasLogged[0]) DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained no differing colors; only extracting palette shifts", key);
+                hasLogged[0] = true;
                 return new Holder(o_img, p_img, false);
             }
 
@@ -305,7 +307,8 @@ public class PaletteExtractor {
                     if (key.length() != 0) key += ",";
                     key += " " + ig.rl.toString();
                 }
-                DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained few differing colors; attempting clustering color extraction.", key);
+                if (!hasLogged[1]) DynamicAssetGenerator.LOGGER.warn("Supplied images{} for extraction contained few differing colors; attempting clustering color extraction.", key);
+                hasLogged[1] = true;
                 this.overlayImg.set(alt.o());
                 this.palettedImg.set(alt.p());
                 o_img.close();
