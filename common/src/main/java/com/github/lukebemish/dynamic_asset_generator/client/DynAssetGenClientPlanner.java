@@ -34,8 +34,7 @@ public class DynAssetGenClientPlanner {
 
     public static void planNativeImage(ResourceLocation rl, Supplier<NativeImage> supplier) {
         Supplier<InputStream> s = () -> {
-            try {
-                NativeImage image = supplier.get();
+            try (NativeImage image = supplier.get()) {
                 if (image != null) {
                     return (InputStream) new ByteArrayInputStream(image.asByteArray());
                 }
@@ -62,8 +61,7 @@ public class DynAssetGenClientPlanner {
                     ResourceLocation orig_rl = ResourceLocation.of(source.output_location, ':');
                     ResourceLocation out_rl = new ResourceLocation(orig_rl.getNamespace(), "textures/" + orig_rl.getPath() + ".png");
                     Supplier<InputStream> sup = () -> {
-                        try {
-                            NativeImage image = source.source.get();
+                        try (NativeImage image = source.source.get()) {
                             if (image != null) {
                                 return (InputStream) new ByteArrayInputStream(image.asByteArray());
                             }

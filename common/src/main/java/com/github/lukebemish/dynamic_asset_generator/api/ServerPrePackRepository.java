@@ -24,6 +24,7 @@ public class ServerPrePackRepository {
         InputStream resource = null;
         for (PackResources r : resources) {
             if (!r.getName().equals(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
+                if (resource != null) resource.close();
                 resource = r.getResource(PackType.SERVER_DATA, rl);
             }
         }

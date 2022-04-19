@@ -19,8 +19,8 @@ public class PaletteExtractor {
 
     public static void refresh() {
         for (PaletteExtractor i : toRefresh) {
-            i.palettedImg = null;
-            i.overlayImg = null;
+            i.palettedImg.set(null);
+            i.overlayImg.set(null);
         }
     }
 
@@ -68,7 +68,7 @@ public class PaletteExtractor {
             overlayImg.get().getPixelRGBA(0,0);
         } catch (IllegalStateException e) {
             overlayImg.get().close();
-            if (palettedImg.get()!=null) palettedImg.get().close();
+            if (palettedImg!=null&&palettedImg.get()!=null) palettedImg.get().close();
             recalcImages();
         }
         return overlayImg.get();
@@ -82,7 +82,7 @@ public class PaletteExtractor {
             palettedImg.get().getPixelRGBA(0,0);
         } catch (IllegalStateException e) {
             palettedImg.get().close();
-            if (overlayImg.get()!=null) overlayImg.get().close();
+            if (overlayImg!=null&&overlayImg.get()!=null) overlayImg.get().close();
             recalcImages();
         }
         return palettedImg.get();

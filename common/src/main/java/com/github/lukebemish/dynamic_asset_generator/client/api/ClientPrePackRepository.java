@@ -40,6 +40,7 @@ public class ClientPrePackRepository {
         InputStream resource = null;
         for (PackResources r : getResources()) {
             if (!r.getName().equals(DynamicAssetGenerator.CLIENT_PACK) && r.hasResource(PackType.CLIENT_RESOURCES, rl)) {
+                if (resource!=null) resource.close();
                 resource = r.getResource(PackType.CLIENT_RESOURCES, rl);
             }
         }
@@ -63,8 +64,7 @@ public class ClientPrePackRepository {
         }
 
         for (ResourceLocation rl : available) {
-            try {
-                InputStream resource = getResource(rl);
+            try (InputStream resource = getResource(rl)) {
                 String text = new String(resource.readAllBytes(), StandardCharsets.UTF_8);
                 rls.put(rl, text);
             } catch (IOException e) {

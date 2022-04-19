@@ -33,24 +33,25 @@ public class ForegroundTransfer implements ITexSource {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
                 return null;
             }
-            NativeImage bImg = background.get();
-            NativeImage nImg = new_background.get();
-            NativeImage fImg = full.get();
-            if (bImg == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.background.toString());
-                return null;
+            try (NativeImage bImg = background.get();
+                 NativeImage nImg = new_background.get();
+                 NativeImage fImg = full.get()) {
+                if (bImg == null) {
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.background.toString());
+                    return null;
+                }
+                if (nImg == null) {
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.new_background.toString());
+                    return null;
+                }
+                if (fImg == null) {
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.full.toString());
+                    return null;
+                }
+                PaletteExtractor extractor = new PaletteExtractor(() -> bImg, () -> fImg, lS.extend_palette_size, lS.trim_trailing, lS.force_neighbors, lS.close_cutoff);
+                PalettePlanner planner = PalettePlanner.of(lS, extractor, nImg);
+                return Palette.paletteCombinedImage(planner);
             }
-            if (nImg == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.new_background.toString());
-                return null;
-            }
-            if (fImg == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.full.toString());
-                return null;
-            }
-            PaletteExtractor extractor = new PaletteExtractor(()->bImg,()->fImg,lS.extend_palette_size,lS.trim_trailing,lS.force_neighbors,lS.close_cutoff);
-            PalettePlanner planner = PalettePlanner.of(lS, extractor, nImg);
-            return Palette.paletteCombinedImage(planner);
         };
     }
 
