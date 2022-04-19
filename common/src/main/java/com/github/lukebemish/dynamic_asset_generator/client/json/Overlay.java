@@ -45,43 +45,45 @@ public class Overlay implements ITexSource {
                     maxY = image.getHeight();
                 }
             }
-            NativeImage output = NativeImageHelper.of(NativeImage.Format.RGBA, maxX, maxY, false);
-            NativeImage base = images.get(0);
-            int xs = 1;
-            int ys = 1;
-            if (base.getWidth() / (base.getHeight() * 1.0) <= maxX / (maxY * 1.0)) {
-                xs = maxX/base.getWidth();
-                ys = maxY/base.getWidth();
-            } else {
-                xs = maxX/base.getHeight();
-                ys = maxY/base.getHeight();
-            }
-            for (int x = 0; x < maxX; x++) {
-                for (int y = 0; y < maxY; y++) {
-                    output.setPixelRGBA(x,y, SafeImageExtraction.get(base,x/xs, y/ys));
+            try (MultiCloser multiCloser = new MultiCloser(images)) {
+                NativeImage output = NativeImageHelper.of(NativeImage.Format.RGBA, maxX, maxY, false);
+                NativeImage base = images.get(0);
+                int xs = 1;
+                int ys = 1;
+                if (base.getWidth() / (base.getHeight() * 1.0) <= maxX / (maxY * 1.0)) {
+                    xs = maxX / base.getWidth();
+                    ys = maxY / base.getWidth();
+                } else {
+                    xs = maxX / base.getHeight();
+                    ys = maxY / base.getHeight();
                 }
-            }
-            if (images.size() >= 2) {
-                for (int i = 1; i < images.size(); i++) {
-                    NativeImage image = images.get(i);
-                    if (image.getWidth() / (image.getHeight() * 1.0) <= maxX / (maxY * 1.0)) {
-                        xs = maxX/image.getWidth();
-                        ys = maxY/image.getWidth();
-                    } else {
-                        xs = maxX/image.getHeight();
-                        ys = maxY/image.getHeight();
+                for (int x = 0; x < maxX; x++) {
+                    for (int y = 0; y < maxY; y++) {
+                        output.setPixelRGBA(x, y, SafeImageExtraction.get(base, x / xs, y / ys));
                     }
-                    for (int x = 0; x < maxX; x++) {
-                        for (int y = 0; y < maxY; y++) {
-                            ColorHolder input = ColorHolder.fromColorInt(SafeImageExtraction.get(output,x,y));
-                            ColorHolder top = ColorHolder.fromColorInt(SafeImageExtraction.get(image,x/xs,y/ys));
-                            ColorHolder outColor = ColorHolder.alphaBlend(top,input);
-                            output.setPixelRGBA(x,y, ColorHolder.toColorInt(outColor));
+                }
+                if (images.size() >= 2) {
+                    for (int i = 1; i < images.size(); i++) {
+                        NativeImage image = images.get(i);
+                        if (image.getWidth() / (image.getHeight() * 1.0) <= maxX / (maxY * 1.0)) {
+                            xs = maxX / image.getWidth();
+                            ys = maxY / image.getWidth();
+                        } else {
+                            xs = maxX / image.getHeight();
+                            ys = maxY / image.getHeight();
+                        }
+                        for (int x = 0; x < maxX; x++) {
+                            for (int y = 0; y < maxY; y++) {
+                                ColorHolder input = ColorHolder.fromColorInt(SafeImageExtraction.get(output, x, y));
+                                ColorHolder top = ColorHolder.fromColorInt(SafeImageExtraction.get(image, x / xs, y / ys));
+                                ColorHolder outColor = ColorHolder.alphaBlend(top, input);
+                                output.setPixelRGBA(x, y, ColorHolder.toColorInt(outColor));
+                            }
                         }
                     }
                 }
+                return output;
             }
-            return output;
         };
     }
 
@@ -90,5 +92,23 @@ public class Overlay implements ITexSource {
         String source_type;
         @Expose
         public List<JsonObject> inputs;
+    }
+
+    public static class MultiCloser implements AutoCloseable {
+        private final List<? extends AutoCloseable> toClose;
+        public MultiCloser(List<? extends AutoCloseable> toClose) {
+            this.toClose = toClose;
+        }
+
+        @Override
+        public void close() {
+            for (AutoCloseable c : toClose) {
+                try {
+                    c.close();
+                } catch (Exception e) {
+                    DynamicAssetGenerator.LOGGER.error("Exception while closing resources:\n",e);
+                }
+            }
+        }
     }
 }

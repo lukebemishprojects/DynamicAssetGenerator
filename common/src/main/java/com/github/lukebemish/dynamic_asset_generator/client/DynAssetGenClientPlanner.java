@@ -34,7 +34,8 @@ public class DynAssetGenClientPlanner {
 
     public static void planNativeImage(ResourceLocation rl, Supplier<NativeImage> supplier) {
         Supplier<InputStream> s = () -> {
-            try (NativeImage image = supplier.get()) {
+            try {
+                NativeImage image = supplier.get();
                 if (image != null) {
                     return (InputStream) new ByteArrayInputStream(image.asByteArray());
                 }
@@ -47,18 +48,9 @@ public class DynAssetGenClientPlanner {
     }
 
     public static Map<ResourceLocation, Supplier<InputStream>> getResources() {
-        Map<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
+        Map<ResourceLocation, Supplier<InputStream>> output = new HashMap<>(miscResources);
         for (Supplier<Map<ResourceLocation,Supplier<InputStream>>> l : unresolved) {
-            if (l instanceof ResettingSupplier r) {
-                r.reset();
-            }
             output.putAll(l.get());
-        }
-        for (ResourceLocation key : miscResources.keySet()) {
-            if (miscResources.get(key) instanceof ResettingSupplier<InputStream> rs) {
-                rs.reset();
-            }
-            output.put(key, miscResources.get(key));
         }
 
         HashMap<ResourceLocation, String> sources = ClientPrePackRepository.getSourceJsons();
@@ -70,7 +62,8 @@ public class DynAssetGenClientPlanner {
                     ResourceLocation orig_rl = ResourceLocation.of(source.output_location, ':');
                     ResourceLocation out_rl = new ResourceLocation(orig_rl.getNamespace(), "textures/" + orig_rl.getPath() + ".png");
                     Supplier<InputStream> sup = () -> {
-                        try (NativeImage image = source.source.get()) {
+                        try {
+                            NativeImage image = source.source.get();
                             if (image != null) {
                                 return (InputStream) new ByteArrayInputStream(image.asByteArray());
                             }
@@ -89,6 +82,9 @@ public class DynAssetGenClientPlanner {
 
         for (ResourceLocation rl : output.keySet()) {
             Supplier<InputStream> d = output.get(rl);
+            if (d instanceof ResettingSupplier<InputStream> rs) {
+                rs.reset();
+            }
             if (DynamicAssetGenerator.getConfig().cacheAssets) {
                 if (!(d instanceof WrappedSupplier<InputStream>)) {
                     Supplier<InputStream> supplier = new WrappedSupplier<>(() -> {

@@ -29,36 +29,37 @@ public class Crop implements ITexSource {
                 DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
                 return null;
             }
-            NativeImage inImg = input.get();
-            if (inImg == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
-                return null;
-            }
-            if (locationSource.total_size == 0) {
-                DynamicAssetGenerator.LOGGER.error("Total image width must be non-zero");
-            }
-            int scale = inImg.getWidth()/locationSource.total_size;
-
-            if (scale == 0) {
-                DynamicAssetGenerator.LOGGER.error("Image scale turned out to be 0! Image is {} wide, total width is {}",
-                        inImg.getWidth(),locationSource.total_size);
-            }
-
-            int distX = locationSource.size_x *scale;
-            int distY = locationSource.size_y *scale;
-            if (distY < 1 || distX < 1) {
-                DynamicAssetGenerator.LOGGER.error("Bounds of image are negative! {}, {}",locationSource.size_x,locationSource.size_y);
-                return null;
-            }
-
-            NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
-            for (int x = 0; x < distX; x++) {
-                for (int y = 0; y < distY; y++) {
-                    int c = SafeImageExtraction.get(inImg,(x + locationSource.start_x*scale), (y + locationSource.start_y*scale));
-                    out.setPixelRGBA(x, y, c);
+            try (NativeImage inImg = input.get()) {
+                if (inImg == null) {
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
+                    return null;
                 }
+                if (locationSource.total_size == 0) {
+                    DynamicAssetGenerator.LOGGER.error("Total image width must be non-zero");
+                }
+                int scale = inImg.getWidth() / locationSource.total_size;
+
+                if (scale == 0) {
+                    DynamicAssetGenerator.LOGGER.error("Image scale turned out to be 0! Image is {} wide, total width is {}",
+                            inImg.getWidth(), locationSource.total_size);
+                }
+
+                int distX = locationSource.size_x * scale;
+                int distY = locationSource.size_y * scale;
+                if (distY < 1 || distX < 1) {
+                    DynamicAssetGenerator.LOGGER.error("Bounds of image are negative! {}, {}", locationSource.size_x, locationSource.size_y);
+                    return null;
+                }
+
+                NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
+                for (int x = 0; x < distX; x++) {
+                    for (int y = 0; y < distY; y++) {
+                        int c = SafeImageExtraction.get(inImg, (x + locationSource.start_x * scale), (y + locationSource.start_y * scale));
+                        out.setPixelRGBA(x, y, c);
+                    }
+                }
+                return out;
             }
-            return out;
         };
     }
 

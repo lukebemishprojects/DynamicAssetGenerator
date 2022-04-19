@@ -45,6 +45,7 @@ public class Transform implements ITexSource {
                         output2.setPixelRGBA((output.getWidth()-1-x),y,SafeImageExtraction.get(output,x,y));
                     }
                 }
+                output.close();
                 output = output2;
             }
             return output;
@@ -58,6 +59,7 @@ public class Transform implements ITexSource {
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
                 output.setPixelRGBA(y, w - x - 1, SafeImageExtraction.get(input,x, y));
+        input.close();
         return output;
     }
 
