@@ -87,12 +87,21 @@ publishing {
     }
 }
 
+def gitBranch() {
+    def branch = ""
+    def proc = "git rev-parse --abbrev-ref HEAD".execute()
+    proc.in.eachLine { line -> branch = line }
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    branch
+}
+
 curseforge {
     if (System.getenv('CURSEFORGE_KEY') != null) {
         apiKey = System.getenv('CURSEFORGE_KEY')
         project {
             id = '577096'
-            changelog = 'See: https://github.com/lukebemish/dynamic_asset_generator/blob/main/changelogs/CHANGELOG.md'
+            changelog = "See: https://github.com/lukebemish/dynamic_asset_generator/blob/${gitBranch()}/changelogs/CHANGELOG.md"
             releaseType = 'beta'
             addGameVersion '1.18.2'
             addGameVersion 'Forge'
