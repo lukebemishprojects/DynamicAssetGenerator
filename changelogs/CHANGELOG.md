@@ -1,3 +1,8 @@
+### Dynamic Asset Generator v0.4.9
+
+- Allow runtime generated maps.
+- Fix a lot of unclosed InputStreams or NativeImages
+
 ### Dynamic Asset Generator v0.4.7
 
 - Switch from AWT BufferedImage to Mojang's NativeImage.
