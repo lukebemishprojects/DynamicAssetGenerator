@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.5.0
+
+- Add new method for registering tags - this should allow multiple mods to use DynAssetGen to add to the same tags.
+
 ### Dynamic Asset Generator v0.4.9
 
 - Allow runtime generated maps.
