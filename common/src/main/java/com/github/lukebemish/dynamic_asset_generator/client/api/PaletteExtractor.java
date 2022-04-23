@@ -427,8 +427,8 @@ public class PaletteExtractor {
                             new Pair<>(-1,0)
                     );
                     Map<Pair<Integer,Integer>,Float> alphaMap = new HashMap<>();
-                    for (int x = 1; x < s; x++) {
-                        for (int y = 1; y < s; y++) {
+                    for (int x = 0; x < s; x++) {
+                        for (int y = 0; y < s; y++) {
                             ColorHolder overlay = ColorHolder.fromColorInt(o_img.getPixelRGBA(x,y));
                             alphaMap.put(new Pair<>(x,y),overlay.getA());
                             if (overlay.getA()==1 && o_img.getPixelRGBA(x,y)!=w_img.getPixelRGBA(x,y)) {
