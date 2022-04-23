@@ -100,6 +100,12 @@ public class ColorHolder implements Comparable<ColorHolder> {
                         (c2.b-c1.b)*(c2.b-c1.b));
     }
 
+    private static final double HYBRID_W_LS = 2;
+    private static final double HYBRID_W_LAB = 1;
+    public double distanceToHybrid(ColorHolder c) {
+        return (distanceToLS(c)*HYBRID_W_LS+distanceToLab(c)*HYBRID_W_LAB)/(HYBRID_W_LS+HYBRID_W_LAB);
+    }
+
     public double distanceToHLS(ColorHolder c) {
         ColorHolder c1 = c.toHLS();
         ColorHolder c2 = this.toHLS();

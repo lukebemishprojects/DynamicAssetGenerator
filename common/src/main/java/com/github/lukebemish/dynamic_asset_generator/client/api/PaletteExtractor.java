@@ -1,6 +1,7 @@
 package com.github.lukebemish.dynamic_asset_generator.client.api;
 
 import com.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import com.github.lukebemish.dynamic_asset_generator.Pair;
 import com.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import com.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
 import com.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
@@ -12,10 +13,13 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PaletteExtractor {
     private static final List<PaletteExtractor> toRefresh = new ArrayList<>();
+    private boolean fill_holes=false;
 
     public static void refresh() {
         for (PaletteExtractor i : toRefresh) {
@@ -24,7 +28,7 @@ public class PaletteExtractor {
         }
     }
 
-    private boolean[] hasLogged = new boolean[2];
+    private final boolean[] hasLogged = new boolean[2];
     private final double closeCutoff;
 
     private final SupplierWithException<NativeImage, IOException> background;
@@ -33,8 +37,8 @@ public class PaletteExtractor {
     public final boolean trimTrailingPaletteLookup;
     private final boolean forceOverlayNeighbors;
 
-    private ThreadLocal<NativeImage> overlayImg = new ThreadLocal<>();
-    private ThreadLocal<NativeImage> palettedImg = new ThreadLocal<>();
+    private final ThreadLocal<NativeImage> overlayImg = new ThreadLocal<>();
+    private final ThreadLocal<NativeImage> palettedImg = new ThreadLocal<>();
 
     private static final float N_CUTOFF_SCALE = 1.5f;
 
@@ -61,28 +65,28 @@ public class PaletteExtractor {
     }
 
     public NativeImage getOverlayImg() throws IOException {
-        if (overlayImg == null || overlayImg.get() == null) {
+        if (overlayImg.get() == null) {
             recalcImages();
         }
         try {
             overlayImg.get().getPixelRGBA(0,0);
         } catch (IllegalStateException e) {
             overlayImg.get().close();
-            if (palettedImg!=null&&palettedImg.get()!=null) palettedImg.get().close();
+            if (palettedImg.get() != null) palettedImg.get().close();
             recalcImages();
         }
         return overlayImg.get();
     }
 
     public NativeImage getPalettedImg() throws IOException {
-        if (palettedImg == null || palettedImg.get() == null) {
+        if (palettedImg.get() == null) {
             recalcImages();
         }
         try {
             palettedImg.get().getPixelRGBA(0,0);
         } catch (IllegalStateException e) {
             palettedImg.get().close();
-            if (overlayImg!=null&&overlayImg.get()!=null) overlayImg.get().close();
+            if (overlayImg.get() != null) overlayImg.get().close();
             recalcImages();
         }
         return palettedImg.get();
@@ -261,7 +265,7 @@ public class PaletteExtractor {
             double maxDiff = 0;
             for (ColorHolder c1 : withOverlayPalette.getStream().toList()) {
                 for (ColorHolder c2 : withOverlayPalette.getStream().toList()) {
-                    double diff = c1.distanceToLS(c2);
+                    double diff = c1.distanceToHybrid(c2);
                     if (diff > maxDiff) maxDiff = diff;
                 }
             }
@@ -286,10 +290,10 @@ public class PaletteExtractor {
                         int distIndex = backgroundPalette.closestTo(w_c);
                         ColorHolder closestP = backgroundPalette.getColor(distIndex);
                         //Now let's check how close it is.
-                        if (closestP.distanceToLS(w_c) <= closeCutoff * maxDiff * N_CUTOFF_SCALE) {
+                        if (closestP.distanceToHybrid(w_c) <= closeCutoff * maxDiff * N_CUTOFF_SCALE) {
                             //Add it to the post-processing queue
                             p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * distIndex)));
-                            postQueue.add(new PostCalcEvent(x, y, w_c, closestP.distanceToLS(w_c)));
+                            postQueue.add(new PostCalcEvent(x, y, w_c, closestP.distanceToHybrid(w_c)));
                         } else {
                             //It's too far away. Write to the overlay.
                             o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(w_c));
@@ -379,7 +383,7 @@ public class PaletteExtractor {
                     o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(alpha)));
                 int frontIndex = frontColors.closestTo(wColor);
                 int closeIndex = backgroundPalette.closestTo(wColor);
-                if (wColor.distanceToLS(backgroundPalette.getColor(closeIndex)) > wColor.distanceToLS(frontColors.getColor(frontIndex))) {
+                if (wColor.distanceToHybrid(backgroundPalette.getColor(closeIndex)) > wColor.distanceToHybrid(frontColors.getColor(frontIndex))) {
                     o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(wColor.withA(1.0f)));
                     alpha = 1.0f;
                 }
@@ -414,11 +418,64 @@ public class PaletteExtractor {
                         }
                     }
                 }
+                if (fill_holes) {
+                    int s = p_img.getWidth();
+                    List<Pair<Integer,Integer>> toSearch = List.of(
+                            new Pair<>(0,1),
+                            new Pair<>(0,-1),
+                            new Pair<>(1,0),
+                            new Pair<>(-1,0)
+                    );
+                    Map<Pair<Integer,Integer>,Float> alphaMap = new HashMap<>();
+                    for (int x = 1; x < s; x++) {
+                        for (int y = 1; y < s; y++) {
+                            ColorHolder overlay = ColorHolder.fromColorInt(o_img.getPixelRGBA(x,y));
+                            alphaMap.put(new Pair<>(x,y),overlay.getA());
+                            if (overlay.getA()==1 && o_img.getPixelRGBA(x,y)!=w_img.getPixelRGBA(x,y)) {
+                                o_img.setPixelRGBA(x,y,ColorHolder.fromColorInt(w_img.getPixelRGBA(x,y)).withA(1f).toInt());
+                            }
+                        }
+                    }
+                    outer:
+                    while (true) {
+                        for (int x = 1; x < s-1; x++) {
+                            for (int y = 1; y < s-1; y++) {
+                                ColorHolder overlay = ColorHolder.fromColorInt(o_img.getPixelRGBA(x,y));
+                                int count = 0;
+                                int partialCount = 0;
+                                for (Pair<Integer,Integer> is : toSearch) {
+                                    ColorHolder c = ColorHolder.fromColorInt(o_img.getPixelRGBA(x+is.first(),y+is.last()));
+                                    if (c.getA()==1) count++;
+                                    if (c.getA()>0 && alphaMap.get(new Pair<>(x+is.first(),y+is.last()))<1) partialCount++;
+                                }
+                                ColorHolder origC = ColorHolder.fromColorInt(w_img.getPixelRGBA(x,y));
+                                if (overlay.getA()!=1 && (count>=3 || partialCount>=4) && !backgroundPalette.isInPalette(origC)) {
+                                    int orig = w_img.getPixelRGBA(x,y);
+                                    for (int i = 0; i<s; i++) {
+                                        for (int j = 0; j<s; j++) {
+                                            int c = w_img.getPixelRGBA(i,j);
+                                            if (orig==c) {
+                                                o_img.setPixelRGBA(i,j,origC.withA(1.0f).toInt());
+                                            }
+                                        }
+                                    }
+                                    continue outer;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
             }
 
             this.overlayImg.set(o_img);
             this.palettedImg.set(p_img);
         }
+    }
+
+    public PaletteExtractor fillHoles(boolean fill_holes) {
+        this.fill_holes = fill_holes;
+        return this;
     }
 
     private record PostCalcEvent(int x, int y, ColorHolder wColor, double dist) {}

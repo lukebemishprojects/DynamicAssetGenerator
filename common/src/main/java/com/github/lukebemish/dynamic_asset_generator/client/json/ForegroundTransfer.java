@@ -21,6 +21,7 @@ public class ForegroundTransfer implements ITexSource {
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
+
     @Override
     public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
         LocationSource lS = gson.fromJson(inputStr, LocationSource.class);
@@ -48,7 +49,7 @@ public class ForegroundTransfer implements ITexSource {
                     DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", lS.full.toString());
                     return null;
                 }
-                PaletteExtractor extractor = new PaletteExtractor(() -> bImg, () -> fImg, lS.extend_palette_size, lS.trim_trailing, lS.force_neighbors, lS.close_cutoff);
+                PaletteExtractor extractor = new PaletteExtractor(() -> bImg, () -> fImg, lS.extend_palette_size, lS.trim_trailing, lS.force_neighbors, lS.close_cutoff).fillHoles(lS.fill_holes);
                 PalettePlanner planner = PalettePlanner.of(lS, extractor, nImg);
                 return Palette.paletteCombinedImage(planner);
             }
@@ -116,6 +117,8 @@ public class ForegroundTransfer implements ITexSource {
         boolean trim_trailing;
         @Expose
         boolean force_neighbors;
+        @Expose
+        boolean fill_holes;
         @Expose
         double close_cutoff;
     }
