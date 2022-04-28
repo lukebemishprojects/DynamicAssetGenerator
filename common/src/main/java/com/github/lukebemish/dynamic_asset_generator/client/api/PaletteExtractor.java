@@ -449,7 +449,7 @@ public class PaletteExtractor {
                                     if (c.getA()>0 && alphaMap.get(new Pair<>(x+is.first(),y+is.last()))<1) partialCount++;
                                 }
                                 ColorHolder origC = ColorHolder.fromColorInt(w_img.getPixelRGBA(x,y));
-                                if (overlay.getA()!=1 && (count>=3 || partialCount>=4) && !backgroundPalette.isInPalette(origC)) {
+                                if (overlay.getA()!=1 && (count>=3 || partialCount>=4) && !backgroundPalette.isInPalette(origC,backgroundPalette.getCutoff())) {
                                     int orig = w_img.getPixelRGBA(x,y);
                                     for (int i = 0; i<s; i++) {
                                         for (int j = 0; j<s; j++) {

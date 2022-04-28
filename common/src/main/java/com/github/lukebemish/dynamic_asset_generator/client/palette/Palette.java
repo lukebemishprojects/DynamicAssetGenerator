@@ -56,9 +56,14 @@ public class Palette {
     }
 
     public boolean isInPalette(ColorHolder color) {
+        return this.isInPalette(color, this.inPaletteCutoff);
+    }
+
+    public boolean isInPalette(ColorHolder color, float cutoff) {
         if (color.getA() == 0) return false;
         for (ColorHolder c : colors) {
-            if (Math.abs(c.getR()-color.getR())+Math.abs(c.getG()-color.getG())+Math.abs(c.getB()-color.getB()) < this.inPaletteCutoff) {
+            //check if every channel is less than the cutoff apart.
+            if (Math.abs(c.getR()-color.getR())<cutoff && Math.abs(c.getG()-color.getG())<cutoff && Math.abs(c.getB()-color.getB())<cutoff) {
                 return true;
             }
         }
@@ -227,5 +232,9 @@ public class Palette {
             d+=c1.distanceToLS(cent);
         }
         return d/c;
+    }
+
+    public float getCutoff() {
+        return this.inPaletteCutoff;
     }
 }
