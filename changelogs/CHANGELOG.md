@@ -1,3 +1,13 @@
+### Dynamic Asset Generator v0.5.2
+
+- Fix potential issue with `fillHoles` by making palette containment checking a bit less sensitive, as all channels are
+now checked individually. This *shouldn't* have other effects, but I am still uncertain what else might have been broken
+by `fillHoles`.
+
+### Dynamic Asset Generator v0.5.1
+
+- Add `fillHoles` option for texture extraction.
+
 ### Dynamic Asset Generator v0.5.0
 
 - Add new method for registering tags - this should allow multiple mods to use DynAssetGen to add to the same tags.
