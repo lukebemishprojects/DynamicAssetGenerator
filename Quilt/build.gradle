@@ -1,0 +1,106 @@
+plugins {
+	id 'org.quiltmc.loom' version '0.12.+'
+	id 'maven-publish'
+}
+
+archivesBaseName = "${mod_id}-quilt-${minecraft_version}"
+
+repositories {
+	maven {
+		url = uri("https://storage.googleapis.com/devan-maven/")
+	}
+
+	maven {
+		name 'Quilt (Release)'
+		url 'https://maven.quiltmc.org/repository/release/'
+	}
+
+	maven {
+		name 'Quilt (Snapshot)'
+		url 'https://maven.quiltmc.org/repository/snapshot/'
+		content {
+			includeGroup 'org.quiltmc.fabric_api_qsl'
+			includeGroupByRegex 'org\\.quiltmc\\.qsl(?:\\.[a-z_]+)?'
+		}
+	}
+}
+
+dependencies {
+
+	minecraft "com.mojang:minecraft:${minecraft_version}"
+	mappings loom.layered() {
+		officialMojangMappings()
+		parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
+	}
+	modImplementation "org.quiltmc:quilt-loader:${quilt_loader_version}"
+
+	modImplementation("org.quiltmc:qsl:${quilt_stdlib_version}") {
+		exclude group: "net.fabricmc"
+	}
+
+	implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+	implementation project(":Common")
+
+	compileOnly group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
+	annotationProcessor group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
+
+	modImplementation("org.quiltmc.quilted-fabric-api:quilted-fabric-api:${quilted_fabric_api}") {
+		exclude group: "org.quiltmc", module:" qsl"
+	}
+
+	include modImplementation("net.devtech:arrp:${rootProject.arrp_version}") {
+		exclude group: "net.fabricmc.fabric-api"
+		exclude group: "net.fabricmc", module: "fabric-loader"
+	}
+}
+
+loom {
+	runs {
+		client {
+			client()
+			setConfigName("Quilt Client")
+			ideConfigGenerated(true)
+			runDir("run")
+		}
+		server {
+			server()
+			setConfigName("Quilt Server")
+			ideConfigGenerated(true)
+			runDir("run")
+		}
+	}
+}
+
+processResources {
+    from project(":Common").sourceSets.main.resources
+	inputs.property "version", project.version
+
+	filesMatching("quilt.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile) {
+    source(project(":Common").sourceSets.main.allSource)
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${mod_name}"}
+	}
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            from components.java
+        }
+    }
+
+    repositories {
+		mavenLocal()
+    }
+}

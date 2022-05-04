@@ -1,18 +1,40 @@
 pluginManagement {
+
     repositories {
-        maven { url "https://maven.fabricmc.net/" }
-        maven { url "https://maven.architectury.dev/" }
+        
+        maven {
+        
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        
+        maven {
+        
+            name = 'Sponge Snapshots'
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
+        }
+        
+        maven {
+        
+            name = 'Quilt (Release)'
+            url = 'https://maven.quiltmc.org/repository/release'
+        }
+        
+        maven {
+        
+            name = 'Quilt (Snapshot)'
+            url = 'https://maven.quiltmc.org/repository/snapshot'
+        }
+
         maven {
             name = 'Cotton'
             url = 'https://server.bbkr.space/artifactory/libs-release/'
         }
-        maven { url "https://maven.minecraftforge.net/" }
+
+        mavenCentral()
         gradlePluginPortal()
     }
 }
 
-include("common")
-include("fabric")
-include("forge")
-
-rootProject.name = "dynamic_asset_generator"
+rootProject.name = 'dynamic_asset_generator'
+include("Common", "Fabric", "Forge", "Quilt")

@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.6.0
+
+- *Major* internal restructuring of build system; now setup for Quilt support.
+
 ### Dynamic Asset Generator v0.5.2
 
 - Fix potential issue with `fillHoles` by making palette containment checking a bit less sensitive, as all channels are
