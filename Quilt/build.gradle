@@ -3,10 +3,6 @@ plugins {
 	id 'maven-publish'
 }
 
-mcDevUtil {
-	platform = 'quilt'
-}
-
 archivesBaseName = "${mod_id}-quilt-${minecraft_version}"
 
 repositories {

@@ -17,10 +17,6 @@ apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'org.spongepowered.mixin'
 
-mcDevUtil {
-    platform = 'forge'
-}
-
 archivesBaseName = "${mod_id}-forge-${minecraft_version}"
 
 minecraft {

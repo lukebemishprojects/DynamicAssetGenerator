@@ -1,11 +1,9 @@
 package io.github.lukebemish.dynamic_asset_generator.fabric;
 
-import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGeneratorClient;
 import io.github.lukebemish.dynamic_asset_generator.client.DynAssetGenClientPlanner;
-import io.github.lukebemish.mcdevutils.sided.api.CheckSide;
-import io.github.lukebemish.mcdevutils.sided.api.Side;
+import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ClientModInitializer;
@@ -17,7 +15,6 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.function.Supplier;
 
-@CheckSide(Side.CLIENT)
 public class DynamicAssetGeneratorClientFabric implements ClientModInitializer {
     public static RuntimeResourcePack RESOURCE_PACK;
     @Override
