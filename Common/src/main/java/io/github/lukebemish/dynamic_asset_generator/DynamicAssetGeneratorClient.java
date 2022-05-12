@@ -1,17 +1,14 @@
 package io.github.lukebemish.dynamic_asset_generator;
 
-import io.github.lukebemish.dynamic_asset_generator.client.json.*;
-import io.github.lukebemish.dynamic_asset_generator.client.api.ForegroundTransferType;
-import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
-import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 import io.github.lukebemish.dynamic_asset_generator.client.api.DynAssetGeneratorClientAPI;
+import io.github.lukebemish.dynamic_asset_generator.client.api.ForegroundTransferType;
 import io.github.lukebemish.dynamic_asset_generator.client.api.JsonReaderAPI;
 import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
-import io.github.lukebemish.mcdevutils.sided.api.CheckSide;
-import io.github.lukebemish.mcdevutils.sided.api.Side;
+import io.github.lukebemish.dynamic_asset_generator.client.json.*;
+import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
+import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 
-@CheckSide(Side.CLIENT)
 public class DynamicAssetGeneratorClient {
     public static void init() {
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),new TextureReader());
