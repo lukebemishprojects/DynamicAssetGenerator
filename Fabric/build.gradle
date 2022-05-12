@@ -3,6 +3,10 @@ plugins {
     id 'maven-publish'
 }
 
+mcDevUtil {
+    platform = 'fabric'
+}
+
 archivesBaseName = "${mod_id}-fabric-${minecraft_version}"
 
 repositories {

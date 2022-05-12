@@ -29,6 +29,10 @@ jar {
     getDestinationDirectory().set(new File(project.getBuildDir(),"libs"))
 }
 
+mcDevUtil {
+    platform = 'common'
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.layered() {

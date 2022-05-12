@@ -33,6 +33,7 @@ pluginManagement {
 
         mavenCentral()
         gradlePluginPortal()
+        mavenLocal()
     }
 }
 
