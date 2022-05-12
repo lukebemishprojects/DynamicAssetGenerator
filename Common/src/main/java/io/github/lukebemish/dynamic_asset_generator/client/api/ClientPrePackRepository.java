@@ -3,6 +3,7 @@ package io.github.lukebemish.dynamic_asset_generator.client.api;
 import com.google.common.collect.ImmutableList;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.mixin.IPackRepositoryMixin;
+import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
@@ -27,13 +28,13 @@ public class ClientPrePackRepository {
         resources = null;
     }
 
-    private static List<PackResources> getResources() {
+    private static List<? extends PackResources> getResources() {
         if (resources == null || resources.size() == 0) {
             resources = ((IPackRepositoryMixin) Minecraft.getInstance().getResourcePackRepository()).getSelected().stream()
                     .filter((p)->!(p.getId().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getId().contains(DynamicAssetGenerator.SERVER_PACK))).map(Pack::open)
                     .filter((p)->!(p.getName().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getName().contains(DynamicAssetGenerator.SERVER_PACK))).collect(ImmutableList.toImmutableList());
         }
-        return resources;
+        return Services.DEGROUPER.unpackPacks(resources);
     }
 
     public static InputStream getResource(ResourceLocation rl) throws IOException {

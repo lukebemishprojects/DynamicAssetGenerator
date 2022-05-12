@@ -2,6 +2,7 @@ package io.github.lukebemish.dynamic_asset_generator.api;
 
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.google.common.collect.ImmutableList;
+import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -36,7 +37,7 @@ public class ServerPrePackRepository {
 
     public static List<InputStream> getResources(ResourceLocation rl) throws IOException {
         List<InputStream> out = new ArrayList<>();
-        for (PackResources r : resources) {
+        for (PackResources r : Services.DEGROUPER.unpackPacks(resources)) {
             if (!r.getName().equals(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
                 out.add(0, r.getResource(PackType.SERVER_DATA, rl));
             }

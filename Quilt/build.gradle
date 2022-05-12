@@ -69,6 +69,10 @@ loom {
 			runDir("run")
 		}
 	}
+
+	mixin {
+		defaultRefmapName = "dynamic_asset_generator.refmap.json"
+	}
 }
 
 processResources {

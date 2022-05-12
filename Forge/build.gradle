@@ -88,7 +88,7 @@ dependencies {
 }
 
 mixin {
-    add sourceSets.main, 'mixin.dynamic_asset_generator.refmap.json'
+    add sourceSets.main, "dynamic_asset_generator.refmap.json"
     config 'mixin.dynamic_asset_generator.json'
 }
 

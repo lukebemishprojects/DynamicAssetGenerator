@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "quilt_loader": {
-    "group": "com.lukebemish.github.dynamic_asset_generator",
+    "group": "io.github.lukebemish.dynamic_asset_generator",
     "id": "dynamic_asset_generator",
     "version": "${version}",
     "intermediate_mappings": "net.fabricmc:intermediary",
@@ -19,10 +19,10 @@
     },
     "entrypoints": {
       "client_init": [
-        "com.github.lukebemish.dynamic_asset_generator.quilt.DynamicAssetGeneratorClientQuilt"
+        "io.github.lukebemish.dynamic_asset_generator.quilt.DynamicAssetGeneratorClientQuilt"
       ],
       "init" : [
-        "com.github.lukebemish.dynamic_asset_generator.quilt.DynamicAssetGeneratorQuilt"
+        "io.github.lukebemish.dynamic_asset_generator.quilt.DynamicAssetGeneratorQuilt"
       ]
     },
     "depends": [

@@ -2,11 +2,13 @@ package io.github.lukebemish.dynamic_asset_generator.platform;
 
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.platform.services.IPlatform;
+import io.github.lukebemish.dynamic_asset_generator.platform.services.IResourceDegrouper;
 
 import java.util.ServiceLoader;
 
 public class Services {
     public static final IPlatform PLATFORM = load(IPlatform.class);
+    public static final IResourceDegrouper DEGROUPER = load(IResourceDegrouper.class);
 
     public static <T> T load(Class<T> clazz) {
 
