@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ClientPrePackRepository {
     //Allows resources to be found while packs are being loaded... not sure how bad of an idea this is.
-    private static List<PackResources> resources = new ArrayList<>();
+    private static List<? extends PackResources> resources = new ArrayList<>();
 
     public static final String SOURCE_JSON_DIR = "dynamic_assets_sources";
 
@@ -30,11 +30,11 @@ public class ClientPrePackRepository {
 
     private static List<? extends PackResources> getResources() {
         if (resources == null || resources.size() == 0) {
-            resources = ((IPackRepositoryMixin) Minecraft.getInstance().getResourcePackRepository()).getSelected().stream()
+            resources = Services.DEGROUPER.unpackPacks(((IPackRepositoryMixin) Minecraft.getInstance().getResourcePackRepository()).getSelected().stream()
                     .filter((p)->!(p.getId().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getId().contains(DynamicAssetGenerator.SERVER_PACK))).map(Pack::open)
-                    .filter((p)->!(p.getName().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getName().contains(DynamicAssetGenerator.SERVER_PACK))).collect(ImmutableList.toImmutableList());
+                    .filter((p)->!(p.getName().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getName().contains(DynamicAssetGenerator.SERVER_PACK))).collect(ImmutableList.toImmutableList()));
         }
-        return Services.DEGROUPER.unpackPacks(resources);
+        return resources;
     }
 
     public static InputStream getResource(ResourceLocation rl) throws IOException {
