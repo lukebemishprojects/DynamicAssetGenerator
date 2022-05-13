@@ -1,6 +1,7 @@
 ### Dynamic Asset Generator v0.6.0
 
 - *Major* internal restructuring of build system; now setup for Quilt support.
+- Not backwards compatible if java classes are referenced, due to internal package name changes to match proper convention.
 
 ### Dynamic Asset Generator v0.5.2
 
