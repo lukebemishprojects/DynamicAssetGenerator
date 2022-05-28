@@ -36,8 +36,8 @@ public abstract class TextureConfigProvider implements DataProvider {
         return new ImageSource.File(this, texture);
     }
 
-    public final ImageSource.FallbackFile fallbackFileSource() {
-        return new ImageSource.FallbackFile(this);
+    public final ImageSource.Fallback fallbackSource() {
+        return new ImageSource.Fallback(this);
     }
 
     public final ImageSource.Color colorSource() { return new ImageSource.Color(this); }

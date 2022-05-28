@@ -55,36 +55,32 @@ public abstract class ImageSource {
         }
     }
 
-    public static final class FallbackFile extends ImageSource {
-        private ResourceLocation path;
-        private ResourceLocation fallback;
+    public static final class Fallback extends ImageSource {
+        private ImageSource original = null;
+        private ImageSource fallback = null;
 
-        FallbackFile(TextureConfigProvider provider) { super(provider, DynamicAssetGenerator.MOD_ID + ":fallback_texture"); }
+        Fallback(TextureConfigProvider provider) { super(provider, DynamicAssetGenerator.MOD_ID + ":fallback"); }
 
-        public FallbackFile path(ResourceLocation path) {
-            Preconditions.checkNotNull(path, "Path must not be null");
-            checkExists(path);
-
-            this.path = path;
+        public Fallback fallback(ImageSource fallback) {
+            Preconditions.checkNotNull(fallback, "Fallback source most not be null");
+            this.fallback = fallback;
             return this;
         }
 
-        public FallbackFile fallback(ResourceLocation fallback) {
-            Preconditions.checkNotNull(fallback, "Fallback must not be null");
-            checkExists(fallback);
-
-            this.fallback = fallback;
+        public Fallback original(ImageSource original) {
+            Preconditions.checkNotNull(original, "Original source most not be null");
+            this.original = original;
             return this;
         }
 
         @Override
         JsonObject toJson() {
-            Preconditions.checkNotNull(path, "No texture set");
-            Preconditions.checkNotNull(fallback, "No fallback set");
+            Preconditions.checkNotNull(original, "No original source set");
+            Preconditions.checkNotNull(fallback, "No fallback source set");
 
             JsonObject object = super.toJson();
-            object.addProperty("path", path.toString());
-            object.addProperty("fallback", fallback.toString());
+            object.add("original", original.toJson());
+            object.add("fallback", fallback.toJson());
             return object;
         }
     }
