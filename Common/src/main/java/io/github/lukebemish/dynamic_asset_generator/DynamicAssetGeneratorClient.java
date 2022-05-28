@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 public class DynamicAssetGeneratorClient {
     public static void init() {
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),new TextureReader());
+        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"fallback_texture"),new FallbackTextureReader());
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"combined_paletted_image"),new CombinedPaletteImage());
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"overlay"),new Overlay());
         JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"mask"),new Mask());
