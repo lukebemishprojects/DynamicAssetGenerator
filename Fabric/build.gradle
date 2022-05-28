@@ -105,7 +105,7 @@ curseforge {
         project {
             id = '577096'
             changelog = "See: https://github.com/lukebemish/dynamic_asset_generator/blob/${gitBranch()}/changelogs/CHANGELOG.md"
-            releaseType = '${project.cf_version_type}'
+            releaseType = "${project.cf_version_type}"
             addGameVersion '1.18.2'
             addGameVersion 'Fabric'
             mainArtifact(remapJar) {
