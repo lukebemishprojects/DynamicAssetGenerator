@@ -1,3 +1,7 @@
+### Dynamic Asset Generator v0.6.3
+
+- Fix major issue with mixins at runtime on Forge.
+
 ### Dynamic Asset Generator v0.6.2
 
 - Remove log spam relating to fallback texture source.

@@ -20,6 +20,10 @@ import java.util.concurrent.Executor;
 
 @Mixin(ReloadableResourceManager.class)
 public abstract class ReloadableResourceManagerMixin {
+    @Shadow
+    @Final
+    private PackType type;
+
     @Inject(method = "createReload", at = @At(value = "HEAD"))
     private void dynamic_asset_generator_insertResourcePack(Executor preparationExecutor,
                                                             Executor reloadExecutor,
@@ -33,8 +37,4 @@ public abstract class ReloadableResourceManagerMixin {
             ServerPrePackRepository.loadResources(packs);
         }
     }
-
-    @Shadow
-    @Final
-    private PackType type;
 }
