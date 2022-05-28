@@ -1,3 +1,12 @@
+### Dynamic Asset Generator v0.6.2
+
+- Remove log spam relating to fallback texture source.
+
+### Dynamic Asset Generator v0.6.1
+
+- Add new fallback texture source.
+- Add datagen helpers for JSON texture sources.
+
 ### Dynamic Asset Generator v0.6.0
 
 - *Major* internal restructuring of build system; now setup for Quilt support.
