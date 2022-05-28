@@ -27,6 +27,7 @@ public class FallbackSource implements ITexSource {
             if (original != null) {
                 NativeImage img = original.get();
                 if (img != null) return img;
+                DynamicAssetGenerator.LOGGER.info("Issue loading main texture, trying fallback");
             }
             if (fallback != null) {
                 NativeImage img = fallback.get();

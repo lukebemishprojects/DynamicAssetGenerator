@@ -27,7 +27,7 @@ public class TextureReader implements ITexSource {
             try {
                 return ImageUtils.getImage(out_rl);
             } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Issue loading texture: {}", rl);
+                DynamicAssetGenerator.LOGGER.info("Issue loading texture: {}", rl);
             }
             return null;
         };
