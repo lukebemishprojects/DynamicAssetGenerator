@@ -103,7 +103,7 @@ public class DynAssetGenServerDataPack implements PackResources {
             return serializer.fromJson(object);
         }
         DynamicAssetGenerator.LOGGER.info("'" + serializer.getMetadataSectionName() + "' is an unsupported metadata key!");
-        return serializer.fromJson(new JsonObject());
+        return null;
     }
 
     @Override
