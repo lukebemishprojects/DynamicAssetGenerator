@@ -61,13 +61,13 @@ public abstract class TextureConfigProvider implements DataProvider {
     protected boolean checkTextureExists(ResourceLocation texture) { return true; }
 
     @Override
-    public final void run(HashCache cache) {
+    public final void run(CachedOutput cache) {
         generatedConfigs.clear();
         addConfigs();
         writeConfigs(cache);
     }
 
-    private void writeConfigs(HashCache cache) {
+    private void writeConfigs(CachedOutput cache) {
         for (ResourceLocation location : generatedConfigs.keySet()) {
             Path target = generator.getOutputFolder().resolve(String.format(
                     "assets/%s/dynamic_assets_sources/%s.json",
@@ -76,7 +76,7 @@ public abstract class TextureConfigProvider implements DataProvider {
             ));
 
             try {
-                DataProvider.save(GSON, cache, generatedConfigs.get(location).toJson(), target);
+                DataProvider.saveStable(cache, generatedConfigs.get(location).toJson(), target);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

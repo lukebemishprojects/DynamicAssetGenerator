@@ -56,11 +56,11 @@ public class DynAssetGenClientResourcePack implements PackResources {
     }
 
     @Override
-    public @NotNull Collection<ResourceLocation> getResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String directory, int depth, @NotNull Predicate<String> predicate) {
+    public @NotNull Collection<ResourceLocation> getResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String directory, @NotNull Predicate<ResourceLocation> predicate) {
         ArrayList<ResourceLocation> locations = new ArrayList<>();
         if (packType == PackType.CLIENT_RESOURCES) {
             for (ResourceLocation key : getStreams().keySet()) {
-                if (key.toString().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key.getPath())) {
+                if (key.toString().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key)) {
                     // still need to figure out depth...
                     locations.add(key);
                 }

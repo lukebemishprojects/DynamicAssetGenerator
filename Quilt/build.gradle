@@ -1,7 +1,7 @@
 plugins {
 	id 'org.quiltmc.loom' version '0.12.+'
 	id 'maven-publish'
-	//id 'com.matthewprenger.cursegradle' version '1.4.0'
+	id 'com.matthewprenger.cursegradle' version '1.4.0'
 	id "com.modrinth.minotaur" version "1.2.1"
 }
 
@@ -32,7 +32,7 @@ dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings loom.layered() {
 		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${minecraft_version}:${parchment_version}@zip")
+		parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_version}@zip")
 	}
 	modImplementation "org.quiltmc:quilt-loader:${quilt_loader_version}"
 
@@ -123,7 +123,7 @@ def gitBranch() {
 }
 
 // (no quilt support yet)
-/*
+
 curseforge {
 	if (System.getenv('CURSEFORGE_KEY') != null) {
 		apiKey = System.getenv('CURSEFORGE_KEY')
@@ -131,17 +131,17 @@ curseforge {
 			id = '577096'
 			changelog = "See: https://github.com/lukebemish/dynamic_asset_generator/blob/${gitBranch()}/changelogs/CHANGELOG.md"
 			releaseType = 'beta'
-			addGameVersion '1.18.2'
-			addGameVersion 'Fabric'
+			addGameVersion "${minecraft_version}"
+			addGameVersion 'Quilt'
 			mainArtifact(remapJar) {
-				displayName = "Dynamic Asset Generator [Fabric] v$project.version"
+				displayName = "Dynamic Asset Generator [Quilt] v$project.version"
 			}
 		}
 	}
 	options {
 		forgeGradleIntegration = false
 	}
-}*/
+}
 
 import com.modrinth.minotaur.TaskModrinthUpload
 
@@ -158,7 +158,7 @@ task modrinth (type: TaskModrinthUpload){ // Make sure it runs after build!
 	detectLoaders = false
 
 	uploadFile = remapJar // This is the java jar task. If it can't find the jar, try 'jar.outputs.getFiles().asPath' in place of 'jar'
-	addGameVersion('1.18.2') // Call this multiple times to add multiple game versions. There are tools that can help you generate the list of versions
+	addGameVersion("${minecraft_version}") // Call this multiple times to add multiple game versions. There are tools that can help you generate the list of versions
 	addLoader('quilt')
 }
 

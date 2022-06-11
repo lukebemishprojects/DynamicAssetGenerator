@@ -58,7 +58,7 @@ public class ClientPrePackRepository {
         for (PackResources r : getResources()) {
             if (r.getName().equals(DynamicAssetGenerator.CLIENT_PACK) || r.getName().equals(DynamicAssetGenerator.SERVER_PACK)) continue;
             for (String namespace : r.getNamespaces(PackType.CLIENT_RESOURCES)) {
-                for (ResourceLocation rl : r.getResources(PackType.CLIENT_RESOURCES, namespace, SOURCE_JSON_DIR, 6, (x)->x.endsWith(".json"))) {
+                for (ResourceLocation rl : r.getResources(PackType.CLIENT_RESOURCES, namespace, SOURCE_JSON_DIR, (x)->x.toString().endsWith(".json"))) {
                     if (r.hasResource(PackType.CLIENT_RESOURCES,rl)) available.add(rl);
                 }
             }
