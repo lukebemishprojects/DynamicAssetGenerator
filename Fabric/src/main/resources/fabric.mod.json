@@ -26,6 +26,6 @@
     "mixin.dynamic_asset_generator_fabric.json"
   ],
   "depends": {
-    "minecraft": ">=1.18.2"
+    "minecraft": ">=1.19"
   }
 }
