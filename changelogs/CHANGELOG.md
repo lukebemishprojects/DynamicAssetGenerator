@@ -1,3 +1,8 @@
+### Dyanmic Asset Generator v0.6.4
+
+- Finish updating to 1.19
+- Fix issues with getResources on 1.19
+
 ### Dynamic Asset Generator v0.6.3
 
 - Fix major issue with mixins at runtime on Forge.
