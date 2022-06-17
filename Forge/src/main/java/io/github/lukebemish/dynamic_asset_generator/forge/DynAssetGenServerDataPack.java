@@ -62,7 +62,7 @@ public class DynAssetGenServerDataPack implements PackResources {
         ArrayList<ResourceLocation> locations = new ArrayList<>();
         if (packType == PackType.SERVER_DATA) {
             for (ResourceLocation key : getStreams().keySet()) {
-                if (key.toString().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key) && getStreams().get(key).get() != null) {
+                if (key.getPath().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key) && getStreams().get(key).get() != null) {
                     // still need to figure out depth...
                     locations.add(key);
                 }
