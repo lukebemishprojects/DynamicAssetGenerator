@@ -1,4 +1,4 @@
-package io.github.lukebemish.dynamic_asset_generator.forge;
+package io.github.lukebemish.dynamic_asset_generator;
 
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
@@ -99,7 +99,6 @@ public class DynAssetGenClientResourcePack implements PackResources {
             object.addProperty("description", "dynamically generated assets");
             return serializer.fromJson(object);
         }
-        DynamicAssetGenerator.LOGGER.info("'" + serializer.getMetadataSectionName() + "' is an unsupported metadata key!");
         return null;
     }
 
