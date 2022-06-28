@@ -1,9 +1,9 @@
 package io.github.lukebemish.dynamic_asset_generator;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
 import com.google.gson.JsonObject;
 import io.github.lukebemish.dynamic_asset_generator.client.DynAssetGenClientPlanner;
+import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
+import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -28,7 +28,7 @@ public class DynAssetGenClientResourcePack implements PackResources {
         return streams;
     }
 
-    private static final int PACK_VERSION = 8;
+    private static final int PACK_VERSION = PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion());
 
     public DynAssetGenClientResourcePack() {
         PaletteExtractor.refresh();

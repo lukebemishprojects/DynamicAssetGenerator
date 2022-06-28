@@ -1,8 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator;
 
-import io.github.lukebemish.dynamic_asset_generator.DynAssetGenServerPlanner;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.google.gson.JsonObject;
+import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -19,7 +18,7 @@ public class DynAssetGenServerDataPack implements PackResources {
 
     private Map<ResourceLocation, Supplier<InputStream>> streams;
 
-    private static final int PACK_VERSION = 8;
+    private static final int PACK_VERSION = PackType.SERVER_DATA.getVersion(SharedConstants.getCurrentVersion());
 
     private Map<ResourceLocation, Supplier<InputStream>> getStreams() {
         if (streams == null) {
@@ -99,7 +98,7 @@ public class DynAssetGenServerDataPack implements PackResources {
         if(serializer.getMetadataSectionName().equals("pack")) {
             JsonObject object = new JsonObject();
             object.addProperty("pack_format", PACK_VERSION);
-            object.addProperty("description", "dynamically generated assets");
+            object.addProperty("description", "dynamically generated data");
             return serializer.fromJson(object);
         }
         return null;
