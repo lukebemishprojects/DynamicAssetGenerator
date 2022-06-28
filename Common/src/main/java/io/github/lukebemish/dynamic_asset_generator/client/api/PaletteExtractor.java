@@ -19,7 +19,9 @@ import java.util.Map;
 
 public class PaletteExtractor {
     private static final List<PaletteExtractor> toRefresh = new ArrayList<>();
-    private boolean fill_holes=false;
+    private static final int[] X_SAMPLING_ORDER = new int[]{-1, -1, -1, 0, 0, 0, 1, 1, 1};
+    private static final int[] Y_SAMPLING_ORDER = new int[]{-1, 0, 1, -1, 0, 1, -1, 0, 1};
+    private boolean fillHoles =false;
 
     public static void refresh() {
         for (PaletteExtractor i : toRefresh) {
@@ -214,52 +216,54 @@ public class PaletteExtractor {
                 }
             }
 
-            if (trimTrailingPaletteLookup || forceOverlayNeighbors) {
-                for (int x = 0; x < dim; x++) {
-                    for (int y = 0; y < dim; y++) {
-                        boolean hasNeighbor = false;
-                        boolean hasFullNeighbor = false;
-                        int[] xs = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
-                        int[] ys = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
-                        for (int j = 0; j < xs.length; j++) {
-                            int xt = x + xs[j];
-                            int yt = y + ys[j];
-                            if (0 <= xt && xt < dim && 0 <= yt && yt < dim) {
-                                if (ColorHolder.fromColorInt(o_img.getPixelRGBA(xt, yt)).getA() != 0) {
-                                    hasNeighbor = true;
-                                }
-                                if (ColorHolder.fromColorInt(o_img.getPixelRGBA(xt, yt)).getA() == 1f) {
-                                    hasFullNeighbor = true;
-                                }
+            trimAndOverlay(dim, ws, o_img, p_img, w_img, backgroundPaletteSize, backgroundPalette);
+            return new Holder(o_img, p_img, nbColors.dist(nbColors) < nbColors.dist(backgroundPalette));
+        }
+    }
+
+    private void trimAndOverlay(int dim, int ws, NativeImage oImg, NativeImage pImg, NativeImage wImg, int backgroundPaletteSize, Palette backgroundPalette) {
+        if (trimTrailingPaletteLookup || forceOverlayNeighbors) {
+            for (int x = 0; x < dim; x++) {
+                for (int y = 0; y < dim; y++) {
+                    boolean hasNeighbor = false;
+                    boolean hasFullNeighbor = false;
+                    for (int j = 0; j < X_SAMPLING_ORDER.length; j++) {
+                        int xt = x + X_SAMPLING_ORDER[j];
+                        int yt = y + Y_SAMPLING_ORDER[j];
+                        if (0 <= xt && xt < dim && 0 <= yt && yt < dim) {
+                            if (ColorHolder.fromColorInt(oImg.getPixelRGBA(xt, yt)).getA() != 0) {
+                                hasNeighbor = true;
+                            }
+                            if (ColorHolder.fromColorInt(oImg.getPixelRGBA(xt, yt)).getA() == 1f) {
+                                hasFullNeighbor = true;
                             }
                         }
-                        if (trimTrailingPaletteLookup && !hasNeighbor) {
-                            p_img.setPixelRGBA(x, y, 0);
-                        }
-                        if (forceOverlayNeighbors && hasFullNeighbor && ColorHolder.fromColorInt(o_img.getPixelRGBA(x, y)).getA() == 0) {
-                            ColorHolder w_c = ColorHolder.fromColorInt(w_img.getPixelRGBA(x / ws, y / ws));
-                            p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * backgroundPalette.closestTo(w_c))));
-                        }
+                    }
+                    if (trimTrailingPaletteLookup && !hasNeighbor) {
+                        pImg.setPixelRGBA(x, y, 0);
+                    }
+                    if (forceOverlayNeighbors && hasFullNeighbor && ColorHolder.fromColorInt(oImg.getPixelRGBA(x, y)).getA() == 0) {
+                        ColorHolder wC = ColorHolder.fromColorInt(wImg.getPixelRGBA(x / ws, y / ws));
+                        pImg.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * backgroundPalette.closestTo(wC))));
                     }
                 }
             }
-            return new Holder(o_img, p_img, nbColors.dist(nbColors) < nbColors.dist(backgroundPalette));
         }
     }
 
     private void recalcImages() throws IOException {
         try (NativeImage b_img = background.get();
-             NativeImage w_img = withOverlay.get()) {
+             NativeImage wImg = withOverlay.get()) {
             int b_dim = Math.min(b_img.getHeight(), b_img.getWidth());
-            int w_dim = Math.min(w_img.getHeight(), w_img.getWidth());
+            int w_dim = Math.min(wImg.getHeight(), wImg.getWidth());
             int dim = Math.max(b_dim, w_dim);
             int bs = dim / b_dim;
             int ws = dim / w_dim;
             //Assemble palette for b_img
-            NativeImage o_img = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
-            NativeImage p_img = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
+            NativeImage oImg = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
+            NativeImage pImg = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
             Palette backgroundPalette = Palette.extractPalette(b_img, extend);
-            Palette withOverlayPalette = Palette.extractPalette(w_img, extend);
+            Palette withOverlayPalette = Palette.extractPalette(wImg, extend);
             int backgroundPaletteSize = backgroundPalette.getSize();
 
             double maxDiff = 0;
@@ -276,12 +280,12 @@ public class PaletteExtractor {
             for (int x = 0; x < dim; x++) {
                 for (int y = 0; y < dim; y++) {
                     ColorHolder b_c = ColorHolder.fromColorInt(b_img.getPixelRGBA(x / bs, y / bs));
-                    ColorHolder w_c = ColorHolder.fromColorInt(w_img.getPixelRGBA(x / ws, y / ws));
+                    ColorHolder w_c = ColorHolder.fromColorInt(wImg.getPixelRGBA(x / ws, y / ws));
                     if (backgroundPalette.isInPalette(w_c)) {
                         int w_i = backgroundPalette.closestTo(w_c);
                         int b_i = backgroundPalette.closestTo(b_c);
                         if (w_i != b_i) {
-                            p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * w_i)));
+                            pImg.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * w_i)));
                         }
                     } else {
                         //the color sampled isn't in the palette. Now it gets painful...
@@ -292,11 +296,11 @@ public class PaletteExtractor {
                         //Now let's check how close it is.
                         if (closestP.distanceToHybrid(w_c) <= closeCutoff * maxDiff * N_CUTOFF_SCALE) {
                             //Add it to the post-processing queue
-                            p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * distIndex)));
+                            pImg.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * distIndex)));
                             postQueue.add(new PostCalcEvent(x, y, w_c, closestP.distanceToHybrid(w_c)));
                         } else {
                             //It's too far away. Write to the overlay.
-                            o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(w_c));
+                            oImg.setPixelRGBA(x, y, ColorHolder.toColorInt(w_c));
                             frontColors.tryAdd(w_c);
                         }
                     }
@@ -315,8 +319,8 @@ public class PaletteExtractor {
                 hasLogged[1] = true;
                 this.overlayImg.set(alt.o());
                 this.palettedImg.set(alt.p());
-                o_img.close();
-                p_img.close();
+                oImg.close();
+                pImg.close();
                 return;
             } /*else if (alt.shouldUse()) {
                 String key = "";
@@ -331,150 +335,126 @@ public class PaletteExtractor {
                 return;
             } */ //Re-add once I figure out how the heck shouldUse should be calculated.
 
-            for (PostCalcEvent e : postQueue) {
-                int x = e.x();
-                int y = e.y();
-                ColorHolder wColor = e.wColor();
-                int f_index = 0;
-                int b_index = 0;
-                double lowest = 200f;
-                float alpha = 0f;
-                boolean skipO = false;
-                for (float a = 0.1f; a <= 0.25f; a += 0.05) {
-                    for (int b = 0; b < backgroundPaletteSize; b++) {
-                        for (int f = 0; f < frontColors.getSize(); f++) {
-                            ColorHolder bColor = backgroundPalette.getColor(b);
-                            ColorHolder fColor = frontColors.getColor(f);
-                            double dist = wColor.distanceToLab(ColorHolder.alphaBlend(fColor.withA(a), bColor));
-                            if (dist < lowest) {
-                                lowest = dist;
-                                alpha = a;
-                                f_index = f;
-                                b_index = b;
-                                skipO = false;
-                            }
-                        }
-                        for (int b1 = 0; b1 < backgroundPalette.getSize(); b1++) {
-                            ColorHolder bColor = backgroundPalette.getColor(b);
-                            ColorHolder fColor = backgroundPalette.getColor(b1);
-                            ColorHolder blend = ColorHolder.alphaBlend(fColor.withA(a), bColor);
-                            double dist = wColor.distanceToLab(blend);
-                            if (dist < lowest) {
-                                lowest = dist;
-                                alpha = a;
-                                b_index = backgroundPalette.closestTo(blend);
-                                skipO = true;
-                            }
-                        }
-                    }
-                }
-                for (int f = 0; f < frontColors.getSize(); f++) {
-                    ColorHolder fColor = frontColors.getColor(f);
-                    double dist = wColor.distanceToLab(fColor);
-                    if (dist < lowest) {
-                        lowest = dist;
-                        alpha = 1.0f;
-                        f_index = f;
-                        skipO = false;
-                    }
-                }
-                p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * b_index)));
-                if (!skipO)
-                    o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(frontColors.getColor(f_index).withA(alpha)));
-                int frontIndex = frontColors.closestTo(wColor);
-                int closeIndex = backgroundPalette.closestTo(wColor);
-                if (wColor.distanceToHybrid(backgroundPalette.getColor(closeIndex)) > wColor.distanceToHybrid(frontColors.getColor(frontIndex))) {
-                    o_img.setPixelRGBA(x, y, ColorHolder.toColorInt(wColor.withA(1.0f)));
-                    alpha = 1.0f;
-                }
-                if (alpha >= 1.0f) p_img.setPixelRGBA(x, y, new ColorHolder(0f).withA(0f).toInt());
-            }
+            runPostCalcQueue(oImg, pImg, backgroundPalette, backgroundPaletteSize, frontColors, postQueue);
 
-            if (trimTrailingPaletteLookup || forceOverlayNeighbors) {
-                for (int x = 0; x < dim; x++) {
-                    for (int y = 0; y < dim; y++) {
-                        boolean hasNeighbor = false;
-                        boolean hasFullNeighbor = false;
-                        int[] xs = {-1, -1, -1, 0, 0, 0, 1, 1, 1};
-                        int[] ys = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
-                        for (int j = 0; j < xs.length; j++) {
-                            int xt = x + xs[j];
-                            int yt = y + ys[j];
-                            if (0 <= xt && xt < dim && 0 <= yt && yt < dim) {
-                                if (ColorHolder.fromColorInt(o_img.getPixelRGBA(xt, yt)).getA() != 0) {
-                                    hasNeighbor = true;
-                                }
-                                if (ColorHolder.fromColorInt(o_img.getPixelRGBA(xt, yt)).getA() == 1f) {
-                                    hasFullNeighbor = true;
-                                }
-                            }
-                        }
-                        if (trimTrailingPaletteLookup && !hasNeighbor) {
-                            p_img.setPixelRGBA(x, y, 0);
-                        }
-                        if (forceOverlayNeighbors && hasFullNeighbor && ColorHolder.fromColorInt(o_img.getPixelRGBA(x, y)).getA() == 0) {
-                            ColorHolder w_c = ColorHolder.fromColorInt(w_img.getPixelRGBA(x / ws, y / ws));
-                            p_img.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * backgroundPalette.closestTo(w_c))));
+            trimAndOverlay(dim, ws, oImg, pImg, wImg, backgroundPaletteSize, backgroundPalette);
+            if ((trimTrailingPaletteLookup || forceOverlayNeighbors) && fillHoles) {
+                int s = pImg.getWidth();
+                List<Pair<Integer,Integer>> toSearch = List.of(
+                        new Pair<>(0,1),
+                        new Pair<>(0,-1),
+                        new Pair<>(1,0),
+                        new Pair<>(-1,0)
+                );
+                Map<Pair<Integer,Integer>,Float> alphaMap = new HashMap<>();
+                for (int x = 0; x < s; x++) {
+                    for (int y = 0; y < s; y++) {
+                        ColorHolder overlay = ColorHolder.fromColorInt(oImg.getPixelRGBA(x,y));
+                        alphaMap.put(new Pair<>(x,y),overlay.getA());
+                        if (overlay.getA()==1 && oImg.getPixelRGBA(x,y)!=wImg.getPixelRGBA(x,y)) {
+                            oImg.setPixelRGBA(x,y,ColorHolder.fromColorInt(wImg.getPixelRGBA(x,y)).withA(1f).toInt());
                         }
                     }
                 }
-                if (fill_holes) {
-                    int s = p_img.getWidth();
-                    List<Pair<Integer,Integer>> toSearch = List.of(
-                            new Pair<>(0,1),
-                            new Pair<>(0,-1),
-                            new Pair<>(1,0),
-                            new Pair<>(-1,0)
-                    );
-                    Map<Pair<Integer,Integer>,Float> alphaMap = new HashMap<>();
-                    for (int x = 0; x < s; x++) {
-                        for (int y = 0; y < s; y++) {
-                            ColorHolder overlay = ColorHolder.fromColorInt(o_img.getPixelRGBA(x,y));
-                            alphaMap.put(new Pair<>(x,y),overlay.getA());
-                            if (overlay.getA()==1 && o_img.getPixelRGBA(x,y)!=w_img.getPixelRGBA(x,y)) {
-                                o_img.setPixelRGBA(x,y,ColorHolder.fromColorInt(w_img.getPixelRGBA(x,y)).withA(1f).toInt());
+                outer:
+                while (true) {
+                    for (int x = 1; x < s-1; x++) {
+                        for (int y = 1; y < s-1; y++) {
+                            ColorHolder overlay = ColorHolder.fromColorInt(oImg.getPixelRGBA(x,y));
+                            int count = 0;
+                            int partialCount = 0;
+                            for (Pair<Integer,Integer> is : toSearch) {
+                                ColorHolder c = ColorHolder.fromColorInt(oImg.getPixelRGBA(x+is.first(),y+is.last()));
+                                if (c.getA()==1) count++;
+                                if (c.getA()>0 && alphaMap.get(new Pair<>(x+is.first(),y+is.last()))<1) partialCount++;
                             }
-                        }
-                    }
-                    outer:
-                    while (true) {
-                        for (int x = 1; x < s-1; x++) {
-                            for (int y = 1; y < s-1; y++) {
-                                ColorHolder overlay = ColorHolder.fromColorInt(o_img.getPixelRGBA(x,y));
-                                int count = 0;
-                                int partialCount = 0;
-                                for (Pair<Integer,Integer> is : toSearch) {
-                                    ColorHolder c = ColorHolder.fromColorInt(o_img.getPixelRGBA(x+is.first(),y+is.last()));
-                                    if (c.getA()==1) count++;
-                                    if (c.getA()>0 && alphaMap.get(new Pair<>(x+is.first(),y+is.last()))<1) partialCount++;
-                                }
-                                ColorHolder origC = ColorHolder.fromColorInt(w_img.getPixelRGBA(x,y));
-                                if (overlay.getA()!=1 && (count>=3 || partialCount>=4) && !backgroundPalette.isInPalette(origC,backgroundPalette.getCutoff())) {
-                                    int orig = w_img.getPixelRGBA(x,y);
-                                    for (int i = 0; i<s; i++) {
-                                        for (int j = 0; j<s; j++) {
-                                            int c = w_img.getPixelRGBA(i,j);
-                                            if (orig==c) {
-                                                o_img.setPixelRGBA(i,j,origC.withA(1.0f).toInt());
-                                            }
+                            ColorHolder origC = ColorHolder.fromColorInt(wImg.getPixelRGBA(x,y));
+                            if (overlay.getA()!=1 && (count>=3 || partialCount>=4) && !backgroundPalette.isInPalette(origC,backgroundPalette.getCutoff())) {
+                                int orig = wImg.getPixelRGBA(x,y);
+                                for (int i = 0; i<s; i++) {
+                                    for (int j = 0; j<s; j++) {
+                                        int c = wImg.getPixelRGBA(i,j);
+                                        if (orig==c) {
+                                            oImg.setPixelRGBA(i,j,origC.withA(1.0f).toInt());
                                         }
                                     }
-                                    continue outer;
                                 }
+                                continue outer;
                             }
                         }
-                        break;
                     }
+                    break;
                 }
             }
 
-            this.overlayImg.set(o_img);
-            this.palettedImg.set(p_img);
+            this.overlayImg.set(oImg);
+            this.palettedImg.set(pImg);
         }
     }
 
-    public PaletteExtractor fillHoles(boolean fill_holes) {
-        this.fill_holes = fill_holes;
+    private void runPostCalcQueue(NativeImage oImg, NativeImage pImg, Palette backgroundPalette, int backgroundPaletteSize, Palette frontColors, ArrayList<PostCalcEvent> postQueue) {
+        for (PostCalcEvent e : postQueue) {
+            int x = e.x();
+            int y = e.y();
+            ColorHolder wColor = e.wColor();
+            int fIndex = 0;
+            int bIndex = 0;
+            double lowest = 200f;
+            float alpha = 0f;
+            boolean skipO = false;
+            for (float a = 0.1f; a <= 0.25f; a += 0.05) {
+                for (int b = 0; b < backgroundPaletteSize; b++) {
+                    for (int f = 0; f < frontColors.getSize(); f++) {
+                        ColorHolder bColor = backgroundPalette.getColor(b);
+                        ColorHolder fColor = frontColors.getColor(f);
+                        double dist = wColor.distanceToLab(ColorHolder.alphaBlend(fColor.withA(a), bColor));
+                        if (dist < lowest) {
+                            lowest = dist;
+                            alpha = a;
+                            fIndex = f;
+                            bIndex = b;
+                            skipO = false;
+                        }
+                    }
+                    for (int b1 = 0; b1 < backgroundPalette.getSize(); b1++) {
+                        ColorHolder bColor = backgroundPalette.getColor(b);
+                        ColorHolder fColor = backgroundPalette.getColor(b1);
+                        ColorHolder blend = ColorHolder.alphaBlend(fColor.withA(a), bColor);
+                        double dist = wColor.distanceToLab(blend);
+                        if (dist < lowest) {
+                            lowest = dist;
+                            alpha = a;
+                            bIndex = backgroundPalette.closestTo(blend);
+                            skipO = true;
+                        }
+                    }
+                }
+            }
+            for (int f = 0; f < frontColors.getSize(); f++) {
+                ColorHolder fColor = frontColors.getColor(f);
+                double dist = wColor.distanceToLab(fColor);
+                if (dist < lowest) {
+                    lowest = dist;
+                    alpha = 1.0f;
+                    fIndex = f;
+                    skipO = false;
+                }
+            }
+            pImg.setPixelRGBA(x, y, ColorHolder.toColorInt(new ColorHolder(1f / (backgroundPaletteSize - 1) * bIndex)));
+            if (!skipO)
+                oImg.setPixelRGBA(x, y, ColorHolder.toColorInt(frontColors.getColor(fIndex).withA(alpha)));
+            int frontIndex = frontColors.closestTo(wColor);
+            int closeIndex = backgroundPalette.closestTo(wColor);
+            if (wColor.distanceToHybrid(backgroundPalette.getColor(closeIndex)) > wColor.distanceToHybrid(frontColors.getColor(frontIndex))) {
+                oImg.setPixelRGBA(x, y, ColorHolder.toColorInt(wColor.withA(1.0f)));
+                alpha = 1.0f;
+            }
+            if (alpha >= 1.0f) pImg.setPixelRGBA(x, y, new ColorHolder(0f).withA(0f).toInt());
+        }
+    }
+
+    public PaletteExtractor fillHoles(boolean fillHoles) {
+        this.fillHoles = fillHoles;
         return this;
     }
 
