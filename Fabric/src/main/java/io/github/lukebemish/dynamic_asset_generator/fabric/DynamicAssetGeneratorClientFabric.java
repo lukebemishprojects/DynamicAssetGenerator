@@ -27,8 +27,9 @@ public class DynamicAssetGeneratorClientFabric implements ClientModInitializer {
                 Supplier<InputStream> stream = map.get(rl);
                 if (stream != null) {
                     RESOURCE_PACK.addLazyResource(PackType.CLIENT_RESOURCES, rl, (i,r)-> {
-                        try {
-                            return stream.get().readAllBytes();
+                        try (InputStream is = stream.get()) {
+                            if (is==null) DynamicAssetGenerator.LOGGER.error("No InputStream supplied for {}; attempting to not die terribly...", rl);
+                            return is==null? null : is.readAllBytes();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

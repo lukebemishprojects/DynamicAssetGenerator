@@ -25,7 +25,7 @@ public class DynamicAssetGeneratorFabric implements ModInitializer {
                 if (stream != null) {
                     DATA_PACK.addLazyResource(PackType.SERVER_DATA, rl, (i,r)-> {
                         try (InputStream is = stream.get()) {
-                            if (is==null) DynamicAssetGenerator.LOGGER.error("No InputStream supplied for {}; will likely die terribly...", rl);
+                            if (is==null) DynamicAssetGenerator.LOGGER.error("No InputStream supplied for {}; attempting to not die terribly...", rl);
                             return is==null? null : is.readAllBytes();
                         } catch (IOException e) {
                             e.printStackTrace();
