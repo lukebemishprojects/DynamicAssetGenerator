@@ -1,3 +1,8 @@
+### Dyanmic Asset Generator v0.7.1
+
+- Internal refactors
+- Hopefully make certain edge cases fail less terribly
+
 ### Dynamic Asset Generator v0.7.0
 
 - Remove dependency on ARRP for Quilt (and hence remove dependency on fabric API)
