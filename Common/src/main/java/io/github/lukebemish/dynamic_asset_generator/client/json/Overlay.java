@@ -1,33 +1,35 @@
 package io.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.google.gson.JsonSyntaxException;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
 import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.Expose;
-import com.mojang.blaze3d.platform.NativeImage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class Overlay implements ITexSource {
-    public static Gson gson = new GsonBuilder()
-            .excludeFieldsWithoutExposeAnnotation()
-            .create();
+public record Overlay(List<ITexSource> inputs) implements ITexSource {
+    public static final Codec<Overlay> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            DynamicTextureJson.TEXSOURCE_CODEC.listOf().fieldOf("inputs").forGetter(Overlay::inputs)
+    ).apply(instance, Overlay::new));
 
     @Override
-    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
-        LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
+    public Codec<? extends ITexSource> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
         List<Supplier<NativeImage>> inputs = new ArrayList<>();
-        for (JsonObject o : locationSource.inputs) {
-            inputs.add(DynamicTextureJson.readSupplierFromSource(o));
+        for (ITexSource o : this.inputs()) {
+            inputs.add(o.getSupplier());
         }
         return () -> {
             int maxX = 0;
@@ -35,7 +37,7 @@ public class Overlay implements ITexSource {
             List<NativeImage> images = inputs.stream().map(Supplier::get).toList();
             for (int i = 0; i < images.size(); i++) {
                 if (images.get(i)==null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}",locationSource.inputs.get(i).toString());
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}",this.inputs().get(i).toString());
                     return null;
                 }
             }
@@ -45,7 +47,7 @@ public class Overlay implements ITexSource {
                     maxY = image.getHeight();
                 }
             }
-            try (MultiCloser multiCloser = new MultiCloser(images)) {
+            try (MultiCloser ignored = new MultiCloser(images)) {
                 NativeImage output = NativeImageHelper.of(NativeImage.Format.RGBA, maxX, maxY, false);
                 NativeImage base = images.get(0);
                 int xs = 1;
@@ -85,13 +87,6 @@ public class Overlay implements ITexSource {
                 return output;
             }
         };
-    }
-
-    public static class LocationSource {
-        @Expose
-        String source_type;
-        @Expose
-        public List<JsonObject> inputs;
     }
 
     public static class MultiCloser implements AutoCloseable {

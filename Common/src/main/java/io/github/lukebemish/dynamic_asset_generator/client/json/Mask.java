@@ -1,30 +1,33 @@
 package io.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.google.gson.JsonSyntaxException;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
 import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.Expose;
-import com.mojang.blaze3d.platform.NativeImage;
 
 import java.util.function.Supplier;
 
-public class Mask implements ITexSource {
-    public static Gson gson = new GsonBuilder()
-            .excludeFieldsWithoutExposeAnnotation()
-            .create();
+public record Mask(ITexSource input, ITexSource mask) implements ITexSource {
+    public static final Codec<Mask> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            DynamicTextureJson.TEXSOURCE_CODEC.fieldOf("input").forGetter(Mask::input),
+            DynamicTextureJson.TEXSOURCE_CODEC.fieldOf("mask").forGetter(Mask::mask)
+    ).apply(instance, Mask::new));
 
     @Override
-    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
-        LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<NativeImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
-        Supplier<NativeImage> mask = DynamicTextureJson.readSupplierFromSource(locationSource.mask);
+    public Codec<? extends ITexSource> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
+        Supplier<NativeImage> input = this.input().getSupplier();
+        Supplier<NativeImage> mask = this.mask().getSupplier();
 
         return () -> {
             if (input == null || mask == null) {
@@ -34,11 +37,11 @@ public class Mask implements ITexSource {
             try (NativeImage inImg = input.get();
                  NativeImage maskImg = mask.get()) {
                 if (maskImg == null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.mask.toString());
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.mask());
                     return null;
                 }
                 if (inImg == null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.input());
                     return null;
                 }
                 int maxX = Math.max(inImg.getWidth(), maskImg.getWidth());
@@ -70,14 +73,5 @@ public class Mask implements ITexSource {
                 return out;
             }
         };
-    }
-
-    public static class LocationSource {
-        @Expose
-        String source_type;
-        @Expose
-        public JsonObject input;
-        @Expose
-        public JsonObject mask;
     }
 }

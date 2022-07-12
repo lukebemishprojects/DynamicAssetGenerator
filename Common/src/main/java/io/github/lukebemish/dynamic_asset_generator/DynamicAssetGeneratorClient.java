@@ -11,14 +11,14 @@ import net.minecraft.resources.ResourceLocation;
 
 public class DynamicAssetGeneratorClient {
     public static void init() {
-        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),new TextureReader());
-        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"fallback"),new FallbackSource());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),TextureReader.CODEC);
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"fallback"),FallbackSource.CODEC);
         DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"combined_paletted_image"),CombinedPaletteImage.CODEC);
-        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"overlay"),new Overlay());
-        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"mask"),new Mask());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"overlay"),Overlay.CODEC);
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"mask"),Mask.CODEC);
         DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"crop"),Crop.CODEC);
-        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"transform"),new Transform());
-        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),new ForegroundTransfer());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"transform"),Transform.CODEC);
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),ForegroundTransfer.CODEC);
         DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"color"),ColorSource.CODEC);
         //testing
 

@@ -1,28 +1,32 @@
 package io.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.google.gson.JsonSyntaxException;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.Expose;
-import com.mojang.blaze3d.platform.NativeImage;
 
 import java.util.function.Supplier;
 
-public class Transform implements ITexSource {
-    public static Gson gson = new GsonBuilder()
-            .excludeFieldsWithoutExposeAnnotation()
-            .create();
+public record Transform(ITexSource input, int rotate, boolean flip) implements ITexSource {
+    public static final Codec<Transform> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            DynamicTextureJson.TEXSOURCE_CODEC.fieldOf("input").forGetter(Transform::input),
+            Codec.INT.fieldOf("rotate").forGetter(Transform::rotate),
+            Codec.BOOL.fieldOf("flip").forGetter(Transform::flip)
+    ).apply(instance, Transform::new));
 
     @Override
-    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
-        LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<NativeImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
+    public Codec<? extends ITexSource> codec() {
+        return CODEC;
+    }
+
+    @Override
+    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
+        Supplier<NativeImage> input = this.input().getSupplier();
 
         return () -> {
             if (input == null) {
@@ -31,14 +35,14 @@ public class Transform implements ITexSource {
             }
             NativeImage inImg = input.get();
             if (inImg == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
+                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.input().toString());
                 return null;
             }
             NativeImage output = inImg;
-            for (int i = 0; i < locationSource.rotate; i++) {
+            for (int i = 0; i < this.rotate(); i++) {
                 output = clockwiseRotate(output);
             }
-            if (locationSource.flip) {
+            if (this.flip()) {
                 NativeImage output2 = NativeImageHelper.of(output.format(), output.getWidth(), output.getHeight(), false);
                 for (int x = 0; x < output.getWidth(); x++) {
                     for (int y = 0; y < output.getHeight(); y++) {
@@ -61,16 +65,5 @@ public class Transform implements ITexSource {
                 output.setPixelRGBA(y, w - x - 1, SafeImageExtraction.get(input,x, y));
         input.close();
         return output;
-    }
-
-    public static class LocationSource {
-        @Expose
-        String source_type;
-        @Expose
-        int rotate;
-        @Expose
-        boolean flip;
-        @Expose
-        public JsonObject input;
     }
 }
