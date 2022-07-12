@@ -58,7 +58,7 @@ public class DynAssetGenClientPlanner {
             if (s != null) {
                 DynamicTextureJson source = DynamicTextureJson.fromJson(s);
                 if (source != null) {
-                    ResourceLocation orig_rl = ResourceLocation.of(source.output_location, ':');
+                    ResourceLocation orig_rl = ResourceLocation.of(source.outputLocation, ':');
                     ResourceLocation out_rl = new ResourceLocation(orig_rl.getNamespace(), "textures/" + orig_rl.getPath() + ".png");
                     Supplier<InputStream> sup = () -> {
                         try (NativeImage image = source.source.get()) {

@@ -2,8 +2,8 @@ package io.github.lukebemish.dynamic_asset_generator;
 
 import io.github.lukebemish.dynamic_asset_generator.client.api.DynAssetGeneratorClientAPI;
 import io.github.lukebemish.dynamic_asset_generator.client.api.ForegroundTransferType;
-import io.github.lukebemish.dynamic_asset_generator.client.api.JsonReaderAPI;
 import io.github.lukebemish.dynamic_asset_generator.client.api.PaletteExtractor;
+import io.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import io.github.lukebemish.dynamic_asset_generator.client.json.*;
 import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 import io.github.lukebemish.dynamic_asset_generator.platform.Services;
@@ -11,15 +11,15 @@ import net.minecraft.resources.ResourceLocation;
 
 public class DynamicAssetGeneratorClient {
     public static void init() {
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),new TextureReader());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"fallback"),new FallbackSource());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"combined_paletted_image"),new CombinedPaletteImage());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"overlay"),new Overlay());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"mask"),new Mask());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"crop"),new Crop());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"transform"),new Transform());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),new ForegroundTransfer());
-        JsonReaderAPI.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"color"),new ColorSource());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"),new TextureReader());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"fallback"),new FallbackSource());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"combined_paletted_image"),CombinedPaletteImage.CODEC);
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"overlay"),new Overlay());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"mask"),new Mask());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"crop"),Crop.CODEC);
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"transform"),new Transform());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"foreground_transfer"),new ForegroundTransfer());
+        DynamicTextureJson.registerTexSourceReadingType(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"color"),ColorSource.CODEC);
         //testing
 
         if (Services.PLATFORM.isDev()) {

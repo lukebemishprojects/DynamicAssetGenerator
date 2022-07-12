@@ -1,82 +1,71 @@
 package io.github.lukebemish.dynamic_asset_generator.client.json;
 
+import com.google.gson.JsonSyntaxException;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.DynamicTextureJson;
 import io.github.lukebemish.dynamic_asset_generator.client.api.json.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.annotations.Expose;
-import com.mojang.blaze3d.platform.NativeImage;
 
 import java.util.function.Supplier;
 
-public class Crop implements ITexSource {
-    public static Gson gson = new GsonBuilder()
-            .excludeFieldsWithoutExposeAnnotation()
-            .create();
+public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, ITexSource input) implements ITexSource {
+    public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.INT.fieldOf("total_size").forGetter(Crop::totalSize),
+            Codec.INT.fieldOf("start_x").forGetter(Crop::startX),
+            Codec.INT.fieldOf("size_x").forGetter(Crop::sizeX),
+            Codec.INT.fieldOf("start_y").forGetter(Crop::startY),
+            Codec.INT.fieldOf("size_y").forGetter(Crop::sizeY),
+            DynamicTextureJson.TEXSOURCE_CODEC.fieldOf("input").forGetter(Crop::input)
+    ).apply(instance, Crop::new));
+
+    public Codec<Crop> codec() {
+        return CODEC;
+    }
 
     @Override
-    public Supplier<NativeImage> getSupplier(String inputStr) throws JsonSyntaxException {
-        LocationSource locationSource = gson.fromJson(inputStr, LocationSource.class);
-        Supplier<NativeImage> input = DynamicTextureJson.readSupplierFromSource(locationSource.input);
+    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
+        Supplier<NativeImage> suppliedInput = input().getSupplier();
 
         return () -> {
-            if (input == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
+            if (suppliedInput == null) {
+                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", input());
                 return null;
             }
-            try (NativeImage inImg = input.get()) {
+            try (NativeImage inImg = suppliedInput.get()) {
                 if (inImg == null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", locationSource.input.toString());
+                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", input());
                     return null;
                 }
-                if (locationSource.total_size == 0) {
+                if (totalSize() == 0) {
                     DynamicAssetGenerator.LOGGER.error("Total image width must be non-zero");
                 }
-                int scale = inImg.getWidth() / locationSource.total_size;
+                int scale = inImg.getWidth() / totalSize();
 
                 if (scale == 0) {
                     DynamicAssetGenerator.LOGGER.error("Image scale turned out to be 0! Image is {} wide, total width is {}",
-                            inImg.getWidth(), locationSource.total_size);
+                            inImg.getWidth(), totalSize());
                 }
 
-                int distX = locationSource.size_x * scale;
-                int distY = locationSource.size_y * scale;
+                int distX = sizeX() * scale;
+                int distY = sizeY() * scale;
                 if (distY < 1 || distX < 1) {
-                    DynamicAssetGenerator.LOGGER.error("Bounds of image are negative! {}, {}", locationSource.size_x, locationSource.size_y);
+                    DynamicAssetGenerator.LOGGER.error("Bounds of image are negative! {}, {}", sizeX(), sizeY());
                     return null;
                 }
 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
                 for (int x = 0; x < distX; x++) {
                     for (int y = 0; y < distY; y++) {
-                        int c = SafeImageExtraction.get(inImg, (x + locationSource.start_x * scale), (y + locationSource.start_y * scale));
+                        int c = SafeImageExtraction.get(inImg, (x + startX() * scale), (y + startY() * scale));
                         out.setPixelRGBA(x, y, c);
                     }
                 }
                 return out;
             }
         };
-    }
-
-    public static class LocationSource {
-        @Expose
-        String source_type;
-        @Expose
-        int total_size;
-        @Expose
-        int start_x;
-        @Expose
-        int size_x;
-        @Expose
-        int start_y;
-        @Expose
-        int size_y;
-        @Expose
-        public JsonObject input;
     }
 }
