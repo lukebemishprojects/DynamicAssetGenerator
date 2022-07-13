@@ -1,9 +1,8 @@
 package io.github.lukebemish.dynamic_asset_generator.client.util;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.api.ResettingSupplier;
-import io.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import com.mojang.blaze3d.platform.NativeImage;
+import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.ByteArrayInputStream;
@@ -19,8 +18,8 @@ public interface IPalettePlan {
     boolean stretchPaletted();
     int extend();
 
-    default ResettingSupplier<InputStream> getStream(ResourceLocation rl) {
-        return ResettingSupplier.of(() -> {
+    default Supplier<InputStream> getStream(ResourceLocation rl) {
+        return () -> {
             try (NativeImage image = Palette.paletteCombinedImage(this)) {
                 if (image != null) {
                     return (InputStream) new ByteArrayInputStream(image.asByteArray());
@@ -29,10 +28,10 @@ public interface IPalettePlan {
                 DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: {}...\n",rl, e);
             }
             return null;
-        },this);
+        };
     }
-    static ResettingSupplier<InputStream> supply(ResourceLocation rl, Supplier<IPalettePlan> plan_sup) {
-        return ResettingSupplier.of(() -> {
+    static Supplier<InputStream> supply(ResourceLocation rl, Supplier<IPalettePlan> plan_sup) {
+        return () -> {
             IPalettePlan planned = plan_sup.get();
             try (NativeImage image = Palette.paletteCombinedImage(planned)) {
                 if (image != null) {
@@ -42,6 +41,6 @@ public interface IPalettePlan {
                 DynamicAssetGenerator.LOGGER.error("Could not write buffered image to stream: {}...\n",rl, e);
             }
             return null;
-        },plan_sup);
+        };
     }
 }

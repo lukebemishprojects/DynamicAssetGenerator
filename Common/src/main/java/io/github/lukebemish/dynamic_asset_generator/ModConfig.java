@@ -1,37 +1,41 @@
 package io.github.lukebemish.dynamic_asset_generator;
 
-import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.annotations.Expose;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
-public class ModConfig {
+public record ModConfig(boolean cacheAssets, boolean cacheData) {
+    public static final Codec<ModConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.BOOL.fieldOf("cache_assets").forGetter(ModConfig::cacheAssets),
+            Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData)
+    ).apply(instance, ModConfig::new));
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
-    public static final Path CONFIG_PATH = Services.PLATFORM.getConfigFolder();
-    public static final String FULL_PATH = CONFIG_PATH.toString() + "/"+ DynamicAssetGenerator.MOD_ID+".json";
-    public static final Path ASSET_CACHE_FOLDER = CONFIG_PATH.resolve(DynamicAssetGenerator.MOD_ID+"/asset_cache");
-    public static final Path DATA_CACHE_FOLDER = CONFIG_PATH.resolve(DynamicAssetGenerator.MOD_ID+"/data_cache");
-    public static final int CURRENT_VERSION = 1;
-
-    @Expose
-    public int format = 1;
-    @Expose
-    public boolean cacheAssets = false;
-    @Expose
-    public boolean cacheData = false;
+    public static final Path FULL_PATH = Services.PLATFORM.getConfigFolder().resolve(DynamicAssetGenerator.MOD_ID+".json");
+    public static final Path ASSET_CACHE_FOLDER = Services.PLATFORM.getModDataFolder().resolve(DynamicAssetGenerator.MOD_ID+"/asset_cache");
+    public static final Path DATA_CACHE_FOLDER = Services.PLATFORM.getModDataFolder().resolve(DynamicAssetGenerator.MOD_ID+"/data_cache");
 
     private static ModConfig load() {
-        ModConfig config = new ModConfig();
+        ModConfig config = getDefault();
         try {
             checkExistence();
-            config = GSON.fromJson(new FileReader(FULL_PATH), ModConfig.class);
+            JsonObject json = GSON.fromJson(Files.newBufferedReader(FULL_PATH), JsonObject.class);
+            var either = CODEC.parse(JsonOps.INSTANCE, json).get();
+            var left = either.left();
+            if (left.isPresent()) {
+                config = left.get();
+            } else {
+                DynamicAssetGenerator.LOGGER.error("Config is in the wrong format! An attempt to load with this config would crash. Using default config instead...");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,31 +43,27 @@ public class ModConfig {
     }
 
     public static ModConfig get() {
-        ModConfig config = load();
-        if (config.format != CURRENT_VERSION) {
-            DynamicAssetGenerator.LOGGER.error("Config is outdated! An attempt to load with this config would crash. Using default config instead...");
-            return new ModConfig();
-        }
-        return config;
-    }
-
-    public static void save(ModConfig config) {
-        try {
-            checkExistence();
-            FileWriter writer = new FileWriter(FULL_PATH);
-            GSON.toJson(config, writer);
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return load();
     }
 
     private static void checkExistence() throws IOException {
-        if (!Files.exists(CONFIG_PATH)) Files.createDirectories(CONFIG_PATH);
-        if (!Files.exists(Paths.get(FULL_PATH))) {
-            Files.createFile(Paths.get(FULL_PATH));
-            save(new ModConfig());
+        if (!Files.exists(FULL_PATH.getParent())) Files.createDirectories(FULL_PATH.getParent());
+        if (!Files.exists(FULL_PATH)) {
+            Files.createFile(FULL_PATH);
+            try {
+                ModConfig config = getDefault();
+                Writer writer = Files.newBufferedWriter(FULL_PATH);
+                JsonElement json = CODEC.encodeStart(JsonOps.INSTANCE, config).getOrThrow(false, e -> {});
+                GSON.toJson(json, writer);
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    private static ModConfig getDefault() {
+        return new ModConfig(false, false);
     }
 }

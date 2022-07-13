@@ -1,6 +1,6 @@
 package io.github.lukebemish.dynamic_asset_generator.mixin;
 
-import io.github.lukebemish.dynamic_asset_generator.client.api.ClientPrePackRepository;
+import io.github.lukebemish.dynamic_asset_generator.api.client.ClientPrePackRepository;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.PackResources;
 import org.spongepowered.asm.mixin.Mixin;

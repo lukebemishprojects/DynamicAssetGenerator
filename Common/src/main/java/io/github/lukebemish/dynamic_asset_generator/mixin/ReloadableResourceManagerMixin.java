@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.mixin;
 
 import io.github.lukebemish.dynamic_asset_generator.api.ServerPrePackRepository;
-import io.github.lukebemish.dynamic_asset_generator.client.api.ClientPrePackRepository;
+import io.github.lukebemish.dynamic_asset_generator.api.client.ClientPrePackRepository;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ReloadInstance;

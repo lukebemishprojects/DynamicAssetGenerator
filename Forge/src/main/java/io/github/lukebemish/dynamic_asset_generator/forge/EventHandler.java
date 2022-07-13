@@ -1,6 +1,6 @@
 package io.github.lukebemish.dynamic_asset_generator.forge;
 
-import io.github.lukebemish.dynamic_asset_generator.DynAssetGenClientResourcePack;
+import io.github.lukebemish.dynamic_asset_generator.client.DynAssetGenClientResourcePack;
 import io.github.lukebemish.dynamic_asset_generator.DynAssetGenServerDataPack;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import net.minecraft.server.packs.PackType;

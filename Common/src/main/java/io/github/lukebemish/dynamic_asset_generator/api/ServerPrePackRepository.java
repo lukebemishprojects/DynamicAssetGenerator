@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.api;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import com.google.common.collect.ImmutableList;
+import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
@@ -21,10 +21,14 @@ public class ServerPrePackRepository {
                 .filter((p)->!(p.getName().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getName().contains(DynamicAssetGenerator.SERVER_PACK))).collect(ImmutableList.toImmutableList());
     }
 
+    public static List<PackResources> getResources() {
+        return resources;
+    }
+
     public static InputStream getResource(ResourceLocation rl) throws IOException {
         InputStream resource = null;
         for (PackResources r : resources) {
-            if (!r.getName().equals(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
+            if (r.hasResource(PackType.SERVER_DATA, rl)) {
                 if (resource != null) resource.close();
                 resource = r.getResource(PackType.SERVER_DATA, rl);
             }
@@ -39,10 +43,12 @@ public class ServerPrePackRepository {
         List<InputStream> out = new ArrayList<>();
         for (PackResources r : Services.DEGROUPER.unpackPacks(resources)) {
             if (!r.getName().equals(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
-                out.add(0, r.getResource(PackType.SERVER_DATA, rl));
+                InputStream resource = r.getResource(PackType.SERVER_DATA, rl);
+                if (resource!=null)
+                    out.add(0, resource);
             }
         }
-        if (out.size() != 0) {
+        if (!out.isEmpty()) {
             return out;
         }
         throw new IOException("Could not find data in pre-load: "+rl.toString());

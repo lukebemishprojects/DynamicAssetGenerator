@@ -1,12 +1,14 @@
-package io.github.lukebemish.dynamic_asset_generator;
+package io.github.lukebemish.dynamic_asset_generator.client;
 
 import com.google.gson.JsonObject;
-import io.github.lukebemish.dynamic_asset_generator.api.DataResourceCache;
+import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.api.client.AssetResourceCache;
 import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -15,54 +17,50 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class DynAssetGenServerDataPack implements PackResources {
+public class DynAssetGenClientResourcePack implements PackResources {
 
     private Map<ResourceLocation, Supplier<InputStream>> streams;
 
-    private static final int PACK_VERSION = PackType.SERVER_DATA.getVersion(SharedConstants.getCurrentVersion());
-
     private Map<ResourceLocation, Supplier<InputStream>> getStreams() {
         if (streams == null) {
-            streams = DataResourceCache.INSTANCE.getResources();
+            streams = AssetResourceCache.INSTANCE.getResources();
         }
         return streams;
     }
 
-    public DynAssetGenServerDataPack() {
+    private static final int PACK_VERSION = PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion());
+
+    public DynAssetGenClientResourcePack() {
+        PaletteExtractor.refresh();
     }
 
     @Nullable
     @Override
-    public InputStream getRootResource(String location) throws IOException {
-        if(!location.contains("/") && !location.contains("\\")) {
-            Supplier<InputStream> supplier = this.getStreams().get(location);
-            return supplier.get();
-        } else {
-            throw new IllegalArgumentException("File name can't be a path");
-        }
+    public InputStream getRootResource(@NotNull String location) throws IOException {
+        throw new IOException("Could not find resource in generated resources: " + location);
     }
 
     @Override
-    public InputStream getResource(PackType packType, ResourceLocation location) throws IOException {
-        if (packType == PackType.SERVER_DATA) {
+    public @NotNull InputStream getResource(@NotNull PackType packType, @NotNull ResourceLocation location) throws IOException {
+        if (packType == PackType.CLIENT_RESOURCES) {
             if (getStreams().containsKey(location)) {
                 InputStream stream = getStreams().get(location).get();
                 if (stream != null) {
                     return stream;
                 } else {
-                    throw new IOException("Data is null: " + location.toString());
+                    throw new IOException("Resource is null: " + location);
                 }
             }
         }
-        throw new IOException("Could not find resource in generated data: " + location.toString());
+        throw new IOException("Could not find resource in generated resources: " + location);
     }
 
     @Override
-    public Collection<ResourceLocation> getResources(PackType packType, String namespace, String directory, Predicate<ResourceLocation> predicate) {
+    public @NotNull Collection<ResourceLocation> getResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String directory, @NotNull Predicate<ResourceLocation> predicate) {
         ArrayList<ResourceLocation> locations = new ArrayList<>();
-        if (packType == PackType.SERVER_DATA) {
+        if (packType == PackType.CLIENT_RESOURCES) {
             for (ResourceLocation key : getStreams().keySet()) {
-                if (key.getPath().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key) && getStreams().get(key).get() != null) {
+                if (key.getPath().startsWith(directory) && key.getNamespace().equals(namespace) && predicate.test(key)) {
                     // still need to figure out depth...
                     locations.add(key);
                 }
@@ -72,8 +70,8 @@ public class DynAssetGenServerDataPack implements PackResources {
     }
 
     @Override
-    public boolean hasResource(PackType packType, ResourceLocation location) {
-        if (packType == PackType.SERVER_DATA) {
+    public boolean hasResource(@NotNull PackType packType, @NotNull ResourceLocation location) {
+        if (packType == PackType.CLIENT_RESOURCES) {
             if (getStreams().containsKey(location)) {
                 return getStreams().get(location).get() != null;
             }
@@ -82,9 +80,9 @@ public class DynAssetGenServerDataPack implements PackResources {
     }
 
     @Override
-    public Set<String> getNamespaces(PackType packType) {
+    public @NotNull Set<String> getNamespaces(@NotNull PackType packType) {
         Set<String> namespaces = new HashSet<>();
-        if (packType == PackType.SERVER_DATA) {
+        if (packType == PackType.CLIENT_RESOURCES) {
             for (ResourceLocation key : getStreams().keySet()) {
                 namespaces.add(key.getNamespace());
             }
@@ -92,22 +90,21 @@ public class DynAssetGenServerDataPack implements PackResources {
         return namespaces;
     }
 
-
     @Nullable
     @Override
-    public <T> T getMetadataSection(MetadataSectionSerializer<T> serializer) throws IOException {
+    public <T> T getMetadataSection(MetadataSectionSerializer<T> serializer) {
         if(serializer.getMetadataSectionName().equals("pack")) {
             JsonObject object = new JsonObject();
             object.addProperty("pack_format", PACK_VERSION);
-            object.addProperty("description", "dynamically generated data");
+            object.addProperty("description", "dynamically generated assets");
             return serializer.fromJson(object);
         }
         return null;
     }
 
     @Override
-    public String getName() {
-        return DynamicAssetGenerator.SERVER_PACK;
+    public @NotNull String getName() {
+        return DynamicAssetGenerator.CLIENT_PACK;
     }
 
     @Override

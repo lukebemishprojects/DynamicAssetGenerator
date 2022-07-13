@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.forge;
 
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGeneratorClient;
+import io.github.lukebemish.dynamic_asset_generator.client.DynamicAssetGeneratorClient;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;

@@ -1,45 +1,39 @@
 package io.github.lukebemish.dynamic_asset_generator.tags;
 
-import io.github.lukebemish.dynamic_asset_generator.Pair;
-import io.github.lukebemish.dynamic_asset_generator.api.ResettingSupplier;
+import com.mojang.datafixers.util.Pair;
+import io.github.lukebemish.dynamic_asset_generator.api.IPathAwareInputStreamSource;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
-public class TagBuilder {
+public class TagBuilder implements IPathAwareInputStreamSource {
     private final List<Pair<ResourceLocation, Supplier<Boolean>>> paths = new ArrayList<>();
+    private final ResourceLocation location;
+
+    public TagBuilder(ResourceLocation location) {
+        this.location = location;
+    }
 
     public void add(Pair<ResourceLocation,Supplier<Boolean>> p) {
         paths.add(p);
     }
 
-    public ResettingSupplier<InputStream> supply() {
-        return new ResettingSupplier<InputStream>() {
-            @Override
-            public void reset() {
-                for (Pair<ResourceLocation,Supplier<Boolean>> p : paths) {
-                    if (p.last() instanceof ResettingSupplier<Boolean> rs) {
-                        rs.reset();
-                    }
-                }
-            }
-
-            @Override
-            public InputStream get() {
-                return build();
-            }
-        };
+    @Override
+    public @NotNull Supplier<InputStream> get(ResourceLocation outRl) {
+        return this::build;
     }
 
     private InputStream build() {
         StringBuilder internal = new StringBuilder();
         for (Pair<ResourceLocation, Supplier<Boolean>> p : paths) {
-            if (p.last().get()) {
-                var rl = p.first();
+            if (Boolean.TRUE.equals(p.getSecond().get())) {
+                var rl = p.getFirst();
                 if (internal.length() >= 1) {
                     internal.append(",");
                 }
@@ -48,5 +42,10 @@ public class TagBuilder {
         }
         String json = "{\"replace\":false,\"values\":["+internal+"]}";
         return new ByteArrayInputStream(json.getBytes());
+    }
+
+    @Override
+    public Set<ResourceLocation> location() {
+        return Set.of(location);
     }
 }

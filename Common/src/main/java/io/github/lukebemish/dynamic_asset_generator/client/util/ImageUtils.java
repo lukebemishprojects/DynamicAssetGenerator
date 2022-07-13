@@ -1,7 +1,8 @@
 package io.github.lukebemish.dynamic_asset_generator.client.util;
 
-import io.github.lukebemish.dynamic_asset_generator.client.api.ClientPrePackRepository;
+import io.github.lukebemish.dynamic_asset_generator.api.client.ClientPrePackRepository;
 import com.mojang.blaze3d.platform.NativeImage;
+import io.github.lukebemish.dynamic_asset_generator.util.SupplierWithException;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.IOException;
