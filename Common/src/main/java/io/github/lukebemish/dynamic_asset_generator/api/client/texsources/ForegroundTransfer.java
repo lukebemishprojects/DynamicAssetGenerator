@@ -5,12 +5,11 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.client.PaletteExtractor;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
+import io.github.lukebemish.dynamic_asset_generator.client.PaletteExtractor;
 import io.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
 public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSource newBackground,
@@ -58,39 +57,27 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
                     DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.full());
                     return null;
                 }
-                PaletteExtractor extractor = new PaletteExtractor(() -> bImg, () -> fImg, this.extendPaletteSize(), this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles());
-                PalettePlanner planner = PalettePlanner.of(extractor, nImg);
-                return Palette.paletteCombinedImage(planner);
+                try (PaletteExtractor extractor = new PaletteExtractor(bImg, fImg, this.extendPaletteSize(), this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles());) {
+                    PalettePlanner planner = PalettePlanner.of(extractor, nImg);
+                    extractor.recalcImages();
+                    try (NativeImage pImg = extractor.getPalettedImg();
+                         NativeImage oImg = extractor.getOverlayImg()) {
+                        return Palette.paletteCombinedImage(nImg, oImg, pImg, planner);
+                    }
+                }
             }
         };
     }
 
     public static class PalettePlanner implements IPalettePlan {
-        private final NativeImage nImg;
         private final PaletteExtractor extractor;
 
-        private PalettePlanner(PaletteExtractor extractor, NativeImage nImg) {
+        private PalettePlanner(PaletteExtractor extractor) {
             this.extractor = extractor;
-            this.nImg = nImg;
         }
 
         public static PalettePlanner of(PaletteExtractor extractor, NativeImage nImg) {
-            return new PalettePlanner(extractor, nImg);
-        }
-
-        @Override
-        public NativeImage getBackground() {
-            return nImg;
-        }
-
-        @Override
-        public NativeImage getOverlay() throws IOException {
-            return extractor.getOverlayImg();
-        }
-
-        @Override
-        public NativeImage getPaletted() throws IOException {
-            return extractor.getPalettedImg();
+            return new PalettePlanner(extractor);
         }
 
         @Override

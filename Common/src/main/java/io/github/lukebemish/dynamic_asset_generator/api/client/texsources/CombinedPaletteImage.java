@@ -8,7 +8,6 @@ import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
 import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 
 public class CombinedPaletteImage implements ITexSource {
@@ -21,6 +20,7 @@ public class CombinedPaletteImage implements ITexSource {
             Codec.INT.fieldOf("extend_palette_size").forGetter(s->s.extendPaletteSize)
     ).apply(instance,CombinedPaletteImage::new));
 
+    @Override
     public Codec<CombinedPaletteImage> codec() {
         return CODEC;
     }
@@ -29,7 +29,11 @@ public class CombinedPaletteImage implements ITexSource {
     public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
         PalettePlanner planner = PalettePlanner.of(this);
         if (planner == null) return null;
-        return () -> Palette.paletteCombinedImage(planner);
+        try (NativeImage bImg = background.getSupplier().get();
+             NativeImage oImg = overlay.getSupplier().get();
+             NativeImage pImg = overlay.getSupplier().get()) {
+            return () -> Palette.paletteCombinedImage(bImg, oImg, pImg, planner);
+        }
     }
 
     private final ITexSource overlay;
@@ -65,21 +69,6 @@ public class CombinedPaletteImage implements ITexSource {
             out.overlay = info.overlay.getSupplier();
             if (out.overlay == null || out.background == null || out.paletted == null) return null;
             return out;
-        }
-
-        @Override
-        public NativeImage getBackground() throws IOException {
-            return background.get();
-        }
-
-        @Override
-        public NativeImage getOverlay() throws IOException {
-            return overlay.get();
-        }
-
-        @Override
-        public NativeImage getPaletted() throws IOException {
-            return paletted.get();
         }
 
         @Override

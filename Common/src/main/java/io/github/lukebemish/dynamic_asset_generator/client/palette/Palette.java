@@ -1,11 +1,9 @@
 package io.github.lukebemish.dynamic_asset_generator.client.palette;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import com.mojang.blaze3d.platform.NativeImage;
 import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
-import com.mojang.blaze3d.platform.NativeImage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -159,68 +157,61 @@ public class Palette {
         return colors.size();
     }
 
-    public static NativeImage paletteCombinedImage(IPalettePlan plan) {
+    public static NativeImage paletteCombinedImage(NativeImage bImg, NativeImage oImg, NativeImage pImg, IPalettePlan plan) {
         boolean includeBackground = plan.includeBackground();
         int extend = plan.extend();
-        try (NativeImage b_img = plan.getBackground();
-             NativeImage o_img = plan.getOverlay();
-             NativeImage p_img = plan.getPaletted()) {
-            //We don't care if they're square; we'll crop them. Currently, likely breaks animations...
-            int o_dim = Math.min(o_img.getHeight(),o_img.getWidth());
-            int b_dim = Math.min(b_img.getHeight(),b_img.getWidth());
-            int p_dim = Math.min(p_img.getHeight(),p_img.getWidth());
-            int w = Math.max(o_dim, Math.max(b_dim,p_dim));
-            int os = w/o_img.getWidth();
-            int bs = w/b_img.getWidth();
-            int ps = w/p_img.getWidth();
-            NativeImage out_img = NativeImageHelper.of(NativeImage.Format.RGBA,w,w,false);
-            Palette backgroundPalette = extractPalette(b_img, extend,1f/255f);
-            ColorHolder maxPaletteKey = new ColorHolder(0,0,0);
-            ColorHolder minPaletteKey = new ColorHolder(1,1,1);
-            if (plan.stretchPaletted()) {
-                for (int x = 0; x < w; x++) {
-                    for (int y = 0; y < w; y++) {
-                        ColorHolder colorThis = ColorHolder.fromColorInt(p_img.getPixelRGBA(x / ps, y / ps)).withA(1.0f);
-                        if (colorThis.compareTo(maxPaletteKey) > 0) {
-                            maxPaletteKey = colorThis;
-                        } else if (colorThis.compareTo(minPaletteKey) < 0) {
-                            minPaletteKey = colorThis;
-                        }
-                    }
-                }
-            }
-            float maxAvg = (maxPaletteKey.getR()+maxPaletteKey.getG()+maxPaletteKey.getB())/3f;
-            float minAvg = (minPaletteKey.getR()+minPaletteKey.getG()+minPaletteKey.getB())/3f;
-            float range = maxAvg - minAvg;
+        //We don't care if they're square; we'll crop them. Currently, likely breaks animations...
+        int oDim = Math.min(oImg.getHeight(),oImg.getWidth());
+        int bDim = Math.min(bImg.getHeight(),bImg.getWidth());
+        int pDim = Math.min(pImg.getHeight(),pImg.getWidth());
+        int w = Math.max(oDim, Math.max(bDim,pDim));
+        int os = w/oImg.getWidth();
+        int bs = w/bImg.getWidth();
+        int ps = w/pImg.getWidth();
+        NativeImage outImg = NativeImageHelper.of(NativeImage.Format.RGBA,w,w,false);
+        Palette backgroundPalette = extractPalette(bImg, extend,1f/255f);
+        ColorHolder maxPaletteKey = new ColorHolder(0,0,0);
+        ColorHolder minPaletteKey = new ColorHolder(1,1,1);
+        if (plan.stretchPaletted()) {
             for (int x = 0; x < w; x++) {
                 for (int y = 0; y < w; y++) {
-                    ColorHolder outVal;
-                    if (includeBackground) {
-                        outVal = ColorHolder.fromColorInt(b_img.getPixelRGBA(x / bs, y / bs));
-                    } else {
-                        outVal = new ColorHolder(0f,0f,0f,0f);
+                    ColorHolder colorThis = ColorHolder.fromColorInt(pImg.getPixelRGBA(x / ps, y / ps)).withA(1.0f);
+                    if (colorThis.compareTo(maxPaletteKey) > 0) {
+                        maxPaletteKey = colorThis;
+                    } else if (colorThis.compareTo(minPaletteKey) < 0) {
+                        minPaletteKey = colorThis;
                     }
-                    // Add color by palette
-                    ColorHolder p_val = ColorHolder.fromColorInt(p_img.getPixelRGBA(x/ps,y/ps));
-                    if (p_val.getA() > 0f) {
-                        float ramp = (p_val.getR() + p_val.getG() + p_val.getB()) / 3f;
-                        if (maxAvg > 0 && minAvg < 1 && range > 0) {
-                            ramp = (ramp-minAvg)/range;
-                        }
-                        ColorHolder palettedColor = backgroundPalette.getColorAtRamp(ramp);
-                        palettedColor = palettedColor.withA(p_val.getA());
-                        outVal = ColorHolder.alphaBlend(palettedColor, outVal);
-                    }
-                    ColorHolder overlayC = ColorHolder.fromColorInt(o_img.getPixelRGBA(x/os,y/os));
-                    outVal = ColorHolder.alphaBlend(overlayC, outVal);
-                    out_img.setPixelRGBA(x,y,ColorHolder.toColorInt(outVal));
                 }
             }
-            return out_img;
-        } catch (IOException e) {
-            DynamicAssetGenerator.LOGGER.error("Error loading resources for image", e);
-            return null;
         }
+        float maxAvg = (maxPaletteKey.getR()+maxPaletteKey.getG()+maxPaletteKey.getB())/3f;
+        float minAvg = (minPaletteKey.getR()+minPaletteKey.getG()+minPaletteKey.getB())/3f;
+        float range = maxAvg - minAvg;
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < w; y++) {
+                ColorHolder outVal;
+                if (includeBackground) {
+                    outVal = ColorHolder.fromColorInt(bImg.getPixelRGBA(x / bs, y / bs));
+                } else {
+                    outVal = new ColorHolder(0f,0f,0f,0f);
+                }
+                // Add color by palette
+                ColorHolder pVal = ColorHolder.fromColorInt(pImg.getPixelRGBA(x/ps,y/ps));
+                if (pVal.getA() > 0f) {
+                    float ramp = (pVal.getR() + pVal.getG() + pVal.getB()) / 3f;
+                    if (maxAvg > 0 && minAvg < 1 && range > 0) {
+                        ramp = (ramp-minAvg)/range;
+                    }
+                    ColorHolder palettedColor = backgroundPalette.getColorAtRamp(ramp);
+                    palettedColor = palettedColor.withA(pVal.getA());
+                    outVal = ColorHolder.alphaBlend(palettedColor, outVal);
+                }
+                ColorHolder overlayC = ColorHolder.fromColorInt(oImg.getPixelRGBA(x/os,y/os));
+                outVal = ColorHolder.alphaBlend(overlayC, outVal);
+                outImg.setPixelRGBA(x,y,ColorHolder.toColorInt(outVal));
+            }
+        }
+        return outImg;
     }
 
     public double dist(Palette other) {
