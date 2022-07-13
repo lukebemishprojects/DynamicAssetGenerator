@@ -4,7 +4,7 @@ import com.google.auto.service.AutoService;
 import io.github.lukebemish.dynamic_asset_generator.forge.mixin.DelegatingResourcePackAccessor;
 import io.github.lukebemish.dynamic_asset_generator.platform.services.IResourceDegrouper;
 import net.minecraft.server.packs.PackResources;
-import net.minecraftforge.resource.DelegatingResourcePack;
+import net.minecraftforge.resource.DelegatingPackResources;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public class ResourceDegrouper implements IResourceDegrouper {
     public List<? extends PackResources> unpackPacks(List<? extends PackResources> packs) {
         ArrayList<PackResources> packsOut = new ArrayList<>();
         packs.forEach(pack -> {
-            if (pack instanceof DelegatingResourcePack delegatingResourcePack) {
+            if (pack instanceof DelegatingPackResources delegatingResourcePack) {
                 packsOut.addAll(((DelegatingResourcePackAccessor)delegatingResourcePack).getDelegates());
             } else packsOut.add(pack);
         });
