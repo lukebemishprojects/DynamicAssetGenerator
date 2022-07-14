@@ -70,7 +70,7 @@ public abstract class TextureConfigProvider implements DataProvider {
     private void writeConfigs(CachedOutput cache) {
         for (ResourceLocation location : generatedConfigs.keySet()) {
             Path target = generator.getOutputFolder().resolve(String.format(
-                    "assets/%s/dynamic_assets_sources/%s.json",
+                    "assets/%s/dynamic_asset_generator/%s.json",
                     location.getNamespace(),
                     location.getPath()
             ));

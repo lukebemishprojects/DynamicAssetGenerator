@@ -19,11 +19,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-public record TextureMetaGenerator(List<MetaSource> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements IResourceGenerator {
+public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements IResourceGenerator {
     public static final Codec<TextureMetaGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            MetaSource.CODEC.listOf().fieldOf("sources").forGetter(TextureMetaGenerator::sources),
+            ResourceLocation.CODEC.listOf().fieldOf("sources").forGetter(TextureMetaGenerator::sources),
             AnimationData.CODEC.optionalFieldOf("animation").forGetter(TextureMetaGenerator::animation),
             VillagerData.CODEC.optionalFieldOf("villager").forGetter(TextureMetaGenerator::villager),
             TextureData.CODEC.optionalFieldOf("texture").forGetter(TextureMetaGenerator::texture),
@@ -35,16 +34,19 @@ public record TextureMetaGenerator(List<MetaSource> sources, Optional<AnimationD
     @Override
     public @NotNull Supplier<InputStream> get(ResourceLocation outRl) {
         return () -> {
-            Map<ResourceLocation, MetaSource> sourceMap = new HashMap<>();
             Map<ResourceLocation, MetaStructure> sourceStructure = new HashMap<>();
-            for (MetaSource source : sources()) {
-                try (InputStream stream = ClientPrePackRepository.getResource(source.texture())){
+            if (sources().isEmpty()) {
+                DynamicAssetGenerator.LOGGER.error("No sources provided for texture metadata at {}:\n",outputLocation());
+                return null;
+            }
+            for (ResourceLocation source : sources()) {
+                try (InputStream stream = ClientPrePackRepository.getResource(new ResourceLocation(source.getNamespace(),
+                        "textures/"+source.getPath()+".png.mcmeta"))) {
                     JsonObject json = GSON.fromJson(new BufferedReader(new InputStreamReader(stream)), JsonObject.class);
                     MetaStructure structure = MetaStructure.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, e->{});
-                    sourceStructure.put(source.texture(),structure);
-                    sourceMap.put(source.texture(),source);
+                    sourceStructure.put(source,structure);
                 } catch (IOException | RuntimeException e) {
-                    DynamicAssetGenerator.LOGGER.error("Issue reading texture metadata for {}:\n",source.texture(),e);
+                    DynamicAssetGenerator.LOGGER.error("Issue reading texture metadata for {}:\n",source,e);
                     return null;
                 }
             }
@@ -53,46 +55,70 @@ public record TextureMetaGenerator(List<MetaSource> sources, Optional<AnimationD
             Optional<MetaStructure.VillagerMeta> villagerMeta = Optional.empty();
             Optional<MetaStructure.TextureMeta> textureMeta = Optional.empty();
 
-            Map<ResourceLocation, MetaStructure.AnimationMeta> animationMetas = new HashMap<>();
-            sources().forEach(source -> {
-                Optional<MetaStructure.AnimationMeta> meta = sourceStructure.get(source.texture()).animation();
-                meta.ifPresent(value -> animationMetas.put(source.texture(), value));
-            });
-            Set<MetaStructure.TextureMeta> textureMetas = sourceStructure.values().stream().map(MetaStructure::texture)
+            List<MetaStructure.AnimationMeta> animationMetas = sources().stream()
+                    .map(sourceStructure::get)
+                    .map(MetaStructure::animation)
                     .filter(Optional::isPresent)
-                    .map(Optional::get).collect(Collectors.toSet());
-            Set<MetaStructure.VillagerMeta> villagerMetas = sourceStructure.values().stream().map(MetaStructure::villager)
+                    .map(Optional::get).toList();
+            List<MetaStructure.TextureMeta> textureMetas = sources().stream()
+                    .map(sourceStructure::get)
+                    .map(MetaStructure::texture)
                     .filter(Optional::isPresent)
-                    .map(Optional::get).collect(Collectors.toSet());
+                    .map(Optional::get).toList();
+            List<MetaStructure.VillagerMeta> villagerMetas = sources().stream()
+                    .map(sourceStructure::get)
+                    .map(MetaStructure::villager)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get).toList();
 
             if (!villagerMetas.isEmpty() || villager().isPresent()) {
                 VillagerData.Hat hat = (villager().isPresent() ? villager().get().hat() : Optional.<VillagerData.Hat>empty())
-                        .orElseGet(()->villagerMetas.stream().findFirst().get().hat());
+                        .orElseGet(()->villagerMetas.get(0).hat());
                 villagerMeta = Optional.of(new MetaStructure.VillagerMeta(hat));
             }
 
             if (!textureMetas.isEmpty() || texture().isPresent()) {
                 boolean blur = (texture().isPresent() ? texture().get().blur() : Optional.<Boolean>empty())
-                        .orElseGet(()->textureMetas.stream().findFirst().get().blur());
+                        .orElseGet(()->textureMetas.get(0).blur());
                 boolean clamp = (texture().isPresent() ? texture().get().clamp() : Optional.<Boolean>empty())
-                        .orElseGet(()->textureMetas.stream().findFirst().get().clamp());
+                        .orElseGet(()->textureMetas.get(0).clamp());
                 textureMeta = Optional.of(new MetaStructure.TextureMeta(blur, clamp));
             }
 
-            if (!animationMetas.isEmpty() || animation().isPresent()) {
+            if (!animationMetas.isEmpty()) {
                 int frametime = (animation().isPresent() ? animation().get().frametime() : Optional.<Integer>empty())
-                        .orElseGet(()->animationMetas.values().stream().findFirst().get().frametime());
+                        .orElseGet(()->animationMetas.get(0).frametime());
                 boolean interpolate = (animation().isPresent() ? animation().get().interpolate() : Optional.<Boolean>empty())
-                        .orElseGet(()-> animationMetas.values().stream().anyMatch(MetaStructure.AnimationMeta::interpolate));
-                int lcm = AnimationSplittingSource.lcm(animationMetas.entrySet().stream().map(e->{
-                    List<Integer> frames = e.getValue().frames();
-                    return (frames.isEmpty() ? 1 : frames.size())*sourceMap.get(e.getKey()).scale();
-                }).toList());
-                ArrayList<Integer> frames = new ArrayList<>();
-                for (int i = 1; i<=lcm; i++) {
-                    frames.add(i);
+                        .orElseGet(()-> animationMetas.get(0).interpolate());
+
+
+                List<Integer> frameCount = animationMetas.stream().map(m->m.frames.stream().max(Integer::compareTo).orElse(0)+1).toList();
+                List<Integer> scale = new ArrayList<>(animation().map(AnimationData::scales).map(l->l.orElse(List.of())).orElse(List.of()));
+                List<Integer> relFrameCount = new ArrayList<>();
+                for (int i = 0; i < frameCount.size(); i++)
+                    relFrameCount.add(frameCount.get(i)* scale.get(i));
+                int totalLength = AnimationSplittingSource.lcm(relFrameCount);
+
+                ResourceLocation patternSourceRL = animation().map(AnimationData::patternSource).map(s->s.orElse(sources().get(0))).orElse(sources.get(0));
+                while (scale.size() < sources().size())
+                    scale.add(1);
+
+                if (!sources.contains(patternSourceRL)) {
+                    DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSourceRL);
+                    return null;
                 }
-                animationMeta = Optional.of(new MetaStructure.AnimationMeta(frametime, frames, interpolate));
+
+                List<Integer> framesSource = sourceStructure.get(patternSourceRL).animation.map(MetaStructure.AnimationMeta::frames).orElse(List.of(0));
+                int patternSourceIdx = sources().indexOf(patternSourceRL);
+                List<Integer> framesOut = new ArrayList<>();
+                int scalingFactor = totalLength / frameCount.get(patternSourceIdx);
+                for (int f : framesSource) {
+                    for (int i = 0; i < scalingFactor; i++) {
+                        framesOut.add(f*scale.get(patternSourceIdx)+i);
+                    }
+                }
+
+                animationMeta = Optional.of(new MetaStructure.AnimationMeta(frametime, framesOut, interpolate));
             }
 
             MetaStructure out = new MetaStructure(animationMeta, textureMeta, villagerMeta);
@@ -104,7 +130,7 @@ public record TextureMetaGenerator(List<MetaSource> sources, Optional<AnimationD
 
     @Override
     public @NotNull Set<ResourceLocation> location() {
-        return Set.of(outputLocation());
+        return Set.of(new ResourceLocation(outputLocation().getNamespace(),"textures/"+outputLocation().getPath()+".png.mcmeta"));
     }
 
     @Override
@@ -112,17 +138,12 @@ public record TextureMetaGenerator(List<MetaSource> sources, Optional<AnimationD
         return CODEC;
     }
 
-    public record MetaSource(ResourceLocation texture, int scale) {
-        public static final Codec<MetaSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ResourceLocation.CODEC.fieldOf("texture").forGetter(MetaSource::texture),
-                Codec.INT.optionalFieldOf("animation_scale",1).forGetter(MetaSource::scale)
-        ).apply(instance, MetaSource::new));
-    }
-
-    public record AnimationData(Optional<Integer> frametime, Optional<Boolean> interpolate) {
+    public record AnimationData(Optional<Integer> frametime, Optional<Boolean> interpolate, Optional<ResourceLocation> patternSource, Optional<List<Integer>> scales) {
         public static final Codec<AnimationData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.INT.optionalFieldOf("frametime").forGetter(AnimationData::frametime),
-                Codec.BOOL.optionalFieldOf("interpolate").forGetter(AnimationData::interpolate)
+                Codec.BOOL.optionalFieldOf("interpolate").forGetter(AnimationData::interpolate),
+                ResourceLocation.CODEC.optionalFieldOf("pattern_source").forGetter(AnimationData::patternSource),
+                Codec.INT.listOf().optionalFieldOf("scales").forGetter(AnimationData::scales)
         ).apply(instance,AnimationData::new));
     }
 
@@ -166,7 +187,7 @@ public record TextureMetaGenerator(List<MetaSource> sources, Optional<AnimationD
         record AnimationMeta(int frametime, List<Integer> frames, boolean interpolate) {
             public static final Codec<AnimationMeta> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                     Codec.INT.optionalFieldOf("frametime",1).forGetter(AnimationMeta::frametime),
-                    Codec.INT.listOf().optionalFieldOf("frames",List.of()).forGetter(AnimationMeta::frames),
+                    Codec.INT.listOf().optionalFieldOf("frames",List.of(0)).forGetter(AnimationMeta::frames),
                     Codec.BOOL.optionalFieldOf("interpolate",false).forGetter(AnimationMeta::interpolate)
             ).apply(instance,AnimationMeta::new));
         }

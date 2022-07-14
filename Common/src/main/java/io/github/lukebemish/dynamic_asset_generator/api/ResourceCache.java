@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class ResourceCache {
-    protected static final String SOURCE_JSON_DIR = "dynamic_assets_sources";
+    protected static final String SOURCE_JSON_DIR = "dynamic_asset_generator";
     protected List<Supplier<? extends IPathAwareInputStreamSource>> cache = new ArrayList<>();
 
     public  Map<ResourceLocation, Supplier<InputStream>> getResources() {

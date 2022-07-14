@@ -4,6 +4,7 @@ import io.github.lukebemish.dynamic_asset_generator.api.IResourceGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.AssetResourceCache;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.DynamicTextureSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TextureMetaGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.*;
 import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.platform.Services;
@@ -16,6 +17,7 @@ public class DynamicAssetGeneratorClient {
 
     public static void init() {
         IResourceGenerator.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"), DynamicTextureSource.CODEC);
+        IResourceGenerator.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture_meta"), TextureMetaGenerator.CODEC);
 
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "texture"), TextureReader.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "fallback"), FallbackSource.CODEC);
@@ -55,7 +57,7 @@ public class DynamicAssetGeneratorClient {
                     new AnimationSplittingSource(Map.of("magma",
                             new AnimationSplittingSource.TimeAwareSource(new TextureReader(new ResourceLocation("block/magma")),1),
                             "prismarine",
-                            new AnimationSplittingSource.TimeAwareSource(new TextureReader(new ResourceLocation("block/prismarine")),3)),
+                            new AnimationSplittingSource.TimeAwareSource(new TextureReader(new ResourceLocation("block/prismarine")),4)),
                             new CombinedPaletteImage(
                                     new TextureReader(new ResourceLocation("dynamic_asset_generator","empty")),
                                     new AnimationFrameCapture("prismarine"),

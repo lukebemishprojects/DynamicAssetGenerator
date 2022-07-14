@@ -31,7 +31,7 @@ public abstract class ImageSource {
     @MustBeInvokedByOverriders
     JsonObject toJson() {
         JsonObject object = new JsonObject();
-        object.addProperty("source_type", type);
+        object.addProperty("type", type);
         return object;
     }
 
