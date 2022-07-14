@@ -10,7 +10,9 @@ import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class DynamicAssetGeneratorClient {
     private DynamicAssetGeneratorClient() {}
@@ -66,6 +68,12 @@ public class DynamicAssetGeneratorClient {
                                     true,
                                     6
                             ))));
+            AssetResourceCache.INSTANCE.planSource(new TextureMetaGenerator(List.of(new ResourceLocation("block/magma"),new ResourceLocation("block/prismarine")),
+                    Optional.of(new TextureMetaGenerator.AnimationData(Optional.empty(), Optional.empty(),Optional.of(new ResourceLocation("block/prismarine")),
+                            Optional.of(List.of(1,4)))),
+                    Optional.empty(),
+                    Optional.empty(),
+                    new ResourceLocation("block/magma")));
         }
     }
 }
