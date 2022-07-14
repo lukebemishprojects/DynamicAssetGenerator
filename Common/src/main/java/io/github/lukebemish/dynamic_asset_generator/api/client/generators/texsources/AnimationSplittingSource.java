@@ -10,6 +10,7 @@ import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
 import io.github.lukebemish.dynamic_asset_generator.impl.util.MultiCloser;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.io.Closeable;
 import java.util.*;
@@ -93,7 +94,8 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
         return (i1*i2)/gcd(i1,i2);
     }
 
-    private static int lcm(List<Integer> ints) {
+    @ApiStatus.Internal
+    public static int lcm(List<Integer> ints) {
         if (ints.size() <= 1)
             return ints.get(0);
         if (ints.size() == 2)
