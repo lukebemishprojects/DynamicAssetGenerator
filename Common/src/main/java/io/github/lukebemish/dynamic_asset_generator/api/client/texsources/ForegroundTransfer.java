@@ -4,11 +4,12 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
-import io.github.lukebemish.dynamic_asset_generator.client.PaletteExtractor;
-import io.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
-import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
+import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.PaletteExtractor;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.Palette;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.util.IPalettePlan;
 
 import java.util.function.Supplier;
 
@@ -16,9 +17,9 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
                                  int extendPaletteSize, boolean trimTrailing, boolean forceNeighbors, boolean fillHoles,
                                  double closeCutoff) implements ITexSource {
     public static final Codec<ForegroundTransfer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.TEXSOURCE_CODEC.fieldOf("background").forGetter(ForegroundTransfer::background),
-            ITexSource.TEXSOURCE_CODEC.fieldOf("full").forGetter(ForegroundTransfer::full),
-            ITexSource.TEXSOURCE_CODEC.fieldOf("new_background").forGetter(ForegroundTransfer::newBackground),
+            ITexSource.CODEC.fieldOf("background").forGetter(ForegroundTransfer::background),
+            ITexSource.CODEC.fieldOf("full").forGetter(ForegroundTransfer::full),
+            ITexSource.CODEC.fieldOf("new_background").forGetter(ForegroundTransfer::newBackground),
             Codec.INT.fieldOf("extend_palette_size").forGetter(ForegroundTransfer::extendPaletteSize),
             Codec.BOOL.fieldOf("trim_trailing").forGetter(ForegroundTransfer::trimTrailing),
             Codec.BOOL.fieldOf("force_neighbors").forGetter(ForegroundTransfer::forceNeighbors),
@@ -32,10 +33,10 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
-        Supplier<NativeImage> background = this.background().getSupplier();
-        Supplier<NativeImage> newBackground = this.newBackground().getSupplier();
-        Supplier<NativeImage> full = this.full().getSupplier();
+    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+        Supplier<NativeImage> background = this.background().getSupplier(data);
+        Supplier<NativeImage> newBackground = this.newBackground().getSupplier(data);
+        Supplier<NativeImage> full = this.full().getSupplier(data);
 
         return () -> {
             if (background == null || full == null || newBackground == null) {

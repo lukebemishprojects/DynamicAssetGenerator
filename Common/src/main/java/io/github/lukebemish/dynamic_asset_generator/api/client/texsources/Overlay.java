@@ -4,11 +4,13 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
-import io.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
-import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
+import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.ColorHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
+import io.github.lukebemish.dynamic_asset_generator.impl.util.MultiCloser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.function.Supplier;
 
 public record Overlay(List<ITexSource> inputs) implements ITexSource {
     public static final Codec<Overlay> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.TEXSOURCE_CODEC.listOf().fieldOf("inputs").forGetter(Overlay::inputs)
+            ITexSource.CODEC.listOf().fieldOf("inputs").forGetter(Overlay::inputs)
     ).apply(instance, Overlay::new));
 
     @Override
@@ -25,10 +27,10 @@ public record Overlay(List<ITexSource> inputs) implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         List<Supplier<NativeImage>> inputs = new ArrayList<>();
         for (ITexSource o : this.inputs()) {
-            inputs.add(o.getSupplier());
+            inputs.add(o.getSupplier(data));
         }
         return () -> {
             int maxX = 0;
@@ -86,23 +88,5 @@ public record Overlay(List<ITexSource> inputs) implements ITexSource {
                 return output;
             }
         };
-    }
-
-    public static class MultiCloser implements AutoCloseable {
-        private final List<? extends AutoCloseable> toClose;
-        public MultiCloser(List<? extends AutoCloseable> toClose) {
-            this.toClose = toClose;
-        }
-
-        @Override
-        public void close() {
-            for (AutoCloseable c : toClose) {
-                try {
-                    c.close();
-                } catch (Exception e) {
-                    DynamicAssetGenerator.LOGGER.error("Exception while closing resources:\n",e);
-                }
-            }
-        }
     }
 }

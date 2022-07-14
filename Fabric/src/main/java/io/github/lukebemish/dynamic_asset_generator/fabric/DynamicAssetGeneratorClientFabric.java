@@ -1,8 +1,8 @@
 package io.github.lukebemish.dynamic_asset_generator.fabric;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.AssetResourceCache;
-import io.github.lukebemish.dynamic_asset_generator.client.DynamicAssetGeneratorClient;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.DynamicAssetGeneratorClient;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ClientModInitializer;

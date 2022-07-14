@@ -3,7 +3,7 @@ package io.github.lukebemish.dynamic_asset_generator.api.client.datagen;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.MustBeInvokedByOverriders;
 

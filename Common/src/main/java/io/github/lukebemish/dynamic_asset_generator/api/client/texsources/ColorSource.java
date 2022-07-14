@@ -4,7 +4,8 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
+import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class ColorSource implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
+    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         return () -> {
             int len = Math.min(128*128,color.size());
             int sideLength = 0;

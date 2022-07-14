@@ -4,18 +4,19 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
-import io.github.lukebemish.dynamic_asset_generator.client.palette.ColorHolder;
-import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.ColorHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
 
 import java.util.function.Supplier;
 
 public record Mask(ITexSource input, ITexSource mask) implements ITexSource {
     public static final Codec<Mask> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.TEXSOURCE_CODEC.fieldOf("input").forGetter(Mask::input),
-            ITexSource.TEXSOURCE_CODEC.fieldOf("mask").forGetter(Mask::mask)
+            ITexSource.CODEC.fieldOf("input").forGetter(Mask::input),
+            ITexSource.CODEC.fieldOf("mask").forGetter(Mask::mask)
     ).apply(instance, Mask::new));
 
     @Override
@@ -24,9 +25,9 @@ public record Mask(ITexSource input, ITexSource mask) implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
-        Supplier<NativeImage> input = this.input().getSupplier();
-        Supplier<NativeImage> mask = this.mask().getSupplier();
+    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+        Supplier<NativeImage> input = this.input().getSupplier(data);
+        Supplier<NativeImage> mask = this.mask().getSupplier(data);
 
         return () -> {
             if (input == null || mask == null) {

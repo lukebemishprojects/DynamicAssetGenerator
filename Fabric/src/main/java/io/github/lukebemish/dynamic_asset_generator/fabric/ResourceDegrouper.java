@@ -2,7 +2,7 @@ package io.github.lukebemish.dynamic_asset_generator.fabric;
 
 import com.google.auto.service.AutoService;
 import io.github.lukebemish.dynamic_asset_generator.fabric.mixin.IGroupResourcePackMixin;
-import io.github.lukebemish.dynamic_asset_generator.platform.services.IResourceDegrouper;
+import io.github.lukebemish.dynamic_asset_generator.impl.platform.services.IResourceDegrouper;
 import net.fabricmc.fabric.impl.resource.loader.GroupResourcePack;
 import net.minecraft.server.packs.PackResources;
 

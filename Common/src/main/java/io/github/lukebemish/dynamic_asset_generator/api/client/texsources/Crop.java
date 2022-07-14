@@ -4,10 +4,11 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.client.NativeImageHelper;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
-import io.github.lukebemish.dynamic_asset_generator.client.util.SafeImageExtraction;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
 
 import java.util.function.Supplier;
 
@@ -18,7 +19,7 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
             Codec.INT.fieldOf("size_x").forGetter(Crop::sizeX),
             Codec.INT.fieldOf("start_y").forGetter(Crop::startY),
             Codec.INT.fieldOf("size_y").forGetter(Crop::sizeY),
-            ITexSource.TEXSOURCE_CODEC.fieldOf("input").forGetter(Crop::input)
+            ITexSource.CODEC.fieldOf("input").forGetter(Crop::input)
     ).apply(instance, Crop::new));
 
     public Codec<Crop> codec() {
@@ -26,8 +27,8 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
-        Supplier<NativeImage> suppliedInput = input().getSupplier();
+    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+        Supplier<NativeImage> suppliedInput = input().getSupplier(data);
 
         return () -> {
             if (suppliedInput == null) {

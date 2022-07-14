@@ -1,6 +1,6 @@
 package io.github.lukebemish.dynamic_asset_generator.api;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class ResourceCache {
+    protected static final String SOURCE_JSON_DIR = "dynamic_assets_sources";
     protected List<Supplier<? extends IPathAwareInputStreamSource>> cache = new ArrayList<>();
 
     public  Map<ResourceLocation, Supplier<InputStream>> getResources() {

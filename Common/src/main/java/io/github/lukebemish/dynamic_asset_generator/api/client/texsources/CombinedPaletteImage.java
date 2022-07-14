@@ -5,16 +5,18 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
-import io.github.lukebemish.dynamic_asset_generator.client.palette.Palette;
-import io.github.lukebemish.dynamic_asset_generator.client.util.IPalettePlan;
+import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.Palette;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.util.IPalettePlan;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
 public class CombinedPaletteImage implements ITexSource {
     public static final Codec<CombinedPaletteImage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.TEXSOURCE_CODEC.fieldOf("overlay").forGetter(s->s.overlay),
-            ITexSource.TEXSOURCE_CODEC.fieldOf("background").forGetter(s->s.background),
-            ITexSource.TEXSOURCE_CODEC.fieldOf("paletted").forGetter(s->s.paletted),
+            ITexSource.CODEC.fieldOf("overlay").forGetter(s->s.overlay),
+            ITexSource.CODEC.fieldOf("background").forGetter(s->s.background),
+            ITexSource.CODEC.fieldOf("paletted").forGetter(s->s.paletted),
             Codec.BOOL.fieldOf("include_background").forGetter(s->s.includeBackground),
             Codec.BOOL.fieldOf("stretch_paletted").forGetter(s->s.stretchPaletted),
             Codec.INT.fieldOf("extend_palette_size").forGetter(s->s.extendPaletteSize)
@@ -26,14 +28,16 @@ public class CombinedPaletteImage implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier() throws JsonSyntaxException {
-        PalettePlanner planner = PalettePlanner.of(this);
-        if (planner == null) return null;
-        try (NativeImage bImg = background.getSupplier().get();
-             NativeImage oImg = overlay.getSupplier().get();
-             NativeImage pImg = overlay.getSupplier().get()) {
-            return () -> Palette.paletteCombinedImage(bImg, oImg, pImg, planner);
-        }
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+        PalettePlanner planner = PalettePlanner.of(this, data);
+        if (planner == null) return ()->null;
+        return () -> {
+            try (NativeImage bImg = background.getSupplier(data).get();
+                 NativeImage oImg = overlay.getSupplier(data).get();
+                 NativeImage pImg = paletted.getSupplier(data).get()) {
+                return Palette.paletteCombinedImage(bImg, oImg, pImg, planner);
+            }
+        };
     }
 
     private final ITexSource overlay;
@@ -62,11 +66,11 @@ public class CombinedPaletteImage implements ITexSource {
             this.info = info;
         }
 
-        public static PalettePlanner of(CombinedPaletteImage info) {
+        public static PalettePlanner of(CombinedPaletteImage info, TexSourceDataHolder data) {
             PalettePlanner out = new PalettePlanner(info);
-            out.background = info.background.getSupplier();
-            out.paletted = info.paletted.getSupplier();
-            out.overlay = info.overlay.getSupplier();
+            out.background = info.background.getSupplier(data);
+            out.paletted = info.paletted.getSupplier(data);
+            out.overlay = info.overlay.getSupplier(data);
             if (out.overlay == null || out.background == null || out.paletted == null) return null;
             return out;
         }

@@ -1,9 +1,9 @@
 package io.github.lukebemish.dynamic_asset_generator.api.client;
 
 import com.google.common.collect.ImmutableList;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.mixin.IPackRepositoryMixin;
-import io.github.lukebemish.dynamic_asset_generator.platform.Services;
+import io.github.lukebemish.dynamic_asset_generator.impl.platform.Services;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;

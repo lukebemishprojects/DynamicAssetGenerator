@@ -6,24 +6,26 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.ClientRegisters;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface ITexSource {
-    Codec<ITexSource> TEXSOURCE_CODEC = ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ITexSource>>() {
+    Codec<ITexSource> CODEC = ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ITexSource>>() {
         @Override
         public <T> DataResult<Pair<Codec<? extends ITexSource>, T>> decode(DynamicOps<T> ops, T input) {
-            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !GeneratedTextureHolder.SOURCES.containsKey(keyValuePair.getFirst())
+            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !ClientRegisters.ITEXSOURCES.containsKey(keyValuePair.getFirst())
                     ? DataResult.error("Unknown dynamic texture source type: " + keyValuePair.getFirst())
-                    : DataResult.success(keyValuePair.mapFirst(GeneratedTextureHolder.SOURCES::get)));
+                    : DataResult.success(keyValuePair.mapFirst(ClientRegisters.ITEXSOURCES::get)));
         }
 
         @Override
         public <T> DataResult<T> encode(Codec<? extends ITexSource> input, DynamicOps<T> ops, T prefix) {
-            ResourceLocation key = GeneratedTextureHolder.SOURCES.inverse().get(input);
+            ResourceLocation key = ClientRegisters.ITEXSOURCES.inverse().get(input);
             if (key == null)
             {
                 return DataResult.error("Unregistered dynamic texture source type: " + input);
@@ -32,6 +34,13 @@ public interface ITexSource {
             return ops.mergeToPrimitive(prefix, toMerge);
         }
     }).dispatch(ITexSource::codec, Function.identity());
+
+    static void register(ResourceLocation rl, Codec<? extends ITexSource> reader) {
+        ClientRegisters.ITEXSOURCES.put(rl, reader);
+    }
+
     Codec<? extends ITexSource> codec();
-    Supplier<NativeImage> getSupplier() throws JsonSyntaxException;
+
+    @NotNull
+    Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException;
 }

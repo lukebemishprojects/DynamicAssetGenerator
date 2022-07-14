@@ -1,9 +1,9 @@
 package io.github.lukebemish.dynamic_asset_generator.api.client;
 
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.ModConfig;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.ModConfig;
 import io.github.lukebemish.dynamic_asset_generator.api.ResourceCache;
-import io.github.lukebemish.dynamic_asset_generator.client.JsonTextureSourceProviderSource;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.JsonResourceGeneratorReader;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -17,11 +17,10 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class AssetResourceCache extends ResourceCache {
-    private static final String SOURCE_JSON_DIR = "dynamic_assets_sources";
     public static final AssetResourceCache INSTANCE = new AssetResourceCache();
 
     private AssetResourceCache() {
-        planSource(() -> new JsonTextureSourceProviderSource(getSourceJsons()));
+        planSource(() -> new JsonResourceGeneratorReader(getSourceJsons()));
     }
 
     static Map<ResourceLocation, String> getSourceJsons() {
@@ -42,7 +41,7 @@ public class AssetResourceCache extends ResourceCache {
                 String text = new String(resource.readAllBytes(), StandardCharsets.UTF_8);
                 rls.put(rl, text);
             } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Issues loading texture source jsons...");
+                DynamicAssetGenerator.LOGGER.error("Issues loading resource source jsons...");
             }
         }
         return rls;
