@@ -1,4 +1,4 @@
-package io.github.lukebemish.dynamic_asset_generator.api.client;
+package io.github.lukebemish.dynamic_asset_generator.api.client.generators;
 
 import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;

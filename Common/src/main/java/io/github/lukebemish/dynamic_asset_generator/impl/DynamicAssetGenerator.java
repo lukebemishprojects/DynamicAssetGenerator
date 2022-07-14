@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.impl;
 
 import io.github.lukebemish.dynamic_asset_generator.api.IResourceGenerator;
-import io.github.lukebemish.dynamic_asset_generator.api.client.DynamicTextureSource;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.DynamicTextureSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +24,5 @@ public class DynamicAssetGenerator {
     }
 
     public static void init() {
-        IResourceGenerator.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture_generator"), DynamicTextureSource.CODEC);
     }
 }

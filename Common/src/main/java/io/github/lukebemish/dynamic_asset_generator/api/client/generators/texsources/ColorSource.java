@@ -1,12 +1,12 @@
-package io.github.lukebemish.dynamic_asset_generator.api.client.texsources;
+package io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources;
 
 import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.api.client.TexSourceDataHolder;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
-import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 
 import java.util.List;
 import java.util.function.Supplier;

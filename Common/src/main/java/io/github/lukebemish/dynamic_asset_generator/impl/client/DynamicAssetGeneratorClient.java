@@ -1,9 +1,10 @@
 package io.github.lukebemish.dynamic_asset_generator.impl.client;
 
+import io.github.lukebemish.dynamic_asset_generator.api.IResourceGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.AssetResourceCache;
-import io.github.lukebemish.dynamic_asset_generator.api.client.DynamicTextureSource;
-import io.github.lukebemish.dynamic_asset_generator.api.client.ITexSource;
-import io.github.lukebemish.dynamic_asset_generator.api.client.texsources.*;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.DynamicTextureSource;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.*;
 import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +15,8 @@ public class DynamicAssetGeneratorClient {
     private DynamicAssetGeneratorClient() {}
 
     public static void init() {
+        IResourceGenerator.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"), DynamicTextureSource.CODEC);
+
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "texture"), TextureReader.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "fallback"), FallbackSource.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "combined_paletted_image"), CombinedPaletteImage.CODEC);
