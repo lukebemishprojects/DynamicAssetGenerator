@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.fabric;
 
-import io.github.lukebemish.dynamic_asset_generator.DynAssetGenServerPlanner;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.api.DataResourceCache;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ModInitializer;
@@ -19,7 +19,7 @@ public class DynamicAssetGeneratorFabric implements ModInitializer {
     public void onInitialize() {
         RRPCallback.AFTER_VANILLA.register(a -> {
             DATA_PACK = RuntimeResourcePack.create(DynamicAssetGenerator.SERVER_PACK);
-            Map<ResourceLocation, Supplier<InputStream>> map = DynAssetGenServerPlanner.getResources();
+            Map<ResourceLocation, Supplier<InputStream>> map = DataResourceCache.INSTANCE.getResources();
             for (ResourceLocation rl : map.keySet()) {
                 Supplier<InputStream> stream = map.get(rl);
                 if (stream != null) {
@@ -36,5 +36,6 @@ public class DynamicAssetGeneratorFabric implements ModInitializer {
             }
             a.add(DATA_PACK);
         });
+        DynamicAssetGenerator.init();
     }
 }

@@ -1,4 +1,11 @@
-### Dyanmic Asset Generator v0.7.1
+### Dynamic Asset Generator v1.0.0
+
+- *Major* internal refactors and breaking API changes
+- Transition ITexSources to codecs
+- Hopefully make everything a bit easier to work with going forwards
+- Update past newest Forge breaking changes
+
+### Dynamic Asset Generator v0.7.1
 
 - Internal refactors
 - Hopefully make certain edge cases fail less terribly
@@ -7,7 +14,7 @@
 
 - Remove dependency on ARRP for Quilt (and hence remove dependency on fabric API)
 
-### Dyanmic Asset Generator v0.6.4
+### Dynamic Asset Generator v0.6.4
 
 - Finish updating to 1.19
 - Fix issues with getResources on 1.19

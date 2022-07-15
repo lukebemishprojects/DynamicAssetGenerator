@@ -1,8 +1,8 @@
 package io.github.lukebemish.dynamic_asset_generator.quilt;
 
-import io.github.lukebemish.dynamic_asset_generator.DynAssetGenClientResourcePack;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGeneratorClient;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.DynAssetGenClientResourcePack;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.DynamicAssetGeneratorClient;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;

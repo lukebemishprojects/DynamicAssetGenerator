@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.quilt;
 
-import io.github.lukebemish.dynamic_asset_generator.DynAssetGenServerDataPack;
-import io.github.lukebemish.dynamic_asset_generator.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynAssetGenServerDataPack;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -20,5 +20,6 @@ public class DynamicAssetGeneratorQuilt implements ModInitializer {
                 DynamicAssetGenerator.LOGGER.error("Couldn't inject server data!");
             }
         }));
+        DynamicAssetGenerator.init();
     }
 }

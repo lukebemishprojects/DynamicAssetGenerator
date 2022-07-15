@@ -1,7 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.quilt;
 
 import com.google.auto.service.AutoService;
-import io.github.lukebemish.dynamic_asset_generator.platform.services.IResourceDegrouper;
+import io.github.lukebemish.dynamic_asset_generator.impl.platform.services.IResourceDegrouper;
 import net.minecraft.server.packs.PackResources;
 
 import java.util.List;
