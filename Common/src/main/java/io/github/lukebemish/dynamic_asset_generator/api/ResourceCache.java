@@ -21,7 +21,7 @@ public abstract class ResourceCache {
         Map<ResourceLocation, Supplier<InputStream>> outputsSetup = new HashMap<>();
         this.cache.forEach(p-> {
             IPathAwareInputStreamSource source = p.get();
-            Set<ResourceLocation> rls = source.location();
+            Set<ResourceLocation> rls = source.getLocations();
             rls.forEach(rl -> outputsSetup.put(rl, source.get(rl)));
         });
 
@@ -86,7 +86,7 @@ public abstract class ResourceCache {
     public static Supplier<IPathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, IInputStreamSource source) {
         return () -> new IPathAwareInputStreamSource() {
             @Override
-            public Set<ResourceLocation> location() {
+            public Set<ResourceLocation> getLocations() {
                 return rls.get();
             }
 

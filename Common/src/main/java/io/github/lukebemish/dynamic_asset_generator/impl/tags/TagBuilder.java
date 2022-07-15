@@ -48,7 +48,7 @@ public class TagBuilder implements IPathAwareInputStreamSource {
     }
 
     @Override
-    public Set<ResourceLocation> location() {
-        return Set.of(new ResourceLocation(location.getNamespace(), "tags/"+location.getPath()+".json"));
+    public Set<ResourceLocation> getLocations() {
+        return Set.of(location);
     }
 }

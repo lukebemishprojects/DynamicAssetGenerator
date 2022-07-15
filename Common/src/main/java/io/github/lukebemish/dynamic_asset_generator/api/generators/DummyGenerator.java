@@ -21,7 +21,7 @@ public class DummyGenerator implements IResourceGenerator {
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> location() {
+    public @NotNull Set<ResourceLocation> getLocations() {
         return Set.of();
     }
 

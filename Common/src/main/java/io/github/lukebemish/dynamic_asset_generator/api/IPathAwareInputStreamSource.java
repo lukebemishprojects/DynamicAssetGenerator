@@ -9,5 +9,5 @@ public interface IPathAwareInputStreamSource extends IInputStreamSource {
 
 
     @NotNull
-    Set<ResourceLocation> location();
+    Set<ResourceLocation> getLocations();
 }

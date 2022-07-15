@@ -18,17 +18,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class DataResourceCache extends ResourceCache {
     public static final DataResourceCache INSTANCE = new DataResourceCache();
 
     private final Map<ResourceLocation, TagBuilder> tagMap = new HashMap<>();
     private DataResourceCache() {
-        this.planSource(()->tagMap.values().stream().flatMap(tb->tb.location().stream()).collect(Collectors.toSet()), rl -> {
-            ResourceLocation newLocation = new ResourceLocation(rl.getNamespace(), rl.getPath().replaceFirst("/tags","").replaceAll("\\.json",""));
-            return tagMap.get(newLocation).get(rl);
-        });
+        this.planSource(tagMap::keySet, rl -> tagMap.get(rl).get(rl));
         this.planSource(() -> new JsonResourceGeneratorReader(getSourceJsons()));
     }
 
@@ -68,12 +64,14 @@ public class DataResourceCache extends ResourceCache {
 
 
     public void planTag(ResourceLocation tag, Pair<ResourceLocation, Supplier<Boolean>> p) {
-        TagBuilder builder = tagMap.computeIfAbsent(tag, TagBuilder::new);
+        ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
+        TagBuilder builder = tagMap.computeIfAbsent(rl, TagBuilder::new);
         builder.add(p);
     }
 
     public void planTag(ResourceLocation tag, Supplier<Set<ResourceLocation>> p) {
-        TagBuilder builder = tagMap.computeIfAbsent(tag, TagBuilder::new);
+        ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
+        TagBuilder builder = tagMap.computeIfAbsent(rl, TagBuilder::new);
         builder.add(p);
     }
 }

@@ -56,7 +56,7 @@ public class DynamicTextureSource implements IResourceGenerator {
     }
 
     @Override
-    public Set<ResourceLocation> location() {
+    public Set<ResourceLocation> getLocations() {
         return Set.of(getOutputLocation());
     }
 

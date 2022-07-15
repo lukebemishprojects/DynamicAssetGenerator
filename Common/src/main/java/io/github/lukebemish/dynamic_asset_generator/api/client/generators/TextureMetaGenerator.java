@@ -129,7 +129,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> location() {
+    public @NotNull Set<ResourceLocation> getLocations() {
         return Set.of(new ResourceLocation(outputLocation().getNamespace(),"textures/"+outputLocation().getPath()+".png.mcmeta"));
     }
 

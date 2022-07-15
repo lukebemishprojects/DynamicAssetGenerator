@@ -25,8 +25,8 @@ public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource 
         map.forEach((rl, str) -> {
             try {
                 IResourceGenerator json = fromJson(str);
-                if (json != null && json.location().size() > 0) {
-                    json.location().forEach(localRl -> this.map.put(localRl, json));
+                if (json != null && json.getLocations().size() > 0) {
+                    json.getLocations().forEach(localRl -> this.map.put(localRl, json));
                 }
             } catch (RuntimeException e) {
                 DynamicAssetGenerator.LOGGER.error("Could not read json source at {}\n",rl,e);
@@ -49,7 +49,7 @@ public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource 
     }
 
     @Override
-    public Set<ResourceLocation> location() {
+    public Set<ResourceLocation> getLocations() {
         return map.keySet();
     }
 }
