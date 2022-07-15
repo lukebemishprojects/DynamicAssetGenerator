@@ -46,8 +46,8 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
                     MetaStructure structure = MetaStructure.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, e->{});
                     sourceStructure.put(source,structure);
                 } catch (IOException | RuntimeException e) {
-                    DynamicAssetGenerator.LOGGER.error("Issue reading texture metadata for {}:\n",source,e);
-                    return null;
+                    //Not an error, it might just not have metadata
+                    sourceStructure.put(source,new MetaStructure(Optional.empty(),Optional.empty(),Optional.empty()));
                 }
             }
 
@@ -114,7 +114,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
                 int scalingFactor = totalLength / frameCount.get(patternSourceIdx);
                 for (int f : framesSource) {
                     for (int i = 0; i < scalingFactor; i++) {
-                        framesOut.add(f*scale.get(patternSourceIdx)+i);
+                        framesOut.add(f*scalingFactor+i);
                     }
                 }
 

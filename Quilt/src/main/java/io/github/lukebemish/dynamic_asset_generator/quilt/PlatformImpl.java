@@ -15,7 +15,7 @@ public class PlatformImpl implements IPlatform {
 
     @Override
     public Path getModDataFolder() {
-        return QuiltLoader.getGameDir().resolve("mod_data"+ DynamicAssetGenerator.MOD_ID);
+        return QuiltLoader.getGameDir().resolve("mod_data/"+ DynamicAssetGenerator.MOD_ID);
     }
 
     public boolean isDev() {

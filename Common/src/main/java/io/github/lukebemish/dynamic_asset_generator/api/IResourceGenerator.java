@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import io.github.lukebemish.dynamic_asset_generator.CommonRegisters;
+import io.github.lukebemish.dynamic_asset_generator.impl.CommonRegisters;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 

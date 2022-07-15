@@ -1,4 +1,4 @@
-package io.github.lukebemish.dynamic_asset_generator;
+package io.github.lukebemish.dynamic_asset_generator.impl;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class TagBuilder implements IPathAwareInputStreamSource {
-    private final List<Pair<ResourceLocation, Supplier<Boolean>>> paths = new ArrayList<>();
+    private final List<Supplier<Set<ResourceLocation>>> paths = new ArrayList<>();
     private final ResourceLocation location;
 
     public TagBuilder(ResourceLocation location) {
@@ -21,7 +21,11 @@ public class TagBuilder implements IPathAwareInputStreamSource {
     }
 
     public void add(Pair<ResourceLocation,Supplier<Boolean>> p) {
-        paths.add(p);
+        paths.add(() -> Boolean.TRUE.equals(p.getSecond().get())?Set.of(p.getFirst()):Set.of());
+    }
+
+    public void add(Supplier<Set<ResourceLocation>> rls) {
+        paths.add(rls);
     }
 
     @Override
@@ -31,14 +35,13 @@ public class TagBuilder implements IPathAwareInputStreamSource {
 
     private InputStream build() {
         StringBuilder internal = new StringBuilder();
-        for (Pair<ResourceLocation, Supplier<Boolean>> p : paths) {
-            if (Boolean.TRUE.equals(p.getSecond().get())) {
-                var rl = p.getFirst();
+        for (Supplier<Set<ResourceLocation>> p : paths) {
+            p.get().forEach(rl -> {
                 if (internal.length() >= 1) {
                     internal.append(",");
                 }
                 internal.append("\"").append(rl.getNamespace()).append(":").append(rl.getPath()).append("\"");
-            }
+            });
         }
         String json = "{\"replace\":false,\"values\":["+internal+"]}";
         return new ByteArrayInputStream(json.getBytes());
@@ -46,6 +49,6 @@ public class TagBuilder implements IPathAwareInputStreamSource {
 
     @Override
     public Set<ResourceLocation> location() {
-        return Set.of(location);
+        return Set.of(new ResourceLocation(location.getNamespace(), "tags/"+location.getPath()+".json"));
     }
 }
