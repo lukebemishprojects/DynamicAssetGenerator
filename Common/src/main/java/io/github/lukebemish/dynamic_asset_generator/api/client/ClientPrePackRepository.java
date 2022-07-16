@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class ClientPrePackRepository {
     //Allows resources to be found while packs are being loaded... not sure how bad of an idea this is.
@@ -46,7 +47,7 @@ public class ClientPrePackRepository {
         throw new IOException("Could not find resource in pre-load: "+rl.toString());
     }
 
-    public static List<InputStream> getResources(ResourceLocation rl) throws IOException {
+    public static Stream<InputStream> getResources(ResourceLocation rl) throws IOException {
         List<InputStream> out = new ArrayList<>();
         for (PackResources r : getResources()) {
             if (!r.getName().equals(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
@@ -56,7 +57,7 @@ public class ClientPrePackRepository {
             }
         }
         if (!out.isEmpty()) {
-            return out;
+            return out.stream();
         }
         throw new IOException("Could not find asset in pre-load: "+rl.toString());
     }
