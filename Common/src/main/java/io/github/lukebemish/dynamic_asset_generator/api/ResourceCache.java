@@ -30,7 +30,26 @@ public abstract class ResourceCache {
         if (shouldCache())
             outputs = wrapCachedData(outputs);
 
+        outputs = wrapSafeData(outputs);
+
         return outputs;
+    }
+
+    private Map<ResourceLocation, Supplier<InputStream>> wrapSafeData(Map<ResourceLocation, Supplier<InputStream>> map) {
+        HashMap<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
+        for (Map.Entry<ResourceLocation, Supplier<InputStream>> entry : map.entrySet()) {
+            ResourceLocation rl = entry.getKey();
+            Supplier<InputStream> supplier = entry.getValue();
+            output.put(rl, () -> {
+                try {
+                    return supplier.get();
+                } catch (Throwable e) {
+                    DynamicAssetGenerator.LOGGER.error("Issue reading supplying resource {}:", rl, e);
+                    return null;
+                }
+            });
+        }
+        return output;
     }
 
     private Map<ResourceLocation, Supplier<InputStream>> wrapCachedData(Map<ResourceLocation, Supplier<InputStream>> map) {

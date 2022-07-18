@@ -18,6 +18,7 @@ import java.util.Map;
 
 public class AssetResourceCache extends ResourceCache {
     public static final AssetResourceCache INSTANCE = new AssetResourceCache();
+    public static final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "textures/empty.png");
 
     private AssetResourceCache() {
         planSource(() -> new JsonResourceGeneratorReader(getSourceJsons()));
