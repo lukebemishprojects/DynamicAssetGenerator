@@ -20,9 +20,13 @@ public abstract class ResourceCache {
     public  Map<ResourceLocation, Supplier<InputStream>> getResources() {
         Map<ResourceLocation, Supplier<InputStream>> outputsSetup = new HashMap<>();
         this.cache.forEach(p-> {
-            IPathAwareInputStreamSource source = p.get();
-            Set<ResourceLocation> rls = source.getLocations();
-            rls.forEach(rl -> outputsSetup.put(rl, source.get(rl)));
+            try {
+                IPathAwareInputStreamSource source = p.get();
+                Set<ResourceLocation> rls = source.getLocations();
+                rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl))));
+            } catch (Throwable e) {
+                DynamicAssetGenerator.LOGGER.error("Issue setting up IPathAwareInputStreamSource:",e);
+            }
         });
 
         var outputs = outputsSetup;
@@ -30,26 +34,18 @@ public abstract class ResourceCache {
         if (shouldCache())
             outputs = wrapCachedData(outputs);
 
-        outputs = wrapSafeData(outputs);
-
         return outputs;
     }
 
-    private Map<ResourceLocation, Supplier<InputStream>> wrapSafeData(Map<ResourceLocation, Supplier<InputStream>> map) {
-        HashMap<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
-        for (Map.Entry<ResourceLocation, Supplier<InputStream>> entry : map.entrySet()) {
-            ResourceLocation rl = entry.getKey();
-            Supplier<InputStream> supplier = entry.getValue();
-            output.put(rl, () -> {
-                try {
-                    return supplier.get();
-                } catch (Throwable e) {
-                    DynamicAssetGenerator.LOGGER.error("Issue reading supplying resource {}:", rl, e);
-                    return null;
-                }
-            });
-        }
-        return output;
+    private Supplier wrapSafeData(ResourceLocation rl, Supplier<InputStream> supplier) {
+        return () -> {
+            try {
+                return supplier.get();
+            } catch (Throwable e) {
+                DynamicAssetGenerator.LOGGER.error("Issue reading supplying resource {}:", rl, e);
+                return null;
+            }
+        };
     }
 
     private Map<ResourceLocation, Supplier<InputStream>> wrapCachedData(Map<ResourceLocation, Supplier<InputStream>> map) {
