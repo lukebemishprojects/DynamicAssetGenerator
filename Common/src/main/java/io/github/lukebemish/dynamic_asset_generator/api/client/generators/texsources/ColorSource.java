@@ -4,9 +4,11 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
-import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
+import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.ColorHolder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -28,7 +30,7 @@ public class ColorSource implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         return () -> {
             int len = Math.min(128*128,color.size());
             int sideLength = 0;
@@ -45,7 +47,14 @@ public class ColorSource implements ITexSource {
                     if (x+sideLength*y >= len) {
                         break outer;
                     }
-                    out.setPixelRGBA(x,y,color.get(x+sideLength*y));
+                    int hexColor = color.get(x+sideLength*y);
+                    ColorHolder newColor = new ColorHolder(
+                            (hexColor>>16&0xFF)/255f,
+                            (hexColor>> 8&0xFF)/255f,
+                            (hexColor    &0xFF)/255f,
+                            (hexColor>>24&0xFF)/255f
+                    );
+                    out.setPixelRGBA(x,y, ColorHolder.toColorInt(newColor));
                 }
             }
             return out;

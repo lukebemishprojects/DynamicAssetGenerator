@@ -4,12 +4,12 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
-import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.ColorHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
@@ -25,23 +25,19 @@ public record Mask(ITexSource input, ITexSource mask) implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         Supplier<NativeImage> input = this.input().getSupplier(data);
         Supplier<NativeImage> mask = this.mask().getSupplier(data);
 
         return () -> {
-            if (input == null || mask == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
-                return null;
-            }
             try (NativeImage inImg = input.get();
                  NativeImage maskImg = mask.get()) {
                 if (maskImg == null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.mask());
+                    data.getLogger().error("Texture given was nonexistent...\n{}", this.mask());
                     return null;
                 }
                 if (inImg == null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.input());
+                    data.getLogger().error("Texture given was nonexistent...\n{}", this.input());
                     return null;
                 }
                 int maxX = Math.max(inImg.getWidth(), maskImg.getWidth());

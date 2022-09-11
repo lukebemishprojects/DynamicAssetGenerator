@@ -35,6 +35,12 @@ public class CombinedPaletteImage implements ITexSource {
             try (NativeImage bImg = background.getSupplier(data).get();
                  NativeImage oImg = overlay.getSupplier(data).get();
                  NativeImage pImg = paletted.getSupplier(data).get()) {
+                if (bImg == null)
+                    data.getLogger().error("Background image was none... \n{}",background);
+                if (oImg == null)
+                    data.getLogger().error("Overlay image was none... \n{}",overlay);
+                if (pImg == null)
+                    data.getLogger().error("Paletted image was none... \n{}",paletted);
                 return Palette.paletteCombinedImage(bImg, oImg, pImg, planner);
             }
         };

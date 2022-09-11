@@ -15,17 +15,17 @@ public class ColorHolder implements Comparable<ColorHolder> {
     public static int toColorInt(ColorHolder color) {
         int ret = 0;
         ret |= (Math.round(Mth.clamp(color.a*255, 0, 255))&0xFF)<<24;
-        ret |= (Math.round(Mth.clamp(color.r*255, 0, 255))&0xFF)<<16;
+        ret |= (Math.round(Mth.clamp(color.b*255, 0, 255))&0xFF)<<16;
         ret |= (Math.round(Mth.clamp(color.g*255, 0, 255))&0xFF)<< 8;
-        ret |= (Math.round(Mth.clamp(color.b*255, 0, 255))&0xFF);
+        ret |= (Math.round(Mth.clamp(color.r*255, 0, 255))&0xFF);
         return ret;
     }
 
     public static ColorHolder fromColorInt(int color) {
         return new ColorHolder(
-                (color>>16&0xFF)/255f,
-                (color>> 8&0xFF)/255f,
                 (color    &0xFF)/255f,
+                (color>> 8&0xFF)/255f,
+                (color>>16&0xFF)/255f,
                 (color>>24&0xFF)/255f
         );
     }

@@ -1,13 +1,17 @@
 package io.github.lukebemish.dynamic_asset_generator.api.client.generators;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class TexSourceDataHolder {
-    public TexSourceDataHolder() {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ITexSource.class);
 
+    public TexSourceDataHolder() {
+        put(Logger.class, LOGGER);
     }
 
     public TexSourceDataHolder(TexSourceDataHolder old) {
@@ -28,5 +32,10 @@ public class TexSourceDataHolder {
         } catch (ClassCastException ignored) {
             return null;
         }
+    }
+
+    public Logger getLogger() {
+        Logger logger = get(Logger.class);
+        return logger==null? LOGGER : logger;
     }
 }

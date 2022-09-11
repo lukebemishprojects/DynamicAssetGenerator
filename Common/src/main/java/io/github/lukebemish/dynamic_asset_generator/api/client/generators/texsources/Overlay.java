@@ -6,11 +6,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
-import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.ColorHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
 import io.github.lukebemish.dynamic_asset_generator.impl.util.MultiCloser;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public record Overlay(List<ITexSource> inputs) implements ITexSource {
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         List<Supplier<NativeImage>> inputs = new ArrayList<>();
         for (ITexSource o : this.inputs()) {
             inputs.add(o.getSupplier(data));
@@ -38,7 +38,7 @@ public record Overlay(List<ITexSource> inputs) implements ITexSource {
             List<NativeImage> images = inputs.stream().map(Supplier::get).toList();
             for (int i = 0; i < images.size(); i++) {
                 if (images.get(i)==null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}",this.inputs().get(i).toString());
+                    data.getLogger().error("Texture given was nonexistent...\n{}",this.inputs().get(i).toString());
                     return null;
                 }
             }

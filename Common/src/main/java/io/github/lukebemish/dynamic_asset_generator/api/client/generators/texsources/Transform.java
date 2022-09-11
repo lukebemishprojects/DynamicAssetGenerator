@@ -4,11 +4,11 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
-import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
@@ -25,17 +25,13 @@ public record Transform(ITexSource input, int rotate, boolean flip) implements I
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         Supplier<NativeImage> input = this.input().getSupplier(data);
 
         return () -> {
-            if (input == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...");
-                return null;
-            }
             NativeImage inImg = input.get();
             if (inImg == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", this.input().toString());
+                data.getLogger().error("Texture given was nonexistent...\n{}", this.input().toString());
                 return null;
             }
             NativeImage output = inImg;

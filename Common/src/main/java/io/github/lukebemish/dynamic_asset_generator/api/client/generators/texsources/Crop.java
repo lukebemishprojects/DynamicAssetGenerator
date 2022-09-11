@@ -9,6 +9,7 @@ import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSou
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
@@ -27,26 +28,22 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         Supplier<NativeImage> suppliedInput = input().getSupplier(data);
 
         return () -> {
-            if (suppliedInput == null) {
-                DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", input());
-                return null;
-            }
             try (NativeImage inImg = suppliedInput.get()) {
                 if (inImg == null) {
-                    DynamicAssetGenerator.LOGGER.error("Texture given was nonexistent...\n{}", input());
+                    data.getLogger().error("Texture given was nonexistent...\n{}", input());
                     return null;
                 }
                 if (totalSize() == 0) {
-                    DynamicAssetGenerator.LOGGER.error("Total image width must be non-zero");
+                    data.getLogger().error("Total image width must be non-zero");
                 }
                 int scale = inImg.getWidth() / totalSize();
 
                 if (scale == 0) {
-                    DynamicAssetGenerator.LOGGER.error("Image scale turned out to be 0! Image is {} wide, total width is {}",
+                    data.getLogger().error("Image scale turned out to be 0! Image is {} wide, total width is {}",
                             inImg.getWidth(), totalSize());
                 }
 

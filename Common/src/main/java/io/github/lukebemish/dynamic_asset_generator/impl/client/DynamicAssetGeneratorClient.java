@@ -6,6 +6,7 @@ import io.github.lukebemish.dynamic_asset_generator.api.client.generators.Dynami
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TextureMetaGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.*;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.mask.EdgeMask;
 import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
@@ -32,6 +33,10 @@ public class DynamicAssetGeneratorClient {
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "color"), ColorSource.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "animation_splitter"), AnimationSplittingSource.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "frame_capture"), AnimationFrameCapture.CODEC);
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "palette_spread"), PaletteSpreadSource.CODEC);
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "error"), ErrorSource.CODEC);
+
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/edge"), EdgeMask.CODEC);
 
         testing();
     }

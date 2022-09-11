@@ -6,11 +6,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
-import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.util.SafeImageExtraction;
 import io.github.lukebemish.dynamic_asset_generator.impl.util.MultiCloser;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
 import java.util.*;
@@ -28,7 +28,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
     }
 
     @Override
-    public Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
         Map<String, Supplier<NativeImage>> sources = new HashMap<>();
         Map<String, Integer> times = new HashMap<>();
         this.sources.forEach((key, source) -> {
@@ -40,7 +40,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
             sources.forEach((str, sup) -> images.put(str, sup.get()));
             try (MultiCloser closer = new MultiCloser(images.values())) {
                 if (sources.isEmpty()) {
-                    DynamicAssetGenerator.LOGGER.error("No sources given...");
+                    data.getLogger().error("No sources given...");
                     return null;
                 }
                 List<NativeImage> imageList = images.values().stream().toList();
@@ -48,7 +48,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
                 for (int j=0; j<counts.size(); j++) {
                     int i = counts.get(j);
                     if (i==0) {
-                        DynamicAssetGenerator.LOGGER.error("Source not shaped correctly for an animation...\n{}",imageList.get(j));
+                        data.getLogger().error("Source not shaped correctly for an animation...\n{}",imageList.get(j));
                         return null;
                     }
                 }
@@ -65,7 +65,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
                         NativeImage supplied = generator.getSupplier(newData).get();
                         int sWidth = supplied.getWidth();
                         if (sWidth != supplied.getHeight()) {
-                            DynamicAssetGenerator.LOGGER.error("Generator created non-square image...\n{}",generator);
+                            data.getLogger().error("Generator created non-square image...\n{}",generator);
                             return null;
                         }
                         int scale = lcmWidth/sWidth;

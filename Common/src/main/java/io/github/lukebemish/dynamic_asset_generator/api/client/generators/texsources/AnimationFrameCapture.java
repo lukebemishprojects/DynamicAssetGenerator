@@ -6,7 +6,6 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
-import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -26,12 +25,12 @@ public record AnimationFrameCapture(String capture) implements ITexSource {
         return () -> {
             AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.ImageCollection.class);
             if (collection==null) {
-                DynamicAssetGenerator.LOGGER.error("No parent animation source to capture...");
+                data.getLogger().debug("No parent animation source to capture...");
                 return null;
             }
             NativeImage image = collection.get(this.capture());
             if (image==null) {
-                DynamicAssetGenerator.LOGGER.error("Key '{}' was not supplied to capture...",capture());
+                data.getLogger().debug("Key '{}' was not supplied to capture...",capture());
             }
             return image;
         };
