@@ -6,7 +6,7 @@ import io.github.lukebemish.dynamic_asset_generator.api.client.generators.Dynami
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TextureMetaGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.*;
-import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.mask.EdgeMask;
+import io.github.lukebemish.dynamic_asset_generator.api.client.generators.texsources.mask.*;
 import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
@@ -36,7 +36,12 @@ public class DynamicAssetGeneratorClient {
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "palette_spread"), PaletteSpreadSource.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "error"), ErrorSource.CODEC);
 
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/cutoff"), CutoffMask.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/edge"), EdgeMask.CODEC);
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/grow"), GrowMask.CODEC);
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/invert"), InvertMask.CODEC);
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/add"), AddMask.CODEC);
+        ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/multiply"), MultiplyMask.CODEC);
 
         testing();
     }

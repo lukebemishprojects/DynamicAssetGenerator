@@ -8,22 +8,21 @@ import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSo
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.TexSourceDataHolder;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.NativeImageHelper;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.palette.ColorHolder;
+import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
-public record EdgeMask(ITexSource input, boolean countOutsideFrame, boolean countDiagonals, float cutoff) implements ITexSource {
+public record EdgeMask(ITexSource source, boolean countOutsideFrame, List<Direction> edges, float cutoff) implements ITexSource {
     public static final Codec<EdgeMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITexSource.CODEC.fieldOf("input").forGetter(EdgeMask::input),
+            ITexSource.CODEC.fieldOf("source").forGetter(EdgeMask::source),
             Codec.BOOL.optionalFieldOf("count_outside_frame",false).forGetter(EdgeMask::countOutsideFrame),
-            Codec.BOOL.optionalFieldOf("count_diagonals",false).forGetter(EdgeMask::countOutsideFrame),
+            StringRepresentable.fromEnum(Direction::values).listOf().optionalFieldOf("edges", Arrays.stream(Direction.values()).toList()).forGetter(EdgeMask::edges),
             Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(EdgeMask::cutoff)
     ).apply(i, EdgeMask::new));
-
-    private static final int[] COUNT_X = new int[] {-1, 1, 0, 0};
-    private static final int[] COUNT_Y = new int[] {0, 0, -1, 1};
-    private static final int[] DIAGONAL_X = new int[] {-1, 1, -1, 1};
-    private static final int[] DIAGONAL_Y = new int[] {-1, 1, 1, -1};
 
     @Override
     public Codec<? extends ITexSource> codec() {
@@ -32,11 +31,13 @@ public record EdgeMask(ITexSource input, boolean countOutsideFrame, boolean coun
 
     @Override
     public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> input = this.input.getSupplier(data);
+        Supplier<NativeImage> input = this.source.getSupplier(data);
+        int[] xs = edges.stream().mapToInt(e->e.x).toArray();
+        int[] ys = edges.stream().mapToInt(e->e.y).toArray();
         return () -> {
             try (NativeImage inImg = input.get()) {
                 if (inImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.input);
+                    data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
                     return null;
                 }
                 int width = inImg.getWidth();
@@ -45,24 +46,13 @@ public record EdgeMask(ITexSource input, boolean countOutsideFrame, boolean coun
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < width; y++) {
                         boolean isEdge = false;
-                        if (countOutsideFrame && (x == 0 || y == 0 || x == width-1 || y == width-1))
-                            isEdge = true;
-                        else {
-                            if (ColorHolder.fromColorInt(inImg.getPixelRGBA(x, y)).getA() > cutoff) {
-                                for (int i = 0; i < 4; i++) {
-                                    int x1 = COUNT_X[i]+x;
-                                    int y1 = COUNT_Y[i]+y;
-                                    if (ColorHolder.fromColorInt(inImg.getPixelRGBA(x1,y1)).getA() <= cutoff)
-                                        isEdge = true;
-                                }
-                                if (countDiagonals) {
-                                    for (int i = 0; i < 4; i++) {
-                                        int x1 = DIAGONAL_X[i] + x;
-                                        int y1 = DIAGONAL_Y[i] + y;
-                                        if (ColorHolder.fromColorInt(inImg.getPixelRGBA(x1, y1)).getA() <= cutoff)
-                                            isEdge = true;
-                                    }
-                                }
+                        if (ColorHolder.fromColorInt(inImg.getPixelRGBA(x, y)).getA() > cutoff) {
+                            for (int i = 0; i < xs.length; i++) {
+                                int x1 = xs[i]+x;
+                                int y1 = ys[i]+y;
+                                if ((countOutsideFrame && (x1 < 0 || y1 < 0 || x1 > width-1 || y1 > width-1)) ||
+                                        ColorHolder.fromColorInt(inImg.getPixelRGBA(x1,y1)).getA() <= cutoff)
+                                    isEdge = true;
                             }
                         }
 
@@ -75,5 +65,29 @@ public record EdgeMask(ITexSource input, boolean countOutsideFrame, boolean coun
                 return out;
             }
         };
+    }
+
+    private enum Direction implements StringRepresentable {
+        NORTH(0,-1),
+        NORTHEAST(1,-1),
+        EAST(1,0),
+        SOUTHEAST(1,1),
+        SOUTH(0,1),
+        SOUTHWEST(-1,1),
+        WEST(-1,0),
+        NORTHWEST(-1,-1);
+
+        public final int x;
+        public final int y;
+
+        Direction(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name().toLowerCase(Locale.ROOT);
+        }
     }
 }

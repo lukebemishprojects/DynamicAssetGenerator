@@ -2,7 +2,6 @@ package io.github.lukebemish.dynamic_asset_generator.api.client.generators.texso
 
 import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.lukebemish.dynamic_asset_generator.api.client.generators.ITexSource;
@@ -18,8 +17,8 @@ public record PaletteSpreadSource(ITexSource source, float paletteCutoff, float 
     public static final Codec<PaletteSpreadSource> CODEC = RecordCodecBuilder.create(i -> i.group(
             ITexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::source),
             Codec.FLOAT.optionalFieldOf("palette_cutoff", Palette.DEFAULT_CUTOFF).forGetter(PaletteSpreadSource::paletteCutoff),
-            Codec.either(Codec.INT, Codec.FLOAT).xmap(e->e.map(x->x/255f,f->f), Either::right).optionalFieldOf("lower_bound",0f).forGetter(PaletteSpreadSource::lowerBound),
-            Codec.either(Codec.INT, Codec.FLOAT).xmap(e->e.map(x->x/255f,f->f), Either::right).optionalFieldOf("upper_bound",1f).forGetter(PaletteSpreadSource::lowerBound)
+            Codec.FLOAT.optionalFieldOf("lower_bound",0f).forGetter(PaletteSpreadSource::lowerBound),
+            Codec.FLOAT.optionalFieldOf("upper_bound",1f).forGetter(PaletteSpreadSource::upperBound)
     ).apply(i,PaletteSpreadSource::new));
 
     @Override

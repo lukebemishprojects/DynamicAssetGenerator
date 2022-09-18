@@ -44,6 +44,31 @@ public class ColorHolder implements Comparable<ColorHolder> {
         this.a = 1.0f;
     }
 
+    public ColorHolder clamp() {
+        float r,g,b,a;
+        a = this.getA();
+        r = this.getR();
+        g = this.getG();
+        b = this.getB();
+        if (r > 1.0f)
+            r = 1.0f;
+        if (g > 1.0f)
+            g = 1.0f;
+        if (b > 1.0f)
+            b = 1.0f;
+        if (a > 1.0f)
+            a = 1.0f;
+        if (r < 0.0f)
+            r = 0.0f;
+        if (g < 0.0f)
+            g = 0.0f;
+        if (b < 0.0f)
+            b = 0.0f;
+        if (a < 0.0f)
+            a = 0.0f;
+        return new ColorHolder(r,g,b,a);
+    }
+
     public ColorHolder(float r, float g, float b, float a) {
         this.r = r;
         this.g = g;
