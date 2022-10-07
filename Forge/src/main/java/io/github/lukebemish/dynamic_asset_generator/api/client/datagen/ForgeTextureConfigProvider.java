@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
+@Deprecated(forRemoval = true, since = "1.1.0")
 public abstract class ForgeTextureConfigProvider extends TextureConfigProvider
 {
     static final ExistingFileHelper.ResourceType TEXTURE = new ExistingFileHelper.ResourceType(PackType.CLIENT_RESOURCES, ".png", "textures");

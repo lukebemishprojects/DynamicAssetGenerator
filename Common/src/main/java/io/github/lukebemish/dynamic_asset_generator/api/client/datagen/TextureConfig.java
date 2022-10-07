@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 
 @SuppressWarnings("unused")
+@Deprecated(forRemoval = true, since = "1.1.0")
 public final class TextureConfig {
     private ImageSource input;
     private ResourceLocation output;

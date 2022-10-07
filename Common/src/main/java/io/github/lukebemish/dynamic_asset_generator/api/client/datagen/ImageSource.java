@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
+@Deprecated(forRemoval = true, since = "1.1.0")
 public abstract class ImageSource {
     private final TextureConfigProvider provider;
     private final String type;

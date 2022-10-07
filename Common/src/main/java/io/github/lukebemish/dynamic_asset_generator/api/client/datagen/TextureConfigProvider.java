@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unused")
+@Deprecated(forRemoval = true, since = "1.1.0")
 public abstract class TextureConfigProvider implements DataProvider {
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().create();
 
