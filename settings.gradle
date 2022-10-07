@@ -37,4 +37,4 @@ pluginManagement {
 }
 
 rootProject.name = 'dynamic_asset_generator'
-include("Common", "Fabric", "Forge", "Quilt")
+include("Common", "Forge", "Quilt")
