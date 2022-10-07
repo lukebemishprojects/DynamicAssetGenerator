@@ -91,17 +91,17 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
                 boolean interpolate = (animation().isPresent() ? animation().get().interpolate() : Optional.<Boolean>empty())
                         .orElseGet(()-> animationMetas.get(0).interpolate());
 
-
                 List<Integer> frameCount = animationMetas.stream().map(m->m.frames.stream().max(Integer::compareTo).orElse(0)+1).toList();
                 List<Integer> scale = new ArrayList<>(animation().map(AnimationData::scales).map(l->l.orElse(List.of())).orElse(List.of()));
                 List<Integer> relFrameCount = new ArrayList<>();
-                for (int i = 0; i < frameCount.size(); i++)
-                    relFrameCount.add(frameCount.get(i)* scale.get(i));
-                int totalLength = AnimationSplittingSource.lcm(relFrameCount);
 
                 ResourceLocation patternSourceRL = animation().map(AnimationData::patternSource).map(s->s.orElse(sources().get(0))).orElse(sources.get(0));
                 while (scale.size() < sources().size())
                     scale.add(1);
+
+                for (int i = 0; i < frameCount.size(); i++)
+                    relFrameCount.add(frameCount.get(i)* scale.get(i));
+                int totalLength = AnimationSplittingSource.lcm(relFrameCount);
 
                 if (!sources.contains(patternSourceRL)) {
                     DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSourceRL);
