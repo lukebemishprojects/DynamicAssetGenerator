@@ -95,21 +95,25 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
                 List<Integer> scale = new ArrayList<>(animation().map(AnimationData::scales).map(l->l.orElse(List.of())).orElse(List.of()));
                 List<Integer> relFrameCount = new ArrayList<>();
 
-                ResourceLocation patternSourceRL = animation().map(AnimationData::patternSource).map(s->s.orElse(sources().get(0))).orElse(sources.get(0));
+                Supplier<ResourceLocation> rlFinder = () -> sources().stream()
+                        .filter(i->sourceStructure.get(i).animation().map(m->!m.frames.equals(List.of(0))).orElse(false))
+                        .findFirst().orElse(sources().get(0));
+                ResourceLocation patternSourceRl = animation().map(AnimationData::patternSource)
+                        .map(s->s.orElseGet(rlFinder)).orElseGet(rlFinder);
                 while (scale.size() < sources().size())
                     scale.add(1);
 
                 for (int i = 0; i < frameCount.size(); i++)
-                    relFrameCount.add(frameCount.get(i)* scale.get(i));
+                    relFrameCount.add(frameCount.get(i) * scale.get(i));
                 int totalLength = AnimationSplittingSource.lcm(relFrameCount);
 
-                if (!sources.contains(patternSourceRL)) {
-                    DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSourceRL);
+                if (!sources.contains(patternSourceRl)) {
+                    DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSourceRl);
                     return null;
                 }
 
-                List<Integer> framesSource = sourceStructure.get(patternSourceRL).animation.map(MetaStructure.AnimationMeta::frames).orElse(List.of(0));
-                int patternSourceIdx = sources().indexOf(patternSourceRL);
+                List<Integer> framesSource = sourceStructure.get(patternSourceRl).animation.map(MetaStructure.AnimationMeta::frames).orElse(List.of(0));
+                int patternSourceIdx = sourceStructure.get(patternSourceRl).animation.map(animationMetas::indexOf).orElse(0);
                 List<Integer> framesOut = new ArrayList<>();
                 int scalingFactor = totalLength / frameCount.get(patternSourceIdx);
                 for (int f : framesSource) {
