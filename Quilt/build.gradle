@@ -120,16 +120,13 @@ if (project.hasProperty("curseforge_key")) {
 			forgeGradleIntegration = true
 		}
 	}
-	afterEvaluate {
-		tasks.curseforge.dependsOn build
-	}
 }
 
 if (project.hasProperty("modrinth_key")) {
 	modrinth {
 		token = project.modrinth_key
 		projectId = '83pFEQVb'
-		versionNumber = "$project.version-$project.minecraft_version-quilt"
+		versionNumber = "$project.version"
 		versionType = "${project.release_type}"
 		detectLoaders = false
 		changelog = modGitPublisher.changelog
@@ -139,8 +136,5 @@ if (project.hasProperty("modrinth_key")) {
 		dependencies {
 			required.project 'qsl'
 		}
-	}
-	afterEvaluate {
-		tasks.modrinth.dependsOn build
 	}
 }

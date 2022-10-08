@@ -7,6 +7,10 @@ modGitPublisher {
     minecraftVersion = project.minecraft_version
 }
 
+allprojects {p->
+    p.version = modGitPublisher.version
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'

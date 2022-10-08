@@ -143,24 +143,18 @@ if (project.hasProperty("curseforge_key")) {
             forgeGradleIntegration = true
         }
     }
-    afterEvaluate {
-        tasks.curseforge.dependsOn build
-    }
 }
 
 if (project.hasProperty("modrinth_key")) {
     modrinth {
         token = project.modrinth_key
         projectId = '83pFEQVb'
-        versionNumber = "$project.version-$project.minecraft_version-forge"
+        versionNumber = "$project.version"
         versionType = "${project.release_type}"
         detectLoaders = false
         changelog = modGitPublisher.changelog
         uploadFile = jar
         gameVersions = ["${project.minecraft_version}"]
         loaders = ['forge']
-    }
-    afterEvaluate {
-        tasks.modrinth.dependsOn build
     }
 }

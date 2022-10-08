@@ -3,13 +3,14 @@
 ### Features
 - Dummy commit for new changelog/tag system
 ### Fixes
-- Actually fix issues with animation metas where only some source files have an animation
 - Fix issues caused by attempting to get default scale values before they are present in TextureMetaGenerator
+- Actually fix issues with animation metas where only some source files have an animation
 ### Other
-- Deprecate datagen for removal; it's broken anyway.
-- Remove fabric-specific subproject
-- Default masking texture sources
 - Preliminary work on new sources
+- Default masking texture sources
+- Remove fabric-specific subproject
+- Deprecate datagen for removal; it's broken anyway.
+- Refactor build logic.
 
 ## Dynamic Asset Generator 1.0.0
 
