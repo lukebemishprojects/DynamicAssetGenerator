@@ -1,3 +1,16 @@
+## Dynamic Asset Generator 1.1.0
+
+### Features
+- Dummy commit for new changelog/tag system
+### Fixes
+- Actually fix issues with animation metas where only some source files have an animation
+- Fix issues caused by attempting to get default scale values before they are present in TextureMetaGenerator
+### Other
+- Deprecate datagen for removal; it's broken anyway.
+- Remove fabric-specific subproject
+- Default masking texture sources
+- Preliminary work on new sources
+
 ## Dynamic Asset Generator 1.0.0
 
 - *Major* internal refactors and breaking API changes
