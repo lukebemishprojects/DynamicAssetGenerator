@@ -11,6 +11,7 @@
 - Remove fabric-specific subproject
 - Deprecate datagen for removal; it's broken anyway.
 - Refactor build logic.
+- Further fixes to new build system
 
 ## Dynamic Asset Generator 1.0.0
 
