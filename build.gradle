@@ -1,3 +1,12 @@
+plugins {
+    id 'io.github.lukebemish.modgitpublisher'
+}
+
+modGitPublisher {
+    projectName = "Dynamic Asset Generator"
+    minecraftVersion = project.minecraft_version
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'idea'

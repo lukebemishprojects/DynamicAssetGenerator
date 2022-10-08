@@ -34,6 +34,8 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    includeBuild '../ModGitPublisher'
 }
 
 rootProject.name = 'dynamic_asset_generator'
