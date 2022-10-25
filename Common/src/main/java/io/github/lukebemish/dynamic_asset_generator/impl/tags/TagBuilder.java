@@ -13,10 +13,12 @@ import java.util.function.Supplier;
 public class TagBuilder implements IPathAwareInputStreamSource {
     private final List<Supplier<Set<ResourceLocation>>> paths = new ArrayList<>();
     private final ResourceLocation location;
+    private final ResourceLocation tagLocation;
     private final List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> queue;
 
-    public TagBuilder(ResourceLocation location, List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> queue) {
+    public TagBuilder(ResourceLocation location, ResourceLocation tagLocation, List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> queue) {
         this.location = location;
+        this.tagLocation = tagLocation;
         this.queue = queue;
     }
 
@@ -40,7 +42,7 @@ public class TagBuilder implements IPathAwareInputStreamSource {
             toAdd.addAll(p.get());
         }
         for (var queuePart : queue) {
-            toAdd.addAll(queuePart.get().getOrDefault(location, Set.of()));
+            toAdd.addAll(queuePart.get().getOrDefault(tagLocation, Set.of()));
         }
         toAdd.forEach(rl -> {
             if (internal.length() >= 1) {

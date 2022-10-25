@@ -65,14 +65,14 @@ public class DataResourceCache extends ResourceCache {
     @SuppressWarnings("unused")
     public void planTag(ResourceLocation tag, Pair<ResourceLocation, Supplier<Boolean>> p) {
         ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
-        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r,tagQueue));
+        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r, tag, tagQueue));
         builder.add(p);
     }
 
     @SuppressWarnings("unused")
     public void planTag(ResourceLocation tag, Supplier<Set<ResourceLocation>> p) {
         ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
-        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r,tagQueue));
+        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r, tag, tagQueue));
         builder.add(p);
     }
 
