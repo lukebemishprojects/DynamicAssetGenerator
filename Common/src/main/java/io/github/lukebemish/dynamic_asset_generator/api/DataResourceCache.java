@@ -13,16 +13,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class DataResourceCache extends ResourceCache {
     public static final DataResourceCache INSTANCE = new DataResourceCache();
 
     private final Map<ResourceLocation, TagBuilder> tagMap = new HashMap<>();
+    private final List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> tagQueue = new ArrayList<>();
+
     private DataResourceCache() {
         this.planSource(tagMap::keySet, rl -> tagMap.get(rl).get(rl));
         this.planSource(() -> new JsonResourceGeneratorReader(getSourceJsons()));
@@ -63,15 +62,22 @@ public class DataResourceCache extends ResourceCache {
     }
 
 
+    @SuppressWarnings("unused")
     public void planTag(ResourceLocation tag, Pair<ResourceLocation, Supplier<Boolean>> p) {
         ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
-        TagBuilder builder = tagMap.computeIfAbsent(rl, TagBuilder::new);
+        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r,tagQueue));
         builder.add(p);
     }
 
+    @SuppressWarnings("unused")
     public void planTag(ResourceLocation tag, Supplier<Set<ResourceLocation>> p) {
         ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
-        TagBuilder builder = tagMap.computeIfAbsent(rl, TagBuilder::new);
+        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r,tagQueue));
         builder.add(p);
+    }
+
+    @SuppressWarnings("unused")
+    public void queueTags(Supplier<Map<ResourceLocation,Set<ResourceLocation>>> toQueue) {
+        tagQueue.add(toQueue);
     }
 }
