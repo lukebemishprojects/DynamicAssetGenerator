@@ -31,6 +31,7 @@ public class DynAssetGenClientResourcePack implements PackResources {
     private static final int PACK_VERSION = PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion());
 
     public DynAssetGenClientResourcePack() {
+        AssetResourceCache.INSTANCE.reset();
     }
 
     @Nullable

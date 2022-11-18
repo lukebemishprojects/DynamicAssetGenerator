@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.impl.ModConfig;
 import io.github.lukebemish.dynamic_asset_generator.impl.client.JsonResourceGeneratorReader;
-import io.github.lukebemish.dynamic_asset_generator.impl.tags.TagBuilder;
+import io.github.lukebemish.dynamic_asset_generator.impl.tags.TagBakery;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -18,12 +18,12 @@ import java.util.function.Supplier;
 
 public class DataResourceCache extends ResourceCache {
     public static final DataResourceCache INSTANCE = new DataResourceCache();
-
-    private final Map<ResourceLocation, TagBuilder> tagMap = new HashMap<>();
     private final List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> tagQueue = new ArrayList<>();
 
     private DataResourceCache() {
-        this.planSource(tagMap::keySet, rl -> tagMap.get(rl).get(rl));
+        TagBakery bakery = new TagBakery(tagQueue);
+        this.planSource(bakery);
+        this.planResetListener(bakery::reset);
         this.planSource(() -> new JsonResourceGeneratorReader(getSourceJsons()));
     }
 
@@ -65,15 +65,22 @@ public class DataResourceCache extends ResourceCache {
     @SuppressWarnings("unused")
     public void planTag(ResourceLocation tag, Pair<ResourceLocation, Supplier<Boolean>> p) {
         ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
-        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r, tag, tagQueue));
-        builder.add(p);
+        tagQueue.add(() -> {
+            Map<ResourceLocation,Set<ResourceLocation>> map = new HashMap<>();
+            if (p.getSecond().get())
+                map.put(tag, Collections.singleton(p.getFirst()));
+            return map;
+        });
     }
 
     @SuppressWarnings("unused")
     public void planTag(ResourceLocation tag, Supplier<Set<ResourceLocation>> p) {
         ResourceLocation rl = new ResourceLocation(tag.getNamespace(), "tags/"+tag.getPath()+".json");
-        TagBuilder builder = tagMap.computeIfAbsent(rl, r->new TagBuilder(r, tag, tagQueue));
-        builder.add(p);
+        tagQueue.add(() -> {
+            Map<ResourceLocation,Set<ResourceLocation>> map = new HashMap<>();
+            map.put(tag, p.get());
+            return map;
+        });
     }
 
     @SuppressWarnings("unused")

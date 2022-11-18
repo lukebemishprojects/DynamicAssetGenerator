@@ -29,6 +29,7 @@ public class DynAssetGenServerDataPack implements PackResources {
     }
 
     public DynAssetGenServerDataPack() {
+        DataResourceCache.INSTANCE.reset();
     }
 
     @Nullable

@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 public abstract class ResourceCache {
     protected static final String SOURCE_JSON_DIR = "dynamic_asset_generator";
     protected List<Supplier<? extends IPathAwareInputStreamSource>> cache = new ArrayList<>();
+    private final List<Runnable> resetListeners = new ArrayList<>();
 
     public  Map<ResourceLocation, Supplier<InputStream>> getResources() {
         Map<ResourceLocation, Supplier<InputStream>> outputsSetup = new HashMap<>();
@@ -37,7 +38,16 @@ public abstract class ResourceCache {
         return outputs;
     }
 
-    private Supplier wrapSafeData(ResourceLocation rl, Supplier<InputStream> supplier) {
+    @SuppressWarnings("unused")
+    public void planResetListener(Runnable listener) {
+        this.resetListeners.add(listener);
+    }
+
+    public void reset() {
+        this.resetListeners.forEach(Runnable::run);
+    }
+
+    private Supplier<InputStream> wrapSafeData(ResourceLocation rl, Supplier<InputStream> supplier) {
         return () -> {
             try {
                 return supplier.get();
@@ -78,14 +88,17 @@ public abstract class ResourceCache {
 
     public abstract Path cachePath();
 
+    @SuppressWarnings("unused")
     public void planSource(ResourceLocation rl, IInputStreamSource source) {
         cache.add(wrap(()->Set.of(rl),source));
     }
 
+    @SuppressWarnings("unused")
     public void planSource(Supplier<Set<ResourceLocation>> locations, IInputStreamSource source) {
         cache.add(wrap(locations, source));
     }
 
+    @SuppressWarnings("unused")
     public void planSource(Set<ResourceLocation> locations, IInputStreamSource source) {
         cache.add(wrap(()->locations, source));
     }
@@ -101,7 +114,7 @@ public abstract class ResourceCache {
     public static Supplier<IPathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, IInputStreamSource source) {
         return () -> new IPathAwareInputStreamSource() {
             @Override
-            public Set<ResourceLocation> getLocations() {
+            public @NotNull Set<ResourceLocation> getLocations() {
                 return rls.get();
             }
 
