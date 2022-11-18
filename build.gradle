@@ -8,7 +8,10 @@ modGitPublisher {
 }
 
 allprojects {p->
-    p.version = modGitPublisher.version
+    if (rootProject.hasProperty('versionOverride') && rootProject.versionOverride !== null)
+        p.version = rootProject.versionOverride
+    else
+        p.version = modGitPublisher.version
 }
 
 subprojects {
