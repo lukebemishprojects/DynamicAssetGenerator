@@ -92,6 +92,8 @@ jar {
 	}
 }
 
+tasks.jar.finalizedBy(tasks.remapJar)
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -138,7 +140,7 @@ if (project.hasProperty("modrinth_key")) {
 		versionType = "${project.release_type}"
 		detectLoaders = false
 		changelog = modGitPublisher.changelog
-		uploadFile = jar
+		uploadFile = remapJar
 		gameVersions = ["${project.minecraft_version}"]
 		loaders = ['quilt']
 		dependencies {
