@@ -14,10 +14,11 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record ModConfig(boolean cacheAssets, boolean cacheData) {
+public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForceClusteringCutoff) {
     public static final Codec<ModConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.BOOL.fieldOf("cache_assets").forGetter(ModConfig::cacheAssets),
-            Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData)
+            Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData),
+            Codec.INT.fieldOf("palette_extraction_force_clustering_cutoff").forGetter(ModConfig::paletteForceClusteringCutoff)
     ).apply(instance, ModConfig::new));
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
     public static final Path FULL_PATH = Services.PLATFORM.getConfigFolder().resolve(DynamicAssetGenerator.MOD_ID+".json");
@@ -64,6 +65,6 @@ public record ModConfig(boolean cacheAssets, boolean cacheData) {
     }
 
     private static ModConfig getDefault() {
-        return new ModConfig(false, false);
+        return new ModConfig(false, false, 1_000_000);
     }
 }

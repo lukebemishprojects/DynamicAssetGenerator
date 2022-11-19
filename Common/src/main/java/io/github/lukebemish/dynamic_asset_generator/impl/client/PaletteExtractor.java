@@ -273,6 +273,15 @@ public class PaletteExtractor implements Closeable {
             oImg.close();
             pImg.close();
             return;
+        } else if (frontColors.getSize()*backgroundPaletteSize*postQueue.size() > DynamicAssetGenerator.getConfig().paletteForceClusteringCutoff()) {
+            if (!hasLogged[1])
+                DynamicAssetGenerator.LOGGER.warn("Supplied images for extraction contained too many colors and were too high resolution to resolve post-calculation queue; attempting clustering color extraction.");
+            hasLogged[1] = true;
+            this.overlayImg = alt.o();
+            this.palettedImg = alt.p();
+            oImg.close();
+            pImg.close();
+            return;
         }
         alt.close();
         /*else if (alt.shouldUse()) {
@@ -345,7 +354,7 @@ public class PaletteExtractor implements Closeable {
         this.palettedImg = pImg;
     }
 
-    private void runPostCalcQueue(NativeImage oImg, NativeImage pImg, Palette backgroundPalette, int backgroundPaletteSize, Palette frontColors, ArrayList<PostCalcEvent> postQueue) {
+    private void runPostCalcQueue(NativeImage oImg, NativeImage pImg, Palette backgroundPalette, int backgroundPaletteSize, Palette frontColors, List<PostCalcEvent> postQueue) {
         for (PostCalcEvent e : postQueue) {
             int x = e.x();
             int y = e.y();
