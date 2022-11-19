@@ -1,25 +1,23 @@
 package io.github.lukebemish.dynamic_asset_generator.impl;
 
-import com.google.gson.JsonObject;
 import io.github.lukebemish.dynamic_asset_generator.api.DataResourceCache;
-import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@ParametersAreNonnullByDefault
 public class DynAssetGenServerDataPack implements PackResources {
 
     private Map<ResourceLocation, Supplier<InputStream>> streams;
-
-    private static final int PACK_VERSION = PackType.SERVER_DATA.getVersion(SharedConstants.getCurrentVersion());
 
     private Map<ResourceLocation, Supplier<InputStream>> getStreams() {
         if (streams == null) {
@@ -34,13 +32,8 @@ public class DynAssetGenServerDataPack implements PackResources {
 
     @Nullable
     @Override
-    public InputStream getRootResource(String location) throws IOException {
-        if(!location.contains("/") && !location.contains("\\")) {
-            Supplier<InputStream> supplier = this.getStreams().get(location);
-            return supplier.get();
-        } else {
-            throw new IllegalArgumentException("File name can't be a path");
-        }
+    public InputStream getRootResource(String location) {
+        return null;
     }
 
     @Override
@@ -51,11 +44,11 @@ public class DynAssetGenServerDataPack implements PackResources {
                 if (stream != null) {
                     return stream;
                 } else {
-                    throw new IOException("Data is null: " + location.toString());
+                    throw new IOException("Data is null: " + location);
                 }
             }
         }
-        throw new IOException("Could not find resource in generated data: " + location.toString());
+        throw new IOException("Could not find resource in generated data: " + location);
     }
 
     @Override
@@ -96,12 +89,10 @@ public class DynAssetGenServerDataPack implements PackResources {
 
     @Nullable
     @Override
-    public <T> T getMetadataSection(MetadataSectionSerializer<T> serializer) throws IOException {
-        if(serializer.getMetadataSectionName().equals("pack")) {
-            JsonObject object = new JsonObject();
-            object.addProperty("pack_format", PACK_VERSION);
-            object.addProperty("description", "dynamically generated data");
-            return serializer.fromJson(object);
+    @SuppressWarnings("unchecked")
+    public <T> T getMetadataSection(MetadataSectionSerializer<T> serializer) {
+        if (serializer.getMetadataSectionName().equals("pack")) {
+            return (T) DynamicAssetGenerator.SERVER_PACK_METADATA;
         }
         return null;
     }

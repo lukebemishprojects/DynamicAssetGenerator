@@ -1,9 +1,7 @@
 package io.github.lukebemish.dynamic_asset_generator.impl.client;
 
-import com.google.gson.JsonObject;
-import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import io.github.lukebemish.dynamic_asset_generator.api.client.AssetResourceCache;
-import net.minecraft.SharedConstants;
+import io.github.lukebemish.dynamic_asset_generator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -11,12 +9,14 @@ import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@ParametersAreNonnullByDefault
 public class DynAssetGenClientResourcePack implements PackResources {
 
     private Map<ResourceLocation, Supplier<InputStream>> streams;
@@ -28,16 +28,14 @@ public class DynAssetGenClientResourcePack implements PackResources {
         return streams;
     }
 
-    private static final int PACK_VERSION = PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion());
-
     public DynAssetGenClientResourcePack() {
         AssetResourceCache.INSTANCE.reset();
     }
 
     @Nullable
     @Override
-    public InputStream getRootResource(@NotNull String location) throws IOException {
-        throw new IOException("Could not find resource in generated resources: " + location);
+    public InputStream getRootResource(@NotNull String location) {
+        return null;
     }
 
     @Override
@@ -92,12 +90,10 @@ public class DynAssetGenClientResourcePack implements PackResources {
 
     @Nullable
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T getMetadataSection(MetadataSectionSerializer<T> serializer) {
-        if(serializer.getMetadataSectionName().equals("pack")) {
-            JsonObject object = new JsonObject();
-            object.addProperty("pack_format", PACK_VERSION);
-            object.addProperty("description", "dynamically generated assets");
-            return serializer.fromJson(object);
+        if (serializer.getMetadataSectionName().equals("pack")) {
+            return (T) DynamicAssetGenerator.CLIENT_PACK_METADATA;
         }
         return null;
     }

@@ -25,6 +25,8 @@ repositories {
 			includeGroupByRegex 'org\\.quiltmc\\.qsl(?:\\.[a-z_]+)?'
 		}
 	}
+
+	maven { url 'https://maven.wispforest.io' }
 }
 
 dependencies {
@@ -42,6 +44,9 @@ dependencies {
 
 	compileOnly group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
 	annotationProcessor group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
+
+	// Compat
+	modCompileOnly "io.wispforest:owo-lib:${project.owo_version}"
 }
 
 loom {
