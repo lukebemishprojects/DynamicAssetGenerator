@@ -1,3 +1,10 @@
+## Dynamic Asset Generator 2.0.0
+
+### Features
+- **BREAKING** Begin breaking changes for 1.19.3
+### Other
+- Update build system to use new maven
+
 ## Dynamic Asset Generator 1.2.0
 
 ### Features
