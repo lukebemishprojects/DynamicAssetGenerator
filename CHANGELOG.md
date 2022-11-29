@@ -1,3 +1,19 @@
+## Dynamic Asset Generator 1.2.0
+
+### Features
+- New tag queueing system, where tag locations do not have to be known at initial queueing.
+- Make new tag queueing system functional through rewriting of old system and adding of reset listener system.
+- Add InvisibleResourceProvider system and switch around pack metadata solver
+- Initial work on new template system; added template codec and class for tag files.
+### Fixes
+- More changes to tag queueing system
+- Publish correct jar to modrinth
+- Make provided server resources properly load before tags
+- Hopefully fix #23 by adding cutoffs where the clustering algorithm should be preferred for extraction
+### Other
+- Add common code to exported platform-specific source/javadoc jars
+- Add system to override publishing version for local testing
+
 ## Dynamic Asset Generator 1.1.0
 
 ### Features
