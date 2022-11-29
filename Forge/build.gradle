@@ -108,8 +108,6 @@ processResources {
     from project(":Common").sourceSets.main.resources
 }
 
-
-
 sourcesJar {
     from project(":Common").sourceSets.main.allSource
 }

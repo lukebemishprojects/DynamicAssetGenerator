@@ -1,5 +1,7 @@
 plugins {
     id 'dev.lukebemish.modgitpublisher' version '1.0.0'
+    id 'io.github.groovymc.modsdotgroovy' version '1.1.2'
+    id 'org.cadixdev.licenser' version '0.6.1' apply false
 }
 
 modGitPublisher {
@@ -14,14 +16,26 @@ allprojects {p->
         p.version = modGitPublisher.version
 }
 
-subprojects {
+modsDotGroovy {
+    dslVersion = '1.1.3'
+    platform 'multiloader'
+}
+
+subprojects { p ->
     apply plugin: 'java'
     apply plugin: 'idea'
+    apply plugin: 'maven-publish'
+    apply plugin: 'java-library'
+    apply plugin: 'org.cadixdev.licenser'
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     java.withSourcesJar()
     java.withJavadocJar()
-        
+
+    license {
+        header = rootProject.file('header.txt')
+    }
+
     jar {
         manifest {
             attributes([
@@ -41,17 +55,6 @@ subprojects {
     
     repositories {
         mavenCentral()
-        mavenLocal()
-
-        maven {
-            name = 'Sponge / Mixin'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
-        }
-
-        maven {
-            name = 'BlameJared Maven (CrT / Bookshelf)'
-            url = 'https://maven.blamejared.com'
-        }
 
         maven {
             name = 'ParchmentMC'
@@ -61,6 +64,11 @@ subprojects {
         maven {
             name 'Quilt (Release)'
             url 'https://maven.quiltmc.org/repository/release/'
+        }
+
+        maven {
+            name = 'TheModdingInquisition'
+            url = 'https://maven.moddinginquisition.org/releases'
         }
     }
 
@@ -78,5 +86,18 @@ subprojects {
     // other mod developers.
     tasks.withType(GenerateModuleMetadata) {
         enabled = false
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = 'PersonalMaven'
+                url = uri('https://maven.lukebemish.dev/releases')
+                credentials {
+                    username = findProperty('lukebemishMavenUser') ?: ''
+                    password = findProperty('lukebemishMavenPassword') ?: ''
+                }
+            }
+        }
     }
 }

@@ -9,15 +9,6 @@ archivesBaseName = "${mod_id}-quilt-${minecraft_version}"
 
 repositories {
 	maven {
-		url = uri("https://storage.googleapis.com/devan-maven/")
-	}
-
-	maven {
-		name 'Quilt (Release)'
-		url 'https://maven.quiltmc.org/repository/release/'
-	}
-
-	maven {
 		name 'Quilt (Snapshot)'
 		url 'https://maven.quiltmc.org/repository/snapshot/'
 		content {
