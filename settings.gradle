@@ -31,11 +31,13 @@ pluginManagement {
             url = 'https://server.bbkr.space/artifactory/libs-release/'
         }
 
+        maven {
+            url "https://maven.lukebemish.dev/releases"
+        }
+
         mavenCentral()
         gradlePluginPortal()
     }
-
-    includeBuild '../ModGitPublisher'
 }
 
 rootProject.name = 'dynamic_asset_generator'

@@ -1,5 +1,5 @@
 plugins {
-    id 'io.github.lukebemish.modgitpublisher'
+    id 'dev.lukebemish.modgitpublisher' version '1.0.0'
 }
 
 modGitPublisher {
