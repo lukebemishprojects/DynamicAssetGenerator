@@ -27,8 +27,6 @@ public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForce
     ).apply(instance, ModConfig::new));
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
     public static final Path FULL_PATH = Services.PLATFORM.getConfigFolder().resolve(DynamicAssetGenerator.MOD_ID+".json");
-    public static final Path ASSET_CACHE_FOLDER = Services.PLATFORM.getModDataFolder().resolve("asset_cache");
-    public static final Path DATA_CACHE_FOLDER = Services.PLATFORM.getModDataFolder().resolve("data_cache");
 
     private static ModConfig load() {
         ModConfig config = getDefault();

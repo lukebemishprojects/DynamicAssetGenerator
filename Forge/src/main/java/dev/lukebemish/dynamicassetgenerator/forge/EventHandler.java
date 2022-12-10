@@ -5,9 +5,9 @@
 
 package dev.lukebemish.dynamicassetgenerator.forge;
 
-import dev.lukebemish.dynamicassetgenerator.impl.DynAssetGenServerDataPack;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.client.DynAssetGenClientResourcePack;
+import dev.lukebemish.dynamicassetgenerator.impl.GeneratedPackResources;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -17,24 +17,21 @@ public class EventHandler {
     public static void addResourcePack(AddPackFindersEvent event) {
         DynamicAssetGenerator.LOGGER.info("Attempting pack insertion...");
         PackType type = event.getPackType();
-        if (type == PackType.CLIENT_RESOURCES) {
-            event.addRepositorySource((packConsumer, constructor) -> {
-                Pack pack = Pack.create(DynamicAssetGenerator.CLIENT_PACK, true, DynAssetGenClientResourcePack::new, constructor, Pack.Position.TOP, PackSource.DEFAULT);
-                if (pack != null) {
-                    packConsumer.accept(pack);
-                } else {
-                    DynamicAssetGenerator.LOGGER.error("Couldn't inject client assets!");
-                }
-            });
-        } else if (type == PackType.SERVER_DATA) {
-            event.addRepositorySource((packConsumer, constructor) -> {
-                Pack pack = Pack.create(DynamicAssetGenerator.SERVER_PACK, true, DynAssetGenServerDataPack::new, constructor, Pack.Position.TOP, PackSource.DEFAULT);
-                if (pack != null) {
-                    packConsumer.accept(pack);
-                } else {
-                    DynamicAssetGenerator.LOGGER.error("Couldn't inject server data!");
-                }
-            });
-        }
+        DynamicAssetGenerator.caches.forEach((location, info) -> {
+            if (info.cache().getPackType() == type) {
+                event.addRepositorySource(consumer -> {
+                    Pack pack = Pack.readMetaAndCreate(
+                            info.cache().getName().toString(),
+                            Component.literal(info.cache().getName().toString()),
+                            false,
+                            s -> new GeneratedPackResources(info.cache()),
+                            type,
+                            info.position(),
+                            PackSource.BUILT_IN
+                    );
+                    consumer.accept(pack);
+                });
+            }
+        });
     }
 }

@@ -12,12 +12,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.List;
+import java.util.Locale;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @ParametersAreNonnullByDefault
@@ -42,27 +46,22 @@ public final class InvisibleProviderUtils {
         return new PackResources() {
             @Nullable
             @Override
-            public InputStream getRootResource(String fileName) {
+            public IoSupplier<InputStream> getRootResource(String... strings) {
                 return null;
             }
 
             @Override
-            public InputStream getResource(PackType type, ResourceLocation location) {
+            public IoSupplier<InputStream> getResource(PackType type, ResourceLocation location) {
                 return provider.getResource(type, location);
             }
 
             @Override
-            public Collection<ResourceLocation> getResources(PackType type, String namespace, String path, Predicate<ResourceLocation> filter) {
-                return provider.getResources(type, namespace, path, filter);
+            public void listResources(PackType packType, String namespace, String path, ResourceOutput resourceOutput) {
+                provider.listResources(packType, namespace, path, resourceOutput);
             }
 
             @Override
-            public boolean hasResource(PackType type, ResourceLocation location) {
-                return provider.hasResource(type, location);
-            }
-
-            @Override
-            public Set<String> getNamespaces(PackType type) {
+            public @NotNull Set<String> getNamespaces(PackType type) {
                 return provider.getNamespaces(type);
             }
 
@@ -73,7 +72,7 @@ public final class InvisibleProviderUtils {
             }
 
             @Override
-            public String getName() {
+            public @NotNull String packId() {
                 return "placeholder__"+provider.getClass().getName().toLowerCase(Locale.ROOT)
                         .replace('.', '_')
                         .replace('$', '_');

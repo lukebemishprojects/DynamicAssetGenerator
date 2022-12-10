@@ -9,9 +9,10 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -42,8 +43,8 @@ public class DynamicTextureSource implements IResourceGenerator {
     }
 
     @Override
-    public @NotNull Supplier<InputStream> get(ResourceLocation outRl) {
-        if (this.source == null) return ()->null;
+    public IoSupplier<InputStream> get(ResourceLocation outRl) {
+        if (this.source == null) return null;
         return () -> {
             try (NativeImage image = source.get()) {
                 if (image != null) {
@@ -51,12 +52,16 @@ public class DynamicTextureSource implements IResourceGenerator {
                 }
             } catch (IOException e) {
                 DynamicAssetGenerator.LOGGER.error("Could not write image to stream: {}", outRl, e);
+                throw e;
             } catch (JsonSyntaxException e) {
                 DynamicAssetGenerator.LOGGER.error("Issue loading texture source JSON for output: {}", outRl, e);
+                throw new IOException(e);
             } catch (Exception remainder) {
                 DynamicAssetGenerator.LOGGER.error("Issue creating texture from source JSON for output: {}",outRl, remainder);
+                throw new IOException(remainder);
             }
-            return null;
+            DynamicAssetGenerator.LOGGER.error("Created null image from source JSON for output: {}", outRl);
+            throw new IOException("Created null image from source JSON for output: " + outRl);
         };
     }
 

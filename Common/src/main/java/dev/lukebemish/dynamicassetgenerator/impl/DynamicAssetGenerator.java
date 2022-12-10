@@ -5,28 +5,31 @@
 
 package dev.lukebemish.dynamicassetgenerator.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.generators.DummyGenerator;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
+import net.minecraft.server.packs.repository.Pack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DynamicAssetGenerator {
+    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().setLenient().create();
     public static final String MOD_ID = "dynamic_asset_generator";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-    public static final String SERVER_PACK = DynamicAssetGenerator.MOD_ID+":"+ PackType.SERVER_DATA.getDirectory();
-    public static final String CLIENT_PACK = DynamicAssetGenerator.MOD_ID+":"+PackType.CLIENT_RESOURCES.getDirectory();
 
-    public static final PackMetadataSection SERVER_PACK_METADATA =
-            new PackMetadataSection(Component.literal("Dynamic Asset Generator: Generated Data"),
-                    PackType.SERVER_DATA.getVersion(SharedConstants.getCurrentVersion()));
-    public static final PackMetadataSection CLIENT_PACK_METADATA =
-            new PackMetadataSection(Component.literal("Dynamic Asset Generator: Generated Assets"),
-                    PackType.CLIENT_RESOURCES.getVersion(SharedConstants.getCurrentVersion()));
+    public static PackMetadataSection fromCache(ResourceCache cache) {
+        return new PackMetadataSection(Component.literal("Dynamic Asset Generator: " + cache.getName()),
+                cache.getPackType().getVersion(SharedConstants.getCurrentVersion()));
+    }
 
     private static ModConfig configs;
 
@@ -39,5 +42,16 @@ public class DynamicAssetGenerator {
 
     public static void init() {
         IResourceGenerator.register(new ResourceLocation(MOD_ID,"dummy"), DummyGenerator.CODEC);
+        ResourceCache.register(new BuiltinDataResourceCache(new ResourceLocation(MOD_ID, "builtin_data")), Pack.Position.TOP);
+    }
+
+    public static final Map<ResourceLocation, PackInfo> caches = new HashMap<>();
+
+    public static void registerCache(ResourceLocation id, ResourceCache cache, Pack.Position position) {
+        caches.put(id, new PackInfo(cache, position));
+    }
+
+    public record PackInfo(ResourceCache cache, Pack.Position position) {
+
     }
 }

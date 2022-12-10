@@ -6,13 +6,13 @@
 package dev.lukebemish.dynamicassetgenerator.api;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.IoSupplier;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * A service used to provide resources that, for one reason or another, are not visible through the normal
@@ -23,11 +23,9 @@ import java.util.function.Predicate;
 @ParametersAreNonnullByDefault
 public interface InvisibleResourceProvider {
 
-    InputStream getResource(PackType type, ResourceLocation location);
+    IoSupplier<InputStream> getResource(PackType type, ResourceLocation location);
 
-    Collection<ResourceLocation> getResources(PackType type, String namespace, String path, Predicate<ResourceLocation> filter);
-
-    boolean hasResource(PackType type, ResourceLocation location);
+    void listResources(PackType type, String namespace, String path, PackResources.ResourceOutput resourceOutput);
 
     Set<String> getNamespaces(PackType type);
 

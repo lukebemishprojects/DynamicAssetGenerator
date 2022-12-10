@@ -6,17 +6,26 @@
 package dev.lukebemish.dynamicassetgenerator.quilt.compat;
 
 import com.google.auto.service.AutoService;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.ConditionalInvisibleResourceProvider;
 import dev.lukebemish.dynamicassetgenerator.api.InvisibleResourceProvider;
+import dev.lukebemish.dynamicassetgenerator.api.templates.TagFile;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import io.wispforest.owo.util.TagInjector;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.quiltmc.loader.api.QuiltLoader;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @AutoService(ConditionalInvisibleResourceProvider.class)
@@ -25,9 +34,7 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
 
     @Override
     public boolean isAvailable() {
-        DynamicAssetGenerator.LOGGER.debug("OwoLibProvider is not currently functional. This can be safely ignored.");
-        //return QuiltLoader.isModLoaded("owo");
-        return false;
+        return QuiltLoader.isModLoaded("owo");
     }
 
     @Override
@@ -40,31 +47,23 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
         private static Map<ResourceLocation, String> tagMap;
 
         @Override
-        public InputStream getResource(PackType type, ResourceLocation location) {
+        public IoSupplier<InputStream> getResource(PackType type, ResourceLocation location) {
             if (type == PackType.SERVER_DATA) {
                 checkMap();
                 if (tagMap.containsKey(location))
-                    return new ByteArrayInputStream(tagMap.get(location).getBytes());
+                    return () -> new ByteArrayInputStream(tagMap.get(location).getBytes());
             }
             return null;
         }
 
         @Override
-        public Collection<ResourceLocation> getResources(PackType type, String namespace, String path, Predicate<ResourceLocation> filter) {
+        public void listResources(PackType type, String namespace, String path, PackResources.ResourceOutput resourceOutput) {
             if (type == PackType.SERVER_DATA) {
                 checkMap();
-                return tagMap.keySet().stream().filter(location -> location.getNamespace().equals(namespace) && location.getPath().startsWith(path) && filter.test(location)).toList();
+                tagMap.keySet().stream()
+                        .filter(location -> location.getNamespace().equals(namespace) && location.getPath().startsWith(path))
+                        .forEach(rl -> resourceOutput.accept(rl, this.getResource(type, rl)));
             }
-            return List.of();
-        }
-
-        @Override
-        public boolean hasResource(PackType type, ResourceLocation location) {
-            if (type == PackType.SERVER_DATA) {
-                checkMap();
-                return tagMap.containsKey(location);
-            }
-            return false;
         }
 
         @Override
@@ -82,7 +81,19 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
         private void checkMap() {
             if (tagMap == null) {
                 tagMap = new HashMap<>();
-                // TODO: Waiting on owo-lib to release something with my PR.
+                TagInjector.getInjections().forEach((key, values) -> {
+                    var tag = new TagFile(new ArrayList<>(values), false);
+                    JsonElement encoded;
+                    try {
+                        encoded =
+                                TagFile.CODEC.encodeStart(JsonOps.INSTANCE, tag).getOrThrow(false, s -> {});
+                    } catch (RuntimeException e) {
+                        DynamicAssetGenerator.LOGGER.error("Error encoding tag file from OwoLib entries: " + e.getMessage());
+                        return;
+                    }
+                    tagMap.put(new ResourceLocation(key.tagId().getNamespace(), "tags/" + key.type() + "/" + key.tagId().getPath() + ".json"),
+                            DynamicAssetGenerator.GSON.toJson(encoded));
+                });
             }
         }
     }

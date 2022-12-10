@@ -5,8 +5,9 @@
 
 package dev.lukebemish.dynamicassetgenerator.quilt;
 
-import dev.lukebemish.dynamicassetgenerator.impl.DynAssetGenServerDataPack;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.GeneratedPackResources;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -18,14 +19,15 @@ import org.quiltmc.qsl.resource.loader.api.ResourceLoader;
 public class DynamicAssetGeneratorQuilt implements ModInitializer {
     @Override
     public void onInitialize(ModContainer container) {
-        ResourceLoader.get(PackType.SERVER_DATA).registerResourcePackProfileProvider(((infoConsumer, infoFactory) -> {
-            Pack pack = Pack.create(DynamicAssetGenerator.SERVER_PACK, true, DynAssetGenServerDataPack::new, infoFactory, Pack.Position.TOP, PackSource.DEFAULT);
-            if (pack != null) {
-                infoConsumer.accept(pack);
-            } else {
-                DynamicAssetGenerator.LOGGER.error("Couldn't inject server data!");
-            }
-        }));
         DynamicAssetGenerator.init();
+        registerForType(PackType.SERVER_DATA);
+    }
+
+    static void registerForType(PackType type) {
+        ResourceLoader.get(type).registerResourcePackProfileProvider(consumer ->
+                DynamicAssetGenerator.caches.forEach(((location, info) -> {
+                    Pack pack = Pack.readMetaAndCreate(info.cache().getName().toString(), Component.literal(info.cache().getName().toString()), false,
+                            string -> new GeneratedPackResources(info.cache()), type, info.position(), PackSource.DEFAULT);
+        })));
     }
 }

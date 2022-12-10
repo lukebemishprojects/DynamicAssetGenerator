@@ -6,7 +6,11 @@
 package dev.lukebemish.dynamicassetgenerator.api;
 
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
@@ -21,10 +25,30 @@ import java.util.function.Supplier;
 public abstract class ResourceCache {
     protected static final String SOURCE_JSON_DIR = "dynamic_asset_generator";
     protected List<Supplier<? extends IPathAwareInputStreamSource>> cache = new ArrayList<>();
-    private final List<Runnable> resetListeners = new ArrayList<>();
+    private final List<Resettable> resetListeners = new ArrayList<>();
 
-    public  Map<ResourceLocation, Supplier<InputStream>> getResources() {
-        Map<ResourceLocation, Supplier<InputStream>> outputsSetup = new HashMap<>();
+    public static <T extends ResourceCache> T register(T cache, Pack.Position position) {
+        DynamicAssetGenerator.registerCache(cache.getName(), cache, position);
+        return cache;
+    }
+
+    @SuppressWarnings("unused")
+    public static <T extends ResourceCache> T register(T cache) {
+        return register(cache, Pack.Position.BOTTOM);
+    }
+
+    private final ResourceLocation name;
+
+    public ResourceLocation getName() {
+        return name;
+    }
+
+    public ResourceCache(ResourceLocation name) {
+        this.name = name;
+    }
+
+    public Map<ResourceLocation, IoSupplier<InputStream>> getResources() {
+        Map<ResourceLocation, IoSupplier<InputStream>> outputsSetup = new HashMap<>();
         this.cache.forEach(p-> {
             try {
                 IPathAwareInputStreamSource source = p.get();
@@ -44,45 +68,44 @@ public abstract class ResourceCache {
     }
 
     @SuppressWarnings("unused")
-    public void planResetListener(Runnable listener) {
+    public void planResetListener(Resettable listener) {
         this.resetListeners.add(listener);
     }
 
+    @SuppressWarnings("unused")
     public void reset() {
-        this.resetListeners.forEach(Runnable::run);
+        this.resetListeners.forEach(Resettable::reset);
     }
 
-    private Supplier<InputStream> wrapSafeData(ResourceLocation rl, Supplier<InputStream> supplier) {
+    private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, IoSupplier<InputStream> supplier) {
+        if (supplier == null) return null;
         return () -> {
             try {
                 return supplier.get();
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue reading supplying resource {}:", rl, e);
-                return null;
+                throw new IOException(e);
             }
         };
     }
 
-    private Map<ResourceLocation, Supplier<InputStream>> wrapCachedData(Map<ResourceLocation, Supplier<InputStream>> map) {
-        HashMap<ResourceLocation, Supplier<InputStream>> output = new HashMap<>();
+    private Map<ResourceLocation, IoSupplier<InputStream>> wrapCachedData(Map<ResourceLocation, IoSupplier<InputStream>> map) {
+        HashMap<ResourceLocation, IoSupplier<InputStream>> output = new HashMap<>();
         map.forEach((rl, supplier) -> {
-            Supplier<InputStream> wrapped = () -> {
+            if (supplier == null) return;
+            IoSupplier<InputStream> wrapped = () -> {
                 try {
                     Path path = this.cachePath().resolve(rl.getNamespace()).resolve(rl.getPath());
                     if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
                     if (!Files.exists(path)) {
                         InputStream stream = supplier.get();
-                        if (stream != null) {
-                            Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
-                        } else {
-                            return null;
-                        }
+                        Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
                     }
                     return new BufferedInputStream(Files.newInputStream(path));
                 } catch (IOException e) {
                     DynamicAssetGenerator.LOGGER.error("Could not cache resource...", e);
+                    throw new IOException(e);
                 }
-                return null;
             };
             output.put(rl, wrapped);
         });
@@ -91,7 +114,9 @@ public abstract class ResourceCache {
 
     public abstract boolean shouldCache();
 
-    public abstract Path cachePath();
+    public Path cachePath() {
+        return Services.PLATFORM.getModDataFolder().resolve("cache").resolve(name.getNamespace()).resolve(name.getPath());
+    }
 
     @SuppressWarnings("unused")
     public void planSource(ResourceLocation rl, IInputStreamSource source) {
@@ -110,11 +135,16 @@ public abstract class ResourceCache {
 
     public void planSource(IPathAwareInputStreamSource source) {
         cache.add(()->source);
+        if (source instanceof Resettable resettable)
+            planResetListener(resettable);
     }
 
     public void planSource(Supplier<? extends IPathAwareInputStreamSource> source) {
         cache.add(source);
     }
+
+    @NotNull
+    public abstract PackType getPackType();
 
     public static Supplier<IPathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, IInputStreamSource source) {
         return () -> new IPathAwareInputStreamSource() {
@@ -124,7 +154,7 @@ public abstract class ResourceCache {
             }
 
             @Override
-            public @NotNull Supplier<InputStream> get(ResourceLocation outRl) {
+            public IoSupplier<InputStream> get(ResourceLocation outRl) {
                 return source.get(outRl);
             }
         };

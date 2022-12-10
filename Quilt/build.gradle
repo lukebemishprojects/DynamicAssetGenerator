@@ -29,7 +29,7 @@ dependencies {
 	}
 	modImplementation "org.quiltmc:quilt-loader:${quilt_loader_version}"
 
-	modImplementation("org.quiltmc:qsl:${quilt_stdlib_version}")
+	modImplementation("org.quiltmc:qsl:${quilt_stdlib_version}+${minecraft_version}")
 
 	implementation project(":Common")
 

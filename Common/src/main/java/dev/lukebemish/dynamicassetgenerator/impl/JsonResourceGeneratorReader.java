@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.client;
+package dev.lukebemish.dynamicassetgenerator.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
-import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.IPathAwareInputStreamSource;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource {
     private final Map<ResourceLocation, IResourceGenerator> map = new HashMap<>();
@@ -46,11 +45,11 @@ public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource 
     }
 
     @Override
-    public @NotNull Supplier<InputStream> get(ResourceLocation outRl) {
+    public IoSupplier<InputStream> get(ResourceLocation outRl) {
         IResourceGenerator json = map.get(outRl);
         if (json!=null)
             return json.get(outRl);
-        return ()->null;
+        return null;
     }
 
     @Override

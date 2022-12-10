@@ -6,13 +6,18 @@
 package dev.lukebemish.dynamicassetgenerator.api;
 
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
-import java.util.function.Supplier;
 
 @FunctionalInterface
 public interface IInputStreamSource {
-    @NotNull
-    Supplier<InputStream> get(ResourceLocation outRl);
+    /**
+     * Gets an input stream for the given resource location.
+     * @param outRl {@link ResourceLocation} to get the input stream for.
+     * @return Supplier for an InputStream for the location. Should be null if the resource cannot be loaded.
+     */
+    @Nullable
+    IoSupplier<InputStream> get(ResourceLocation outRl);
 }

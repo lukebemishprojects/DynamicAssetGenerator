@@ -6,6 +6,7 @@
 package dev.lukebemish.dynamicassetgenerator.impl.client;
 
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.client.AssetResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.DynamicTextureSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
@@ -15,6 +16,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mas
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.repository.Pack;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,8 @@ import java.util.Optional;
 
 public class DynamicAssetGeneratorClient {
     private DynamicAssetGeneratorClient() {}
+
+    private static final AssetResourceCache ASSET_CACHE = ResourceCache.register(new BuiltinAssetResourceCache(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "builtin_assets")), Pack.Position.TOP);
 
     public static void init() {
         IResourceGenerator.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID,"texture"), DynamicTextureSource.CODEC);
@@ -48,6 +52,8 @@ public class DynamicAssetGeneratorClient {
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/add"), AddMask.CODEC);
         ITexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/multiply"), MultiplyMask.CODEC);
 
+
+
         testing();
     }
 
@@ -55,22 +61,22 @@ public class DynamicAssetGeneratorClient {
         //testing
 
         if (Services.PLATFORM.isDev()) {
-            AssetResourceCache.INSTANCE.planSource(new DynamicTextureSource(new ResourceLocation("block/end_stone"),
+            ASSET_CACHE.planSource(new DynamicTextureSource(new ResourceLocation("block/end_stone"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/redstone_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
                             6,true,true,true, 0.2d)));
-            AssetResourceCache.INSTANCE.planSource(new DynamicTextureSource(new ResourceLocation("block/tuff"),
+            ASSET_CACHE.planSource(new DynamicTextureSource(new ResourceLocation("block/tuff"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/coal_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
                             6,true,true,true, 0.2d)));
-            AssetResourceCache.INSTANCE.planSource(new DynamicTextureSource(new ResourceLocation("block/calcite"),
+            ASSET_CACHE.planSource(new DynamicTextureSource(new ResourceLocation("block/calcite"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/iron_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
                             6,true,true,true, 0.2d)));
-            AssetResourceCache.INSTANCE.planSource(new DynamicTextureSource(new ResourceLocation("block/magma"),
+            ASSET_CACHE.planSource(new DynamicTextureSource(new ResourceLocation("block/magma"),
                     new AnimationSplittingSource(Map.of("magma",
                             new AnimationSplittingSource.TimeAwareSource(new TextureReader(new ResourceLocation("block/magma")),1),
                             "prismarine",
@@ -83,7 +89,7 @@ public class DynamicAssetGeneratorClient {
                                     true,
                                     6
                             ))));
-            AssetResourceCache.INSTANCE.planSource(new TextureMetaGenerator(List.of(new ResourceLocation("block/magma"),new ResourceLocation("block/prismarine")),
+            ASSET_CACHE.planSource(new TextureMetaGenerator(List.of(new ResourceLocation("block/magma"),new ResourceLocation("block/prismarine")),
                     Optional.of(new TextureMetaGenerator.AnimationData(Optional.empty(), Optional.empty(),Optional.of(new ResourceLocation("block/prismarine")),
                             Optional.of(List.of(1,4)))),
                     Optional.empty(),
