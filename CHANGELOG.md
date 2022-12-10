@@ -2,8 +2,10 @@
 
 ### Features
 - **BREAKING** Begin breaking changes for 1.19.3
+- **BREAKING** Switch ResourceCache system to use mod-registered cache instances
 ### Other
 - Update build system to use new maven
+- Update all old generators to new API
 
 ## Dynamic Asset Generator 1.2.0
 
