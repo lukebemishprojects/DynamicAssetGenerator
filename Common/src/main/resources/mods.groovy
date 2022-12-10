@@ -45,7 +45,6 @@ ModsDotGroovy.make {
         }
     }
     onQuilt {
-        access_widener = 'excavated_variants.accessWidener'
         mixin = ['mixin.dynamic_asset_generator.json']
     }
 }

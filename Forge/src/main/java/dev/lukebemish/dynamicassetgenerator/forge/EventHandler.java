@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraftforge.event.AddPackFindersEvent;
 
 public class EventHandler {
@@ -20,14 +21,21 @@ public class EventHandler {
         DynamicAssetGenerator.caches.forEach((location, info) -> {
             if (info.cache().getPackType() == type) {
                 event.addRepositorySource(consumer -> {
-                    Pack pack = Pack.readMetaAndCreate(
-                            info.cache().getName().toString(),
+                    var metadata = DynamicAssetGenerator.fromCache(info.cache());
+                    Pack pack = Pack.create(
+                            DynamicAssetGenerator.MOD_ID+':'+info.cache().getName().toString(),
                             Component.literal(info.cache().getName().toString()),
-                            false,
+                            true,
                             s -> new GeneratedPackResources(info.cache()),
+                            new Pack.Info(metadata.getDescription(),
+                                    metadata.getPackFormat(PackType.SERVER_DATA),
+                                    metadata.getPackFormat(PackType.CLIENT_RESOURCES),
+                                    FeatureFlagSet.of(),
+                                    true),
                             type,
                             info.position(),
-                            PackSource.BUILT_IN
+                            true,
+                            PackSource.DEFAULT
                     );
                     consumer.accept(pack);
                 });

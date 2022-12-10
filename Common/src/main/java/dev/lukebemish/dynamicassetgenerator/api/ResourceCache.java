@@ -23,7 +23,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class ResourceCache {
-    protected static final String SOURCE_JSON_DIR = "dynamic_asset_generator";
+    protected static final String SOURCE_JSON_DIR = DynamicAssetGenerator.MOD_ID;
     protected List<Supplier<? extends IPathAwareInputStreamSource>> cache = new ArrayList<>();
     private final List<Resettable> resetListeners = new ArrayList<>();
 

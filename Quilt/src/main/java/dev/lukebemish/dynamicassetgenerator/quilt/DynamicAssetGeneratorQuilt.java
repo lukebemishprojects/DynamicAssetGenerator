@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.world.flag.FeatureFlagSet;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.resource.loader.api.ResourceLoader;
@@ -26,8 +27,23 @@ public class DynamicAssetGeneratorQuilt implements ModInitializer {
     static void registerForType(PackType type) {
         ResourceLoader.get(type).registerResourcePackProfileProvider(consumer ->
                 DynamicAssetGenerator.caches.forEach(((location, info) -> {
-                    Pack pack = Pack.readMetaAndCreate(info.cache().getName().toString(), Component.literal(info.cache().getName().toString()), false,
-                            string -> new GeneratedPackResources(info.cache()), type, info.position(), PackSource.DEFAULT);
+                    if (info.cache().getPackType() == type) {
+                        var metadata = DynamicAssetGenerator.fromCache(info.cache());
+                        Pack pack = Pack.create(
+                                DynamicAssetGenerator.MOD_ID+':'+info.cache().getName().toString(),
+                                Component.literal(info.cache().getName().toString()),
+                                true,
+                                s -> new GeneratedPackResources(info.cache()),
+                                new Pack.Info(metadata.getDescription(),
+                                        metadata.getPackFormat(),
+                                        FeatureFlagSet.of()),
+                                type,
+                                info.position(),
+                                true,
+                                PackSource.DEFAULT
+                        );
+                        consumer.accept(pack);
+                    }
         })));
     }
 }

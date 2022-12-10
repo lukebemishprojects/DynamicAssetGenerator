@@ -31,6 +31,11 @@ public class GeneratedPackResources implements PackResources {
         cache.reset();
     }
 
+    @Override
+    public boolean isBuiltin() {
+        return true;
+    }
+
     private Map<ResourceLocation, IoSupplier<InputStream>> getStreams() {
         if (streams == null) {
             streams = cache.getResources();
