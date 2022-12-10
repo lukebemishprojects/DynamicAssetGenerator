@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -14,9 +13,8 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import dev.lukebemish.dynamicassetgenerator.impl.client.PaletteExtractor;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.IPalettePlan;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Supplier;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
 public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSource newBackground,
                                  int extendPaletteSize, boolean trimTrailing, boolean forceNeighbors, boolean fillHoles,
@@ -38,27 +36,28 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> background = this.background().getSupplier(data);
-        Supplier<NativeImage> newBackground = this.newBackground().getSupplier(data);
-        Supplier<NativeImage> full = this.full().getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        IoSupplier<NativeImage> background = this.background().getSupplier(data);
+        IoSupplier<NativeImage> newBackground = this.newBackground().getSupplier(data);
+        IoSupplier<NativeImage> full = this.full().getSupplier(data);
+
+        if (background == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.background());
+            return null;
+        }
+        if (newBackground == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.newBackground());
+            return null;
+        }
+        if (full == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.full());
+            return null;
+        }
 
         return () -> {
             try (NativeImage bImg = background.get();
                  NativeImage nImg = newBackground.get();
                  NativeImage fImg = full.get()) {
-                if (bImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.background());
-                    return null;
-                }
-                if (nImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.newBackground());
-                    return null;
-                }
-                if (fImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.full());
-                    return null;
-                }
                 try (PaletteExtractor extractor = new PaletteExtractor(bImg, fImg, this.extendPaletteSize(), this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles())) {
                     PalettePlanner planner = PalettePlanner.of(extractor);
                     extractor.recalcImages();

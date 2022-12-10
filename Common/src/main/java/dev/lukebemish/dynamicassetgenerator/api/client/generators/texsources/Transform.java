@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,9 +12,8 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Supplier;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
 public record Transform(ITexSource input, int rotate, boolean flip) implements ITexSource {
     public static final Codec<Transform> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -30,16 +28,14 @@ public record Transform(ITexSource input, int rotate, boolean flip) implements I
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> input = this.input().getSupplier(data);
-
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        IoSupplier<NativeImage> input = this.input().getSupplier(data);
+        if (input == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.input());
+            return null;
+        }
         return () -> {
-            NativeImage inImg = input.get();
-            if (inImg == null) {
-                data.getLogger().error("Texture given was nonexistent...\n{}", this.input());
-                return null;
-            }
-            NativeImage output = inImg;
+            NativeImage output = input.get();
             for (int i = 0; i < this.rotate(); i++) {
                 output = clockwiseRotate(output);
             }

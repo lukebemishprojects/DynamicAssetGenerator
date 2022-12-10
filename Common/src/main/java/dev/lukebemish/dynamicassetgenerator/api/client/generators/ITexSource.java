@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -13,11 +12,11 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ClientRegisters;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.ExtraCodecs;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public interface ITexSource {
     Codec<ITexSource> CODEC = ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ITexSource>>() {
@@ -46,6 +45,6 @@ public interface ITexSource {
 
     Codec<? extends ITexSource> codec();
 
-    @NotNull
-    Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException;
+    @Nullable
+    IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data);
 }

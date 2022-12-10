@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,11 +12,12 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
+import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public record CutoffMask(Channel channel, ITexSource source, float cutoff) implements ITexSource {
     public static final Codec<CutoffMask> CODEC = RecordCodecBuilder.create(i->i.group(
@@ -32,14 +32,14 @@ public record CutoffMask(Channel channel, ITexSource source, float cutoff) imple
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> input = this.source.getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        IoSupplier<NativeImage> input = this.source.getSupplier(data);
+        if (input == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
+            return null;
+        }
         return () -> {
             try (NativeImage inImg = input.get()) {
-                if (inImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
-                    return null;
-                }
                 int width = inImg.getWidth();
                 int height = inImg.getHeight();
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);
@@ -56,10 +56,10 @@ public record CutoffMask(Channel channel, ITexSource source, float cutoff) imple
     }
 
     enum Channel implements StringRepresentable {
-        ALPHA("alpha",c->c.getA()),
-        RED("red",c->c.getR()),
-        GREEN("green",c->c.getG()),
-        BLUE("blue",c->c.getG()),
+        ALPHA("alpha", ColorHolder::getA),
+        RED("red", ColorHolder::getR),
+        GREEN("green", ColorHolder::getG),
+        BLUE("blue", ColorHolder::getG),
         HUE("hue",c->c.toHLS().getH()),
         SATURATION("saturation",c->c.toHLS().getS()),
         LIGHTNESS("lightness",c->c.toHLS().getL());
@@ -73,7 +73,7 @@ public record CutoffMask(Channel channel, ITexSource source, float cutoff) imple
         }
 
         @Override
-        public String getSerializedName() {
+        public @NotNull String getSerializedName() {
             return name;
         }
     }

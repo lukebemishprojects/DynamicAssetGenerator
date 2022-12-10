@@ -5,15 +5,14 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.server.packs.resources.IoSupplier;
 
-import java.util.function.Supplier;
+import java.io.IOException;
 
 public record AnimationFrameCapture(String capture) implements ITexSource {
     public static final Codec<AnimationFrameCapture> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -26,16 +25,17 @@ public record AnimationFrameCapture(String capture) implements ITexSource {
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
+    public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
         return () -> {
             AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.ImageCollection.class);
             if (collection==null) {
                 data.getLogger().debug("No parent animation source to capture...");
-                return null;
+                throw new IOException("No parent animation source to capture...");
             }
             NativeImage image = collection.get(this.capture());
             if (image==null) {
                 data.getLogger().debug("Key '{}' was not supplied to capture...",capture());
+                throw new IOException("Key '"+capture()+"' was not supplied to capture...");
             }
             return image;
         };

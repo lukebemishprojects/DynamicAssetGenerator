@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -14,9 +13,10 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
+import java.io.IOException;
 
 public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, ITexSource input) implements ITexSource {
     public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -33,15 +33,18 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> suppliedInput = input().getSupplier(data);
-
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        IoSupplier<NativeImage> suppliedInput = input().getSupplier(data);
+        if (suppliedInput == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", input());
+            return null;
+        }
+        if (sizeX() < 0 || sizeY() < 0) {
+            data.getLogger().error("Bounds of image are negative...\n{}", this);
+            return null;
+        }
         return () -> {
             try (NativeImage inImg = suppliedInput.get()) {
-                if (inImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", input());
-                    return null;
-                }
                 if (totalSize() == 0) {
                     data.getLogger().error("Total image width must be non-zero");
                 }
@@ -56,7 +59,7 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
                 int distY = sizeY() * scale;
                 if (distY < 1 || distX < 1) {
                     DynamicAssetGenerator.LOGGER.error("Bounds of image are negative! {}, {}", sizeX(), sizeY());
-                    return null;
+                    throw new IOException("Bounds of image are negative!");
                 }
 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);

@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,13 +12,14 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
+import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Supplier;
 
 public record EdgeMask(ITexSource source, boolean countOutsideFrame, List<Direction> edges, float cutoff) implements ITexSource {
     public static final Codec<EdgeMask> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -35,16 +35,16 @@ public record EdgeMask(ITexSource source, boolean countOutsideFrame, List<Direct
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> input = this.source.getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        IoSupplier<NativeImage> input = this.source.getSupplier(data);
+        if (input == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
+            return null;
+        }
         int[] xs = edges.stream().mapToInt(e->e.x).toArray();
         int[] ys = edges.stream().mapToInt(e->e.y).toArray();
         return () -> {
             try (NativeImage inImg = input.get()) {
-                if (inImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
-                    return null;
-                }
                 int width = inImg.getWidth();
                 int height = inImg.getHeight();
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);
@@ -91,7 +91,7 @@ public record EdgeMask(ITexSource source, boolean countOutsideFrame, List<Direct
         }
 
         @Override
-        public String getSerializedName() {
+        public @NotNull String getSerializedName() {
             return name().toLowerCase(Locale.ROOT);
         }
     }

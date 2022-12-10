@@ -63,7 +63,7 @@ public class ClientPrePackRepository {
         if (resource != null) {
             return resource.get();
         }
-        throw new IOException("Could not find resource in pre-load: "+rl.toString());
+        throw new IOException("Could not find asset in pre-load: "+rl.toString());
     }
 
     @SuppressWarnings("unused")

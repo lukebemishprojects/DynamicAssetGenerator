@@ -5,16 +5,14 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Supplier;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
 public record InvertMask(ITexSource source) implements ITexSource {
     public static final Codec<InvertMask> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -27,14 +25,14 @@ public record InvertMask(ITexSource source) implements ITexSource {
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Supplier<NativeImage> input = this.source.getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        IoSupplier<NativeImage> input = this.source.getSupplier(data);
+        if (input == null) {
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
+            return null;
+        }
         return () -> {
             try (NativeImage inImg = input.get()) {
-                if (inImg == null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
-                    return null;
-                }
                 int width = inImg.getWidth();
                 int height = inImg.getHeight();
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);

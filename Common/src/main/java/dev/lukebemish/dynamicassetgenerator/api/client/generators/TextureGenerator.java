@@ -21,22 +21,22 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class DynamicTextureSource implements IResourceGenerator {
-    public static final Codec<DynamicTextureSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+public class TextureGenerator implements IResourceGenerator {
+    public static final Codec<TextureGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("output_location").forGetter(dyn->dyn.outputLocation),
             ITexSource.CODEC.fieldOf("input").forGetter(dyn->dyn.input)
-    ).apply(instance, DynamicTextureSource::new));
+    ).apply(instance, TextureGenerator::new));
 
     private final ResourceLocation outputLocation;
     private final ITexSource input;
 
-    private Supplier<NativeImage> source;
+    private Supplier<IoSupplier<NativeImage>> source;
 
-    public DynamicTextureSource(ResourceLocation outputLocation, ITexSource source) {
+    public TextureGenerator(ResourceLocation outputLocation, ITexSource source) {
         this.input = source;
         this.outputLocation = outputLocation;
         if (input!=null && outputLocation!=null) {
-            this.source = () -> this.input.getSupplier(new TexSourceDataHolder()).get();
+            this.source = () -> this.input.getSupplier(new TexSourceDataHolder());
         } else {
             DynamicAssetGenerator.LOGGER.error("Could not set up DynamicTextureSource: {}", this);
         }
@@ -45,11 +45,11 @@ public class DynamicTextureSource implements IResourceGenerator {
     @Override
     public IoSupplier<InputStream> get(ResourceLocation outRl) {
         if (this.source == null) return null;
+        IoSupplier<NativeImage> imageGetter = this.source.get();
+        if (imageGetter == null) return null;
         return () -> {
-            try (NativeImage image = source.get()) {
-                if (image != null) {
-                    return new ByteArrayInputStream(image.asByteArray());
-                }
+            try (NativeImage image = imageGetter.get()) {
+                return new ByteArrayInputStream(image.asByteArray());
             } catch (IOException e) {
                 DynamicAssetGenerator.LOGGER.error("Could not write image to stream: {}", outRl, e);
                 throw e;
@@ -60,8 +60,6 @@ public class DynamicTextureSource implements IResourceGenerator {
                 DynamicAssetGenerator.LOGGER.error("Issue creating texture from source JSON for output: {}",outRl, remainder);
                 throw new IOException(remainder);
             }
-            DynamicAssetGenerator.LOGGER.error("Created null image from source JSON for output: {}", outRl);
-            throw new IOException("Created null image from source JSON for output: " + outRl);
         };
     }
 

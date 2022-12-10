@@ -11,11 +11,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLogger;
 
-import java.util.function.Supplier;
+import java.io.IOException;
 
 public record FallbackSource(ITexSource original, ITexSource fallback) implements ITexSource {
     public static final Codec<FallbackSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -28,20 +29,27 @@ public record FallbackSource(ITexSource original, ITexSource fallback) implement
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException{
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException{
         TexSourceDataHolder newData = new TexSourceDataHolder(data);
         newData.put(Logger.class, NOPLogger.NOP_LOGGER);
-        Supplier<NativeImage> original = this.original().getSupplier(newData);
-        Supplier<NativeImage> fallback = this.fallback().getSupplier(data);
+        IoSupplier<NativeImage> original = this.original().getSupplier(newData);
+        IoSupplier<NativeImage> fallback = this.fallback().getSupplier(data);
+
+        if (original==null && fallback==null) {
+            data.getLogger().error("Both textures given were nonexistent...");
+            return null;
+        }
 
         return () -> {
-            NativeImage img = original.get();
-            if (img != null) return img;
-            data.getLogger().debug("Issue loading main texture, trying fallback");
-            img = fallback.get();
-            if (img != null) return img;
-            data.getLogger().error("Texture given was nonexistent...");
-            return null;
+            if (original != null) {
+                try {
+                    return original.get();
+                } catch (IOException ignored) {}
+            }
+            if (fallback != null)
+                return fallback.get();
+            data.getLogger().error("Both textures given were unloadable...");
+            throw new IOException("Both textures given were unloadable...");
         };
     }
 }

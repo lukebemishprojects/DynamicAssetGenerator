@@ -8,17 +8,17 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.ma
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.util.MultiCloser;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
-import org.jetbrains.annotations.NotNull;
+import dev.lukebemish.dynamicassetgenerator.impl.util.MultiCloser;
+import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 public record MultiplyMask(List<ITexSource> sources) implements ITexSource {
     public static final Codec<MultiplyMask> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -31,20 +31,23 @@ public record MultiplyMask(List<ITexSource> sources) implements ITexSource {
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) {
-        List<Supplier<NativeImage>> inputs = new ArrayList<>();
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        List<IoSupplier<NativeImage>> inputs = new ArrayList<>();
         for (ITexSource o : this.sources()) {
             inputs.add(o.getSupplier(data));
+        }
+        for (int i = 0; i < inputs.size(); i++) {
+            if (inputs.get(i)==null) {
+                data.getLogger().error("Texture given was nonexistent...\n{}",this.sources().get(i).toString());
+                return null;
+            }
         }
         return () -> {
             int maxX = 0;
             int maxY = 0;
-            List<NativeImage> images = inputs.stream().map(Supplier::get).toList();
-            for (int i = 0; i < images.size(); i++) {
-                if (images.get(i)==null) {
-                    data.getLogger().error("Texture given was nonexistent...\n{}",this.sources().get(i).toString());
-                    return null;
-                }
+            List<NativeImage> images = new ArrayList<>();
+            for (var input : inputs) {
+                images.add(input.get());
             }
             for (NativeImage image : images) {
                 if (image.getWidth() > maxX) {

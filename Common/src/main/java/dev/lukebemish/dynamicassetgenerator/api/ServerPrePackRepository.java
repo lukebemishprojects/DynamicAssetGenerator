@@ -7,11 +7,11 @@ package dev.lukebemish.dynamicassetgenerator.api;
 
 import com.google.common.collect.ImmutableList;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import dev.lukebemish.dynamicassetgenerator.impl.util.InvisibleProviderUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class ServerPrePackRepository {
             provider.reset(PackType.SERVER_DATA);
         resources = Stream.concat(
                 r.stream()
-                        .filter((p)->!(p.getName().contains(DynamicAssetGenerator.CLIENT_PACK) || p.getName().contains(DynamicAssetGenerator.SERVER_PACK))),
+                        .filter((p)->!p.packId().startsWith(DynamicAssetGenerator.MOD_ID+':')),
                 InvisibleProviderUtils.INVISIBLE_RESOURCE_PROVIDERS.stream().map(InvisibleProviderUtils::constructPlaceholderResourcesFromProvider)
         ).collect(ImmutableList.toImmutableList());
     }
@@ -42,15 +42,16 @@ public class ServerPrePackRepository {
 
     @SuppressWarnings("unused")
     public static InputStream getResource(ResourceLocation rl) throws IOException {
-        InputStream resource = null;
-        for (PackResources r : resources) {
-            if (r.hasResource(PackType.SERVER_DATA, rl)) {
-                if (resource != null) resource.close();
-                resource = r.getResource(PackType.SERVER_DATA, rl);
+        IoSupplier<InputStream> resource = null;
+        for (PackResources r : getResources()) {
+            if (!r.packId().startsWith(DynamicAssetGenerator.MOD_ID+':')) {
+                IoSupplier<InputStream> supplier = r.getResource(PackType.SERVER_DATA, rl);
+                if (supplier == null) continue;
+                resource = supplier;
             }
         }
         if (resource != null) {
-            return resource;
+            return resource.get();
         }
         throw new IOException("Could not find data in pre-load: "+rl.toString());
     }
@@ -58,16 +59,16 @@ public class ServerPrePackRepository {
     @SuppressWarnings("unused")
     public static Stream<InputStream> getResources(ResourceLocation rl) throws IOException {
         List<InputStream> out = new ArrayList<>();
-        for (PackResources r : Services.DEGROUPER.unpackPacks(resources)) {
-            if (!r.getName().contains(DynamicAssetGenerator.SERVER_PACK) && r.hasResource(PackType.SERVER_DATA, rl)) {
-                InputStream resource = r.getResource(PackType.SERVER_DATA, rl);
-                if (resource!=null)
-                    out.add(0, resource);
+        for (PackResources r : getResources()) {
+            if (!r.packId().startsWith(DynamicAssetGenerator.MOD_ID+':')) {
+                IoSupplier<InputStream> supplier = r.getResource(PackType.SERVER_DATA, rl);
+                if (supplier == null) continue;
+                out.add(supplier.get());
             }
         }
         if (!out.isEmpty()) {
             return out.stream();
         }
-        throw new IOException("Could not find data in pre-load: "+rl.toString());
+        throw new IOException("Could not find asset in pre-load: "+rl.toString());
     }
 }

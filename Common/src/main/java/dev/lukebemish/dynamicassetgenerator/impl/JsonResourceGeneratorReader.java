@@ -8,7 +8,6 @@ package dev.lukebemish.dynamicassetgenerator.impl;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.JsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.IPathAwareInputStreamSource;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
@@ -39,7 +38,7 @@ public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource 
     }
 
     @Nullable
-    static IResourceGenerator fromJson(String json) throws JsonSyntaxException {
+    static IResourceGenerator fromJson(String json) {
         JsonObject jsonObject = GSON.fromJson(json, JsonObject.class);
         return IResourceGenerator.CODEC.parse(JsonOps.INSTANCE, jsonObject).getOrThrow(false, s->{});
     }

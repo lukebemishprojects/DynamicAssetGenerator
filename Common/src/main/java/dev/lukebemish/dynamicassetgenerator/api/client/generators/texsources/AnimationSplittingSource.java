@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -14,12 +13,13 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
 import dev.lukebemish.dynamicassetgenerator.impl.util.MultiCloser;
+import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.*;
-import java.util.function.Supplier;
 
 public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITexSource generator) implements ITexSource {
     public static final Codec<AnimationSplittingSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -33,28 +33,31 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
     }
 
     @Override
-    public @NotNull Supplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException {
-        Map<String, Supplier<NativeImage>> sources = new HashMap<>();
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+        Map<String, IoSupplier<NativeImage>> sources = new HashMap<>();
         Map<String, Integer> times = new HashMap<>();
         this.sources.forEach((key, source) -> {
             sources.put(key, source.source().getSupplier(data));
             times.put(key, source.scale());
         });
+        if (sources.isEmpty()) {
+            data.getLogger().error("No sources given...");
+            return null;
+        }
         return () -> {
             Map<String, NativeImage> images = new HashMap<>();
-            sources.forEach((str, sup) -> images.put(str, sup.get()));
+            for (Map.Entry<String, IoSupplier<NativeImage>> e : sources.entrySet()) {
+                String key = e.getKey();
+                images.put(key, e.getValue().get());
+            }
             try (MultiCloser ignored = new MultiCloser(images.values())) {
-                if (sources.isEmpty()) {
-                    data.getLogger().error("No sources given...");
-                    return null;
-                }
                 List<NativeImage> imageList = images.values().stream().toList();
                 List<Integer> counts = images.entrySet().stream().map(entry->times.get(entry.getKey())*getFrameCount(entry.getValue())).toList();
                 for (int j=0; j<counts.size(); j++) {
                     int i = counts.get(j);
                     if (i==0) {
                         data.getLogger().error("Source not shaped correctly for an animation...\n{}",imageList.get(j));
-                        return null;
+                        throw new IOException("Source not shaped correctly for an animation...");
                     }
                 }
                 int lcm = lcm(counts);
@@ -67,11 +70,16 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
                     try (ImageCollection collection = new ImageCollection(map)) {
                         TexSourceDataHolder newData = new TexSourceDataHolder(data);
                         newData.put(ImageCollection.class, collection);
-                        NativeImage supplied = generator.getSupplier(newData).get();
+                        IoSupplier<NativeImage> supplier = generator.getSupplier(newData);
+                        if (supplier == null) {
+                            data.getLogger().error("Generator created no image...");
+                            throw new IOException("Generator created no image...");
+                        }
+                        NativeImage supplied = supplier.get();
                         int sWidth = supplied.getWidth();
                         if (sWidth != supplied.getHeight()) {
                             data.getLogger().error("Generator created non-square image...\n{}",generator);
-                            return null;
+                            throw new IOException("Generator created non-square image...");
                         }
                         int scale = lcmWidth/sWidth;
                         for (int x = 0; x < lcmWidth; x++) {
