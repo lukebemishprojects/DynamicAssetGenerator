@@ -94,8 +94,6 @@ dependencies {
 }
 
 mixin {
-    add sourceSets.main, "dynamic_asset_generator.refmap.json"
-    config 'mixin.dynamic_asset_generator_forge.json'
     add project(":Common").sourceSets.main, "dynamic_asset_generator.refmap.json"
     config 'mixin.dynamic_asset_generator.json'
 }

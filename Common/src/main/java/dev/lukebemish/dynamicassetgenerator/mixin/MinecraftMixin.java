@@ -19,7 +19,7 @@ public class MinecraftMixin {
     @SuppressWarnings("InvalidInjectorMethodSignature")
     @ModifyVariable(method = {"reloadResourcePacks(Z)Ljava/util/concurrent/CompletableFuture;", "<init>"}, ordinal = 0, require = 0,
             at = @At(value = "INVOKE_ASSIGN", target = "Lnet/minecraft/server/packs/repository/PackRepository;openAllSelected()Ljava/util/List;",shift = At.Shift.AFTER))
-    private List<PackResources> dynamic_assets_modifyList(List<PackResources> resources) {
+    private List<PackResources> dynamic_asset_generator$modifyList(List<PackResources> resources) {
         ClientPrePackRepository.resetResources();
         return resources;
     }

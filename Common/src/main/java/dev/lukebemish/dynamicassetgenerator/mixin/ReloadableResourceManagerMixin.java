@@ -30,7 +30,7 @@ public abstract class ReloadableResourceManagerMixin {
     private PackType type;
 
     @Inject(method = "createReload", at = @At(value = "HEAD"))
-    private void dynamic_asset_generator_insertResourcePack(Executor preparationExecutor,
+    private void dynamic_asset_generator$insertResourcePack(Executor preparationExecutor,
                                                             Executor reloadExecutor,
                                                             CompletableFuture<Unit> afterPreparation,
                                                             List<PackResources> packs,
