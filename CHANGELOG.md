@@ -6,6 +6,8 @@
 ### Other
 - Update build system to use new maven
 - Update all old generators to new API
+- Update mixins to 1.19.3
+- Change base jar name
 
 ## Dynamic Asset Generator 1.2.0
 
