@@ -58,8 +58,8 @@ public class DynamicAssetGeneratorClient {
 
     private static void testing() {
         //testing
-
-        if (System.getProperty("dynamicassetgenerator.test").equals("true")) {
+        String test = System.getProperty("dynamicassetgenerator.test");
+        if (test != null && test.equals("true")) {
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/end_stone"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/redstone_ore")),
