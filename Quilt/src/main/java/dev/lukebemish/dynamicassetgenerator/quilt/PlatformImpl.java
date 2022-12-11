@@ -23,7 +23,4 @@ public class PlatformImpl implements IPlatform {
         return QuiltLoader.getGameDir().resolve("mod_data/"+ DynamicAssetGenerator.MOD_ID);
     }
 
-    public boolean isDev() {
-        return QuiltLoader.isDevelopmentEnvironment();
-    }
 }

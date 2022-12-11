@@ -10,5 +10,4 @@ import java.nio.file.Path;
 public interface IPlatform {
     Path getConfigFolder();
     Path getModDataFolder();
-    boolean isDev();
 }

@@ -47,12 +47,14 @@ loom {
 			setConfigName("Quilt Client")
 			ideConfigGenerated(true)
 			runDir("run")
+			property 'dynamicassetgenerator.test', 'true'
 		}
 		server {
 			server()
 			setConfigName("Quilt Server")
 			ideConfigGenerated(true)
 			runDir("run")
+			property 'dynamicassetgenerator.test', 'true'
 		}
 	}
 

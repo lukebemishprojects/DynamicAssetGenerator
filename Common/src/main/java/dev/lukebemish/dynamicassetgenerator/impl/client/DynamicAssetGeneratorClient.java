@@ -8,13 +8,12 @@ package dev.lukebemish.dynamicassetgenerator.impl.client;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.client.AssetResourceCache;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.*;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask.*;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.Pack;
 
@@ -60,7 +59,7 @@ public class DynamicAssetGeneratorClient {
     private static void testing() {
         //testing
 
-        if (Services.PLATFORM.isDev()) {
+        if (System.getProperty("dynamicassetgenerator.test").equals("true")) {
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/end_stone"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/redstone_ore")),
