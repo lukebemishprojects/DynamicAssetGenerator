@@ -45,6 +45,9 @@ ModsDotGroovy.make {
         }
     }
     onQuilt {
-        mixin = ['mixin.dynamic_asset_generator.json']
+        mixin = [
+                'mixin.dynamic_asset_generator.json',
+                'mixin.dynamic_asset_generator_quilt.json'
+        ]
     }
 }
