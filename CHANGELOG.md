@@ -3,11 +3,15 @@
 ### Features
 - **BREAKING** Begin breaking changes for 1.19.3
 - **BREAKING** Switch ResourceCache system to use mod-registered cache instances
+### Fixes
+- Hide generated resources from pack selector
 ### Other
 - Update build system to use new maven
 - Update all old generators to new API
 - Update mixins to 1.19.3
 - Change base jar name
+- Change approach to adding resource packs on Quilt
+- Change testing system
 
 ## Dynamic Asset Generator 1.2.0
 
