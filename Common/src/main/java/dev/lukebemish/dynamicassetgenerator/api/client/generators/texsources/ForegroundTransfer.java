@@ -7,9 +7,12 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.PaletteExtractor;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.IPalettePlan;
@@ -36,10 +39,10 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
-        IoSupplier<NativeImage> background = this.background().getSupplier(data);
-        IoSupplier<NativeImage> newBackground = this.newBackground().getSupplier(data);
-        IoSupplier<NativeImage> full = this.full().getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
+        IoSupplier<NativeImage> background = this.background().getSupplier(data, context);
+        IoSupplier<NativeImage> newBackground = this.newBackground().getSupplier(data, context);
+        IoSupplier<NativeImage> full = this.full().getSupplier(data, context);
 
         if (background == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.background());
@@ -54,13 +57,24 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
             return null;
         }
 
+        String cacheKey;
+        try {
+            String cacheKeyBackground = DynamicAssetGenerator.GSON_FLAT.toJson(ITexSource.CODEC.encodeStart(JsonOps.INSTANCE, background()).getOrThrow(false, e->{}));
+            String cacheKeyFull = DynamicAssetGenerator.GSON_FLAT.toJson(ITexSource.CODEC.encodeStart(JsonOps.INSTANCE, full()).getOrThrow(false, e->{}));
+            cacheKey = cacheKeyBackground + cacheKeyFull + "_" + extendPaletteSize + "_" + trimTrailing + "_" + forceNeighbors + "_" + fillHoles + "_" + closeCutoff;
+        } catch (RuntimeException e) {
+            data.getLogger().error("Failed to encode texture source to JSON for caching", e);
+            return null;
+        }
+
         return () -> {
             try (NativeImage bImg = background.get();
                  NativeImage nImg = newBackground.get();
                  NativeImage fImg = full.get()) {
-                try (PaletteExtractor extractor = new PaletteExtractor(bImg, fImg, this.extendPaletteSize(), this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles())) {
+
+                try (PaletteExtractor extractor = new PaletteExtractor(context.cacheName(), cacheKey, bImg, fImg, this.extendPaletteSize(), this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles())) {
                     PalettePlanner planner = PalettePlanner.of(extractor);
-                    extractor.recalcImages();
+                    extractor.unCacheOrReCalc();
                     try (NativeImage pImg = extractor.getPalettedImg();
                          NativeImage oImg = extractor.getOverlayImg()) {
                         return Palette.paletteCombinedImage(nImg, oImg, pImg, planner);

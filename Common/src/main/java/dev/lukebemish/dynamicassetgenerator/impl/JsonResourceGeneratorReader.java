@@ -11,6 +11,7 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.IPathAwareInputStreamSource;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -44,10 +45,10 @@ public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource 
     }
 
     @Override
-    public IoSupplier<InputStream> get(ResourceLocation outRl) {
+    public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
         IResourceGenerator json = map.get(outRl);
         if (json!=null)
-            return json.get(outRl);
+            return json.get(outRl, context);
         return null;
     }
 

@@ -8,6 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
@@ -33,11 +34,11 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         Map<String, IoSupplier<NativeImage>> sources = new HashMap<>();
         Map<String, Integer> times = new HashMap<>();
         this.sources.forEach((key, source) -> {
-            sources.put(key, source.source().getSupplier(data));
+            sources.put(key, source.source().getSupplier(data, context));
             times.put(key, source.scale());
         });
         if (sources.isEmpty()) {
@@ -70,7 +71,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
                     try (ImageCollection collection = new ImageCollection(map)) {
                         TexSourceDataHolder newData = new TexSourceDataHolder(data);
                         newData.put(ImageCollection.class, collection);
-                        IoSupplier<NativeImage> supplier = generator.getSupplier(newData);
+                        IoSupplier<NativeImage> supplier = generator.getSupplier(newData, context);
                         if (supplier == null) {
                             data.getLogger().error("Generator created no image...");
                             throw new IOException("Generator created no image...");

@@ -8,6 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
@@ -30,8 +31,8 @@ public record PaletteSpreadSource(ITexSource source, float paletteCutoff, float 
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
-        IoSupplier<NativeImage> source = source().getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
+        IoSupplier<NativeImage> source = source().getSupplier(data, context);
         if (source == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.source());
             return null;

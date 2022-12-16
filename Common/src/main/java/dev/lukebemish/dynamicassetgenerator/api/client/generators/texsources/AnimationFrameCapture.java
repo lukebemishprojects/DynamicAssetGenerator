@@ -8,6 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -25,7 +26,7 @@ public record AnimationFrameCapture(String capture) implements ITexSource {
     }
 
     @Override
-    public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+    public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         return () -> {
             AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.ImageCollection.class);
             if (collection==null) {

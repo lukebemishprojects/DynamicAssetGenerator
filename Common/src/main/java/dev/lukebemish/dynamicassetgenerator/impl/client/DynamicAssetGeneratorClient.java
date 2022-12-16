@@ -75,6 +75,11 @@ public class DynamicAssetGeneratorClient {
                             new TextureReader(new ResourceLocation("block/iron_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
                             6,true,true,true, 0.2d)));
+            ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/andesite"),
+                    new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
+                            new TextureReader(new ResourceLocation("block/redstone_ore")),
+                            new TextureReader(new ResourceLocation("block/andesite")),
+                            6,true,true,true, 0.2d)));
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/magma"),
                     new AnimationSplittingSource(Map.of("magma",
                             new AnimationSplittingSource.TimeAwareSource(new TextureReader(new ResourceLocation("block/magma")),1),

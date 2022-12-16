@@ -10,7 +10,9 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ClientRegisters;
+import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCachingWrapper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.ExtraCodecs;
@@ -37,7 +39,12 @@ public interface ITexSource {
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);
         }
-    }).dispatch(ITexSource::codec, Function.identity());
+    }).dispatch(ITexSource::codec, Function.identity()).xmap(TexSourceCachingWrapper::new, wrapped -> {
+        while (wrapped instanceof TexSourceCachingWrapper cachingWrapper) {
+            wrapped = cachingWrapper.wrapped();
+        }
+        return wrapped;
+    });
 
     static void register(ResourceLocation rl, Codec<? extends ITexSource> reader) {
         ClientRegisters.ITEXSOURCES.put(rl, reader);
@@ -46,5 +53,5 @@ public interface ITexSource {
     Codec<? extends ITexSource> codec();
 
     @Nullable
-    IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data);
+    IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context);
 }

@@ -7,6 +7,8 @@ package dev.lukebemish.dynamicassetgenerator.api.client;
 
 import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.client.PaletteExtractor;
+import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +19,8 @@ public class AssetResourceCache extends ResourceCache {
 
     public AssetResourceCache(ResourceLocation name) {
         super(name);
+        this.planResetListener(() -> TexSourceCache.reset(this.getContext()));
+        this.planResetListener(() -> PaletteExtractor.reset(this.getContext()));
     }
 
     @Override

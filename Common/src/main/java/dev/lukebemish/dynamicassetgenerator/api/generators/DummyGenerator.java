@@ -7,6 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api.generators;
 
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,7 @@ public class DummyGenerator implements IResourceGenerator {
     private DummyGenerator() {}
 
     @Override
-    public IoSupplier<InputStream> get(ResourceLocation outRl) {
+    public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
         return null;
     }
 

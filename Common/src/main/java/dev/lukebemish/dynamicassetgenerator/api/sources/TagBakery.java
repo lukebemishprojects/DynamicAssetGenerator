@@ -6,6 +6,7 @@
 package dev.lukebemish.dynamicassetgenerator.api.sources;
 
 import dev.lukebemish.dynamicassetgenerator.api.IPathAwareInputStreamSource;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,7 @@ public class TagBakery implements IPathAwareInputStreamSource {
     }
 
     @Override
-    public IoSupplier<InputStream> get(ResourceLocation outRl) {
+    public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
         return () -> {
             checkTags();
             return build(bakedTags.get(outRl));

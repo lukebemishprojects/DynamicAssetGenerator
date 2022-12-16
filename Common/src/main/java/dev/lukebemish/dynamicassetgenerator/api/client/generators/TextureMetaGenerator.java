@@ -13,6 +13,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AnimationSplittingSource;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
@@ -38,7 +39,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
 
     @Override
-    public IoSupplier<InputStream> get(ResourceLocation outRl) {
+    public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
         Map<ResourceLocation, MetaStructure> sourceStructure = new HashMap<>();
         if (sources().isEmpty()) {
             DynamicAssetGenerator.LOGGER.error("No sources provided for texture metadata at {}:\n",outputLocation());

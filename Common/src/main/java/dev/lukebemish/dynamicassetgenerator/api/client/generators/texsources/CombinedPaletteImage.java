@@ -8,6 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
@@ -31,8 +32,8 @@ public record CombinedPaletteImage(ITexSource overlay, ITexSource background, IT
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
-        PalettePlanner planner = PalettePlanner.of(this, data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
+        PalettePlanner planner = PalettePlanner.of(this, data, context);
         if (planner.background == null) {
             data.getLogger().error("Background image was none... \n{}", background);
             return null;
@@ -64,11 +65,11 @@ public record CombinedPaletteImage(ITexSource overlay, ITexSource background, IT
             this.info = info;
         }
 
-        public static PalettePlanner of(CombinedPaletteImage info, TexSourceDataHolder data) {
+        public static PalettePlanner of(CombinedPaletteImage info, TexSourceDataHolder data, ResourceGenerationContext context) {
             PalettePlanner out = new PalettePlanner(info);
-            out.background = info.background.getSupplier(data);
-            out.paletted = info.paletted.getSupplier(data);
-            out.overlay = info.overlay.getSupplier(data);
+            out.background = info.background.getSupplier(data, context);
+            out.paletted = info.paletted.getSupplier(data, context);
+            out.overlay = info.overlay.getSupplier(data, context);
             return out;
         }
 

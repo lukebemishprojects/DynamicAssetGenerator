@@ -53,7 +53,7 @@ public abstract class ResourceCache {
             try {
                 IPathAwareInputStreamSource source = p.get();
                 Set<ResourceLocation> rls = source.getLocations();
-                rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl))));
+                rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl, getContext()))));
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue setting up IPathAwareInputStreamSource:",e);
             }
@@ -65,6 +65,11 @@ public abstract class ResourceCache {
             outputs = wrapCachedData(outputs);
 
         return outputs;
+    }
+
+    @NotNull
+    public ResourceGenerationContext getContext() {
+        return new ResourceGenerationContext(this.name);
     }
 
     @SuppressWarnings("unused")
@@ -154,8 +159,8 @@ public abstract class ResourceCache {
             }
 
             @Override
-            public IoSupplier<InputStream> get(ResourceLocation outRl) {
-                return source.get(outRl);
+            public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
+                return source.get(outRl, context);
             }
         };
     }

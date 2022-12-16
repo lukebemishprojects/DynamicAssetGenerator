@@ -7,20 +7,28 @@ package dev.lukebemish.dynamicassetgenerator.impl.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.impl.CacheReference;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.Clusterer;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PaletteExtractor implements Closeable {
     private static final int[] X_SAMPLING_ORDER = new int[]{-1, -1, -1, 0, 0, 0, 1, 1, 1};
     private static final int[] Y_SAMPLING_ORDER = new int[]{-1, 0, 1, -1, 0, 1, -1, 0, 1};
+
+    private static final Map<ResourceLocation, Map<String, CacheReference<OutputHolder>>> MULTI_CACHE = new ConcurrentHashMap<>();
+
     private boolean fillHoles =false;
 
     private final boolean[] hasLogged = new boolean[2];
@@ -31,13 +39,16 @@ public class PaletteExtractor implements Closeable {
     public final int extend;
     public final boolean trimTrailingPaletteLookup;
     private final boolean forceOverlayNeighbors;
+    private final ResourceLocation cacheName;
+    private final String cacheKey;
 
-    private NativeImage overlayImg;
-    private NativeImage palettedImg;
+    private OutputHolder outputHolder;
 
     private static final float N_CUTOFF_SCALE = 1.5f;
 
-    public PaletteExtractor(NativeImage background, NativeImage withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
+    public PaletteExtractor(ResourceLocation cacheName, String cacheKey, NativeImage background, NativeImage withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
+        this.cacheName = cacheName;
+        this.cacheKey = cacheKey;
         this.background = background;
         this.withOverlay = withOverlay;
         this.extend = extend;
@@ -47,22 +58,16 @@ public class PaletteExtractor implements Closeable {
     }
 
     public NativeImage getOverlayImg() {
-        return overlayImg;
+        return outputHolder.o;
     }
 
     public NativeImage getPalettedImg() {
-        return palettedImg;
+        return outputHolder.p;
     }
 
     private void tryCloseOutputs() {
-        if (palettedImg!=null) {
-            palettedImg.close();
-            palettedImg=null;
-        }
-        if (overlayImg!=null) {
-            overlayImg.close();
-            overlayImg=null;
-        }
+        outputHolder.close();
+        outputHolder = null;
     }
 
     private Holder recalcImagesAlternate() {
@@ -214,7 +219,7 @@ public class PaletteExtractor implements Closeable {
         }
     }
 
-    public void recalcImages() {
+    private void recalcImages() {
         int bDim = Math.min(background.getHeight(), background.getWidth());
         int wDim = Math.min(withOverlay.getHeight(), withOverlay.getWidth());
         int dim = Math.max(bDim, wDim);
@@ -273,8 +278,7 @@ public class PaletteExtractor implements Closeable {
             if (!hasLogged[1])
                 DynamicAssetGenerator.LOGGER.warn("Supplied images for extraction contained few differing colors; attempting clustering color extraction.");
             hasLogged[1] = true;
-            this.overlayImg = alt.o();
-            this.palettedImg = alt.p();
+            this.outputHolder = new OutputHolder(alt.o(), alt.p());
             oImg.close();
             pImg.close();
             return;
@@ -282,8 +286,7 @@ public class PaletteExtractor implements Closeable {
             if (!hasLogged[1])
                 DynamicAssetGenerator.LOGGER.warn("Supplied images for extraction contained too many colors and were too high resolution to resolve post-calculation queue; attempting clustering color extraction.");
             hasLogged[1] = true;
-            this.overlayImg = alt.o();
-            this.palettedImg = alt.p();
+            this.outputHolder = new OutputHolder(alt.o(), alt.p());
             oImg.close();
             pImg.close();
             return;
@@ -355,8 +358,7 @@ public class PaletteExtractor implements Closeable {
             }
         }
 
-        this.overlayImg = oImg;
-        this.palettedImg = pImg;
+        this.outputHolder = new OutputHolder(oImg, pImg);
     }
 
     private void runPostCalcQueue(NativeImage oImg, NativeImage pImg, Palette backgroundPalette, int backgroundPaletteSize, Palette frontColors, List<PostCalcEvent> postQueue) {
@@ -441,6 +443,61 @@ public class PaletteExtractor implements Closeable {
         public void close() {
             o.close();
             p.close();
+        }
+    }
+
+    private record OutputHolder(@Nullable NativeImage o, @Nullable NativeImage p) implements Closeable {
+        public OutputHolder copy() {
+            NativeImage newO = null;
+            if (o != null) {
+                newO = NativeImageHelper.of(o.format(), o.getWidth(), o.getHeight(), false);
+                newO.copyFrom(o);
+            }
+            NativeImage newP = null;
+            if (p != null) {
+                newP = NativeImageHelper.of(p.format(), p.getWidth(), p.getHeight(), false);
+                newP.copyFrom(p);
+            }
+            return new OutputHolder(newO, newP);
+        }
+
+        @Override
+        public void close() {
+            if (p!=null) {
+                p.close();
+            }
+            if (o!=null) {
+                o.close();
+            }
+        }
+    }
+
+
+    public void unCacheOrReCalc() {
+        var cache = MULTI_CACHE.computeIfAbsent(this.cacheName, k -> new ConcurrentHashMap<>());
+        System.out.println("Checking cacheKey: "+this.cacheKey);
+        var ref = cache.computeIfAbsent(cacheKey, k -> new CacheReference<>());
+        ref.doSync(holder -> {
+            if (holder != null) {
+                System.out.println("Got from cacheKey: "+this.cacheKey);
+                this.outputHolder = holder.copy();
+            } else {
+                this.recalcImages();
+                ref.setHeld(this.outputHolder.copy());
+                System.out.println("Stored cacheKey: "+this.cacheKey);
+            }
+        });
+    }
+
+    public static void reset(ResourceGenerationContext context) {
+        synchronized (MULTI_CACHE) {
+            Map<String, CacheReference<OutputHolder>> cache;
+            if ((cache = MULTI_CACHE.get(context.cacheName())) != null) {
+                cache.forEach((s, e) -> {
+                    e.getHeld().close();
+                });
+                MULTI_CACHE.remove(context.cacheName());
+            }
         }
     }
 }

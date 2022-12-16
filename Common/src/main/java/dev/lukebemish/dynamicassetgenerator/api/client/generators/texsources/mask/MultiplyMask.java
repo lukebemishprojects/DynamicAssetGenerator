@@ -8,6 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.ma
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
@@ -31,10 +32,10 @@ public record MultiplyMask(List<ITexSource> sources) implements ITexSource {
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         List<IoSupplier<NativeImage>> inputs = new ArrayList<>();
         for (ITexSource o : this.sources()) {
-            inputs.add(o.getSupplier(data));
+            inputs.add(o.getSupplier(data, context));
         }
         for (int i = 0; i < inputs.size(); i++) {
             if (inputs.get(i)==null) {

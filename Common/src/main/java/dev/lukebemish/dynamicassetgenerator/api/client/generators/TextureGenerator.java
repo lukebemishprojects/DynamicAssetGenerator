@@ -10,6 +10,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -19,7 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class TextureGenerator implements IResourceGenerator {
     public static final Codec<TextureGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -30,22 +31,22 @@ public class TextureGenerator implements IResourceGenerator {
     private final ResourceLocation outputLocation;
     private final ITexSource input;
 
-    private Supplier<IoSupplier<NativeImage>> source;
+    private Function<ResourceGenerationContext, IoSupplier<NativeImage>> source;
 
     public TextureGenerator(ResourceLocation outputLocation, ITexSource source) {
         this.input = source;
         this.outputLocation = outputLocation;
         if (input!=null && outputLocation!=null) {
-            this.source = () -> this.input.getSupplier(new TexSourceDataHolder());
+            this.source = context -> this.input.getSupplier(new TexSourceDataHolder(), context);
         } else {
             DynamicAssetGenerator.LOGGER.error("Could not set up DynamicTextureSource: {}", this);
         }
     }
 
     @Override
-    public IoSupplier<InputStream> get(ResourceLocation outRl) {
+    public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
         if (this.source == null) return null;
-        IoSupplier<NativeImage> imageGetter = this.source.get();
+        IoSupplier<NativeImage> imageGetter = this.source.apply(context);
         if (imageGetter == null) return null;
         return () -> {
             try (NativeImage image = imageGetter.get()) {

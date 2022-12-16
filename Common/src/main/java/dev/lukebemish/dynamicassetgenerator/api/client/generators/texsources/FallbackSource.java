@@ -9,6 +9,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -29,11 +30,11 @@ public record FallbackSource(ITexSource original, ITexSource fallback) implement
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) throws JsonSyntaxException{
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) throws JsonSyntaxException{
         TexSourceDataHolder newData = new TexSourceDataHolder(data);
         newData.put(Logger.class, NOPLogger.NOP_LOGGER);
-        IoSupplier<NativeImage> original = this.original().getSupplier(newData);
-        IoSupplier<NativeImage> fallback = this.fallback().getSupplier(data);
+        IoSupplier<NativeImage> original = this.original().getSupplier(newData, context);
+        IoSupplier<NativeImage> fallback = this.fallback().getSupplier(data, context);
 
         if (original==null && fallback==null) {
             data.getLogger().error("Both textures given were nonexistent...");

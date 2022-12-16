@@ -8,9 +8,10 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.impl.client.util.ImageUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 
@@ -27,11 +28,11 @@ public record TextureReader(ResourceLocation path) implements ITexSource {
     }
 
     @Override
-    public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
+    public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         ResourceLocation outRl = new ResourceLocation(this.path().getNamespace(), "textures/"+this.path().getPath()+".png");
         return () -> {
             try {
-                return ImageUtils.getImage(outRl);
+                return NativeImage.read(ClientPrePackRepository.getResource(outRl));
             } catch (IOException e) {
                 data.getLogger().error("Issue loading texture: {}", this.path());
             }

@@ -8,6 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
@@ -28,9 +29,9 @@ public record Mask(ITexSource input, ITexSource mask) implements ITexSource {
     }
 
     @Override
-    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data) {
-        IoSupplier<NativeImage> input = this.input().getSupplier(data);
-        IoSupplier<NativeImage> mask = this.mask().getSupplier(data);
+    public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
+        IoSupplier<NativeImage> input = this.input().getSupplier(data, context);
+        IoSupplier<NativeImage> mask = this.mask().getSupplier(data, context);
 
         if (input == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.mask());
