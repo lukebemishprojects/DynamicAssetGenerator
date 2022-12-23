@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.api;
+package dev.lukebemish.dynamicassetgenerator.api.compat;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;

@@ -5,8 +5,8 @@
 
 package dev.lukebemish.dynamicassetgenerator.impl.util;
 
-import dev.lukebemish.dynamicassetgenerator.api.ConditionalInvisibleResourceProvider;
-import dev.lukebemish.dynamicassetgenerator.api.InvisibleResourceProvider;
+import dev.lukebemish.dynamicassetgenerator.api.compat.ConditionalInvisibleResourceProvider;
+import dev.lukebemish.dynamicassetgenerator.api.compat.InvisibleResourceProvider;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
