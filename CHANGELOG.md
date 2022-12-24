@@ -1,3 +1,8 @@
+## Dynamic Asset Generator 3.0.1
+
+### Fixes
+- Fix JSON-loaded generators not working and properly mark caching API as experimental
+
 ## Dynamic Asset Generator 3.0.0
 
 ### Features
