@@ -7,9 +7,10 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaJsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
@@ -57,15 +58,18 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
             return null;
         }
 
-        String cacheKey;
-        try {
-            String cacheKeyBackground = DynamicAssetGenerator.GSON_FLAT.toJson(ITexSource.CODEC.encodeStart(JsonOps.INSTANCE, background()).getOrThrow(false, e->{}));
-            String cacheKeyFull = DynamicAssetGenerator.GSON_FLAT.toJson(ITexSource.CODEC.encodeStart(JsonOps.INSTANCE, full()).getOrThrow(false, e->{}));
-            cacheKey = cacheKeyBackground + cacheKeyFull + "_" + extendPaletteSize + "_" + trimTrailing + "_" + forceNeighbors + "_" + fillHoles + "_" + closeCutoff;
-        } catch (RuntimeException e) {
-            data.getLogger().error("Failed to encode texture source to JSON for caching", e);
-            return null;
-        }
+        final DataResult<String> cacheKey;
+        DataResult<String> cacheKey1;
+        var dataOps = new CacheMetaJsonOps<>(data, TexSourceDataHolder.class);
+        DataResult<String> cacheKeyBackground = ITexSource.CODEC.encodeStart(dataOps, background()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
+        DataResult<String> cacheKeyFull = ITexSource.CODEC.encodeStart(dataOps, full()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
+        if (cacheKeyBackground.result().isPresent() && cacheKeyFull.result().isPresent())
+            cacheKey1 = DataResult.success(cacheKeyBackground.result().get() + "," + cacheKeyFull.result().get()+ "," + extendPaletteSize + "," + trimTrailing + "," + forceNeighbors + "," + fillHoles + "," + closeCutoff);
+        else if (cacheKeyBackground.error().isPresent())
+            cacheKey1 = DataResult.error("Failed to encode cache key: " + cacheKeyBackground.error().get().message());
+        else
+            cacheKey1 = DataResult.error("Failed to encode cache key: " + cacheKeyFull.error().get().message());
+        cacheKey = cacheKey1;
 
         return () -> {
             try (NativeImage bImg = background.get();

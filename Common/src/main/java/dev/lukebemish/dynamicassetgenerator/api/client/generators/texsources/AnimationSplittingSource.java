@@ -37,7 +37,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         Map<String, IoSupplier<NativeImage>> sources = new HashMap<>();
         Map<String, Integer> times = new HashMap<>();
-        this.sources.forEach((key, source) -> {
+        this.sources().forEach((key, source) -> {
             sources.put(key, source.source().getSupplier(data, context));
             times.put(key, source.scale());
         });
@@ -68,7 +68,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
                     Map<String, NativeImage> map = new HashMap<>();
                     int finalI = i;
                     images.forEach((str, old) -> map.put(str, getPartialImage(old, finalI, times.get(str))));
-                    try (ImageCollection collection = new ImageCollection(map)) {
+                    try (ImageCollection collection = new ImageCollection(map, this.sources(), i)) {
                         TexSourceDataHolder newData = new TexSourceDataHolder(data);
                         newData.put(ImageCollection.class, collection);
                         IoSupplier<NativeImage> supplier = generator.getSupplier(newData, context);
@@ -138,9 +138,14 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
 
     public static class ImageCollection implements Closeable {
         private final Map<String, NativeImage> map;
+        private final Map<String, TimeAwareSource> original;
+        private final int frame;
 
-        public ImageCollection(Map<String, NativeImage> map) {
+        @ApiStatus.Internal
+        public ImageCollection(Map<String, NativeImage> map, Map<String, TimeAwareSource> original, int frame) {
             this.map = new HashMap<>(map);
+            this.original = original;
+            this.frame = frame;
         }
 
         @Override
@@ -148,15 +153,20 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
             map.values().forEach(NativeImage::close);
         }
 
-        public NativeImage get(String key) {
+        public NativeImage get(String key) throws IOException {
             NativeImage input = map.get(key);
+            if (input == null) throw new IOException("No image for key: "+key);
             NativeImage newImage = new NativeImage(input.format(), input.getWidth(), input.getHeight(), false);
             newImage.copyFrom(input);
             return newImage;
         }
 
-        protected Collection<NativeImage> get() {
-            return map.values();
+        public int getFrame() {
+            return frame;
+        }
+
+        public TimeAwareSource getFull(String key) {
+            return original.get(key);
         }
     }
 

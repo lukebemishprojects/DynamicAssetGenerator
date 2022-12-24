@@ -7,6 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.impl.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.DataResult;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.impl.CacheReference;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
@@ -40,13 +41,13 @@ public class PaletteExtractor implements Closeable {
     public final boolean trimTrailingPaletteLookup;
     private final boolean forceOverlayNeighbors;
     private final ResourceLocation cacheName;
-    private final String cacheKey;
+    private final DataResult<String> cacheKey;
 
     private OutputHolder outputHolder;
 
     private static final float N_CUTOFF_SCALE = 1.5f;
 
-    public PaletteExtractor(ResourceLocation cacheName, String cacheKey, NativeImage background, NativeImage withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
+    public PaletteExtractor(ResourceLocation cacheName, DataResult<String> cacheKey, NativeImage background, NativeImage withOverlay, int extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
         this.cacheName = cacheName;
         this.cacheKey = cacheKey;
         this.background = background;
@@ -474,17 +475,22 @@ public class PaletteExtractor implements Closeable {
 
 
     public void unCacheOrReCalc() {
+        if (this.cacheKey.result().isEmpty()) {
+            this.recalcImages();
+            System.out.println("Uncached re-calculation");
+            return;
+        }
         var cache = MULTI_CACHE.computeIfAbsent(this.cacheName, k -> new ConcurrentHashMap<>());
-        System.out.println("Checking cacheKey: "+this.cacheKey);
-        var ref = cache.computeIfAbsent(cacheKey, k -> new CacheReference<>());
+        var ref = cache.computeIfAbsent(cacheKey.result().get(), k -> new CacheReference<>());
+        System.out.println("Checking for cache");
         ref.doSync(holder -> {
             if (holder != null) {
-                System.out.println("Got from cacheKey: "+this.cacheKey);
                 this.outputHolder = holder.copy();
+                System.out.println("Using cached");
             } else {
                 this.recalcImages();
                 ref.setHeld(this.outputHolder.copy());
-                System.out.println("Stored cacheKey: "+this.cacheKey);
+                System.out.println("Calculating for cache");
             }
         });
     }

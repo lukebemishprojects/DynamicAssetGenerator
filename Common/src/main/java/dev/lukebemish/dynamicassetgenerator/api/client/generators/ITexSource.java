@@ -11,11 +11,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaCodec;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ClientRegisters;
 import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCachingWrapper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.ExtraCodecs;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
@@ -39,15 +41,34 @@ public interface ITexSource {
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);
         }
-    }).dispatch(ITexSource::codec, Function.identity()).xmap(TexSourceCachingWrapper::new, wrapped -> {
+    }).dispatch((ITexSource source) -> {
+        var codec = source.codec();
+        var found = ClientRegisters.ITEXSOURCES_WRAPPED.get(codec);
+        if (found != null) return found;
+        return codec;
+    }, Function.identity()).xmap(TexSourceCachingWrapper::new, wrapped -> {
         while (wrapped instanceof TexSourceCachingWrapper cachingWrapper) {
             wrapped = cachingWrapper.wrapped();
         }
         return wrapped;
     });
 
-    static void register(ResourceLocation rl, Codec<? extends ITexSource> reader) {
-        ClientRegisters.ITEXSOURCES.put(rl, reader);
+    String METADATA_CACHE_KEY = "__dynamic_asset_generator_metadata";
+
+    static <T extends ITexSource> void register(ResourceLocation rl, Codec<T> codec) {
+        CacheMetaCodec<T, TexSourceDataHolder> wrappedCodec = new CacheMetaCodec<>(codec, new CacheMetaCodec.DataConsumer<>() {
+            @Override
+            @NotNull
+            public <T1> DataResult<T1> encode(DynamicOps<T1> ops, TexSourceDataHolder data, T object) {
+                return object.cacheMetadata(ops, data);
+            }
+        }, METADATA_CACHE_KEY, TexSourceDataHolder.class);
+        ClientRegisters.ITEXSOURCES.put(rl, wrappedCodec);
+        ClientRegisters.ITEXSOURCES_WRAPPED.put(codec, wrappedCodec);
+    }
+
+    @NotNull default <T> DataResult<T> cacheMetadata(DynamicOps<T> ops, TexSourceDataHolder data) {
+        return DataResult.success(ops.empty());
     }
 
     Codec<? extends ITexSource> codec();

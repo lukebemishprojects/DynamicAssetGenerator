@@ -7,9 +7,10 @@ package dev.lukebemish.dynamicassetgenerator.impl.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.JsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaJsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.CacheReference;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
@@ -26,10 +27,14 @@ public final class TexSourceCache {
 
     private static final Map<ResourceLocation, Map<String, CacheReference<Either<NativeImage, IOException>>>> MULTI_CACHE = new ConcurrentHashMap<>();
 
-    @NotNull public static NativeImage fromCache(IoSupplier<NativeImage> supplier, ITexSource source, ResourceGenerationContext context) throws IOException {
+    @NotNull public static NativeImage fromCache(IoSupplier<NativeImage> supplier, ITexSource source, ResourceGenerationContext context, TexSourceDataHolder data) throws IOException {
         var cache = MULTI_CACHE.computeIfAbsent(context.cacheName(), k -> new ConcurrentHashMap<>());
         try {
-            String cacheKey = DynamicAssetGenerator.GSON_FLAT.toJson(ITexSource.CODEC.encodeStart(JsonOps.INSTANCE, source).getOrThrow(false, e->{}));
+            var dataOps = new CacheMetaJsonOps<>(data, TexSourceDataHolder.class);
+            String cacheKey = ITexSource.CODEC.encodeStart(dataOps, source).result().map(DynamicAssetGenerator.GSON_FLAT::toJson).orElse(null);
+            if (cacheKey == null) {
+                return supplier.get();
+            }
             var ref = cache.computeIfAbsent(cacheKey, key -> new CacheReference<>());
             var result = ref.calcSync(cached -> {
                 if (cached == null) {
