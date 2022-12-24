@@ -25,7 +25,6 @@ dependencies {
 import net.fabricmc.loom.task.AbstractRemapJarTask
 tasks.withType(AbstractRemapJarTask).each {
     it.targetNamespace = "named"
-    it.enabled = false
 }
 
 processResources {
