@@ -28,6 +28,7 @@ pluginManagement {
             name = 'TheModdingInquisition'
             url = 'https://maven.moddinginquisition.org/releases'
         }
+        maven { url = 'https://maven.minecraftforge.net/' }
 
         mavenCentral()
         gradlePluginPortal()
