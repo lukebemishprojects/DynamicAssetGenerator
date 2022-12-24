@@ -14,13 +14,11 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@ParametersAreNonnullByDefault
 public class GeneratedPackResources implements PackResources {
 
     private final ResourceCache cache;
@@ -45,13 +43,13 @@ public class GeneratedPackResources implements PackResources {
 
     @Nullable
     @Override
-    public IoSupplier<InputStream> getRootResource(String... strings) {
+    public IoSupplier<InputStream> getRootResource(String @NotNull ... strings) {
         return null;
     }
 
     @Nullable
     @Override
-    public IoSupplier<InputStream> getResource(PackType packType, ResourceLocation location) {
+    public IoSupplier<InputStream> getResource(@NotNull PackType packType, @NotNull ResourceLocation location) {
         if (packType == cache.getPackType()) {
             if (getStreams().containsKey(location)) {
                 return getStreams().get(location);
@@ -61,7 +59,7 @@ public class GeneratedPackResources implements PackResources {
     }
 
     @Override
-    public void listResources(PackType packType, String namespace, String directory, ResourceOutput resourceOutput) {
+    public void listResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String directory, @NotNull ResourceOutput resourceOutput) {
         if (packType == cache.getPackType()) {
             for (ResourceLocation key : getStreams().keySet()) {
                 if (key.getPath().startsWith(directory) && key.getNamespace().equals(namespace) && getStreams().get(key) != null) {
@@ -72,7 +70,7 @@ public class GeneratedPackResources implements PackResources {
     }
 
     @Override
-    public @NotNull Set<String> getNamespaces(PackType type) {
+    public @NotNull Set<String> getNamespaces(@NotNull PackType type) {
         Set<String> namespaces = new HashSet<>();
         if (type == cache.getPackType()) {
             for (ResourceLocation key : getStreams().keySet()) {

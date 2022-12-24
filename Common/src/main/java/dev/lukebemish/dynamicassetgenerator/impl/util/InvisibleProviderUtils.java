@@ -16,7 +16,6 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
@@ -24,7 +23,6 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@ParametersAreNonnullByDefault
 public final class InvisibleProviderUtils {
     public static final List<InvisibleResourceProvider> INVISIBLE_RESOURCE_PROVIDERS =
             Stream.concat(
@@ -46,28 +44,28 @@ public final class InvisibleProviderUtils {
         return new PackResources() {
             @Nullable
             @Override
-            public IoSupplier<InputStream> getRootResource(String... strings) {
+            public IoSupplier<InputStream> getRootResource(String @NotNull ... strings) {
                 return null;
             }
 
             @Override
-            public IoSupplier<InputStream> getResource(PackType type, ResourceLocation location) {
+            public IoSupplier<InputStream> getResource(@NotNull PackType type, @NotNull ResourceLocation location) {
                 return provider.getResource(type, location);
             }
 
             @Override
-            public void listResources(PackType packType, String namespace, String path, ResourceOutput resourceOutput) {
+            public void listResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String path, @NotNull ResourceOutput resourceOutput) {
                 provider.listResources(packType, namespace, path, resourceOutput);
             }
 
             @Override
-            public @NotNull Set<String> getNamespaces(PackType type) {
+            public @NotNull Set<String> getNamespaces(@NotNull PackType type) {
                 return provider.getNamespaces(type);
             }
 
             @Nullable
             @Override
-            public <T> T getMetadataSection(MetadataSectionSerializer<T> deserializer) {
+            public <T> T getMetadataSection(@NotNull MetadataSectionSerializer<T> deserializer) {
                 return null;
             }
 

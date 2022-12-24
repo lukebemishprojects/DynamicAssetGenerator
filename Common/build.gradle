@@ -1,5 +1,5 @@
 plugins {
-    id 'org.quiltmc.loom' version '0.12.+'
+    id 'org.quiltmc.loom' version '1.+'
     id 'maven-publish'
 }
 
@@ -25,6 +25,7 @@ dependencies {
 import net.fabricmc.loom.task.AbstractRemapJarTask
 tasks.withType(AbstractRemapJarTask).each {
     it.targetNamespace = "named"
+    it.enabled = false
 }
 
 processResources {

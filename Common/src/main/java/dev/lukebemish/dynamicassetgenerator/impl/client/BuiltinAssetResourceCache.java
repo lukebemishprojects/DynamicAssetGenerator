@@ -33,7 +33,7 @@ public class BuiltinAssetResourceCache extends AssetResourceCache {
         for (PackResources r : ClientPrePackRepository.getResources()) {
             if (r.packId().startsWith(DynamicAssetGenerator.MOD_ID+':')) continue;
             for (String namespace : r.getNamespaces(PackType.CLIENT_RESOURCES)) {
-                r.listResources(PackType.SERVER_DATA, namespace, SOURCE_JSON_DIR,  (rl, streamSupplier) -> {
+                r.listResources(PackType.CLIENT_RESOURCES, namespace, SOURCE_JSON_DIR,  (rl, streamSupplier) -> {
                     if (rl.getPath().endsWith(".json") && streamSupplier != null) {
                         available.put(rl, streamSupplier);
                     }

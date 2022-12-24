@@ -1,0 +1,8 @@
+{
+  "type" : "dynamic_asset_generator:texture",
+  "output_location" : "minecraft:item/gold_ingot",
+  "input" : {
+    "type" : "dynamic_asset_generator:texture",
+    "path" : "minecraft:item/apple"
+  }
+}

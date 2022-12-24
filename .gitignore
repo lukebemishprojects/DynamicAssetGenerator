@@ -20,4 +20,8 @@ build
 
 # other
 eclipse
-run
+*/run/**/*
+!*/run/resourcepacks
+!*/run/resourcepacks/test
+!*/run/resourcepacks/test/*
+!*/run/resourcepacks/test/**/*

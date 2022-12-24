@@ -9,8 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
 import java.util.Set;
 
@@ -20,15 +20,14 @@ import java.util.Set;
  * systems. Should be provided as a service if this should always be available; otherwise, see
  * {@link ConditionalInvisibleResourceProvider}.
  */
-@ParametersAreNonnullByDefault
 public interface InvisibleResourceProvider {
 
-    IoSupplier<InputStream> getResource(PackType type, ResourceLocation location);
+    IoSupplier<InputStream> getResource(@NotNull PackType type, @NotNull ResourceLocation location);
 
-    void listResources(PackType type, String namespace, String path, PackResources.ResourceOutput resourceOutput);
+    void listResources(@NotNull PackType type, @NotNull String namespace, @NotNull String path, @NotNull PackResources.ResourceOutput resourceOutput);
 
-    Set<String> getNamespaces(PackType type);
+    Set<String> getNamespaces(@NotNull PackType type);
 
-    default void reset(PackType type) {}
+    default void reset(@NotNull PackType type) {}
 
 }
