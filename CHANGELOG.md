@@ -1,7 +1,10 @@
 ## Dynamic Asset Generator 3.0.0
 
+### Features
+- **BREAKING** Caching system allows and expects texture sources to define their own cacheable states in some cases
 ### Fixes
 - **BREAKING** Added a fancy new caching system that should hopefully make working with large textures far faster, at the cost of breaking some API surfaces
+- Add proper package-info files marking impl packages as internal
 ### Other
 - Update README.md
 
