@@ -27,7 +27,7 @@ dependencies {
     compileOnly group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
     annotationProcessor group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
 
-    include modImplementation("net.devtech:arrp:${rootProject.arrp_version}") {
+    include modImplementation("curse.maven:arrp-463113:3680866") {
         exclude(group: "net.fabricmc.fabric-api")
     }
 }

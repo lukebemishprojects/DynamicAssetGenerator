@@ -46,6 +46,13 @@ subprojects {
             name 'Quilt (Release)'
             url 'https://maven.quiltmc.org/repository/release/'
         }
+
+        maven {
+            url "https://cursemaven.com"
+            content {
+                includeGroup "curse.maven"
+            }
+        }
     }
 
     dependencies {
