@@ -31,7 +31,13 @@ public final class TexSourceCache {
         var cache = MULTI_CACHE.computeIfAbsent(context.cacheName(), k -> new ConcurrentHashMap<>());
         try {
             var dataOps = new CacheMetaJsonOps<>(data, TexSourceDataHolder.class);
-            String cacheKey = ITexSource.CODEC.encodeStart(dataOps, source).result().map(DynamicAssetGenerator.GSON_FLAT::toJson).orElse(null);
+            String cacheKey;
+            try {
+                cacheKey = ITexSource.CODEC.encodeStart(dataOps, source).result().map(DynamicAssetGenerator.GSON_FLAT::toJson).orElse(null);
+            } catch (RuntimeException e) {
+                // Could not encode; huh...
+                return supplier.get();
+            }
             if (cacheKey == null) {
                 return supplier.get();
             }
