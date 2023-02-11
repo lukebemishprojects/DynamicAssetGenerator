@@ -5,12 +5,10 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.google.gson.JsonElement;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
@@ -55,13 +53,15 @@ public record AnimationFrameCapture(String capture) implements ITexSource {
             var builder = ops.mapBuilder();
             builder.add("frame",ops.createInt(collection.getFrame()));
             AnimationSplittingSource.TimeAwareSource source = collection.getFull(capture());
-            DataResult<JsonElement> parentElement = ITexSource.CODEC.encodeStart(JsonOps.INSTANCE, source.source());
+            if (source == null)
+                return DataResult.error("In uncacheable state, no parent animation source to capture...");
+            DataResult<T> parentElementTyped = ITexSource.CODEC.encodeStart(ops, source.source());
             builder.add("scale", ops.createInt(source.scale()));
-            if (parentElement.result().isEmpty())
-                return DataResult.error("Could not encode parent animation source: "+ parentElement.error().get().message());
-            builder.add("parent",JsonOps.INSTANCE.convertTo(ops, parentElement.result().get()));
+            if (parentElementTyped.result().isEmpty())
+                return DataResult.error("Could not encode parent animation source: "+ parentElementTyped.error().get().message());
+            builder.add("parent",parentElementTyped);
             return builder.build(ops.empty());
         }
-        return DataResult.error("No image collection found in data holder; cannot cache");
+        return DataResult.error("In uncacheable state, no parent animation source to capture...");
     }
 }

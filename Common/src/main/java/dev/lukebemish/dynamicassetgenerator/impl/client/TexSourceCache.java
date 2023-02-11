@@ -30,14 +30,9 @@ public final class TexSourceCache {
     @NotNull public static NativeImage fromCache(IoSupplier<NativeImage> supplier, ITexSource source, ResourceGenerationContext context, TexSourceDataHolder data) throws IOException {
         var cache = MULTI_CACHE.computeIfAbsent(context.cacheName(), k -> new ConcurrentHashMap<>());
         try {
-            var dataOps = new CacheMetaJsonOps<>(data, TexSourceDataHolder.class);
-            String cacheKey;
-            try {
-                cacheKey = ITexSource.CODEC.encodeStart(dataOps, source).result().map(DynamicAssetGenerator.GSON_FLAT::toJson).orElse(null);
-            } catch (RuntimeException e) {
-                // Could not encode; huh...
-                return supplier.get();
-            }
+            var dataOps = new CacheMetaJsonOps();
+            dataOps.putData(TexSourceDataHolder.class, data);
+            String cacheKey = ITexSource.CODEC.encodeStart(dataOps, source).result().map(DynamicAssetGenerator.GSON_FLAT::toJson).orElse(null);
             if (cacheKey == null) {
                 return supplier.get();
             }
@@ -69,7 +64,8 @@ public final class TexSourceCache {
                 throw result.right().get();
             }
         } catch (RuntimeException e) {
-            throw new IOException("Could not cache texture source; it may not have a registered codec.", e);
+            DynamicAssetGenerator.LOGGER.warn("Could not cache texture source; something has gone wrong with encoding.", e);
+            return supplier.get();
         }
     }
 

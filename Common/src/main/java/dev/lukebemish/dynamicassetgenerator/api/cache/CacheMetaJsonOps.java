@@ -9,22 +9,25 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import org.jetbrains.annotations.Nullable;
 
-public class CacheMetaJsonOps<D> extends JsonOps implements ICacheMetaDynamicOps<JsonElement> {
-    final D data;
-    final Class<? super D> clazz;
-    public CacheMetaJsonOps(D data, Class<? super D> clazz) {
+import java.util.HashMap;
+import java.util.Map;
+
+public class CacheMetaJsonOps extends JsonOps implements ICacheMetaDynamicOps<JsonElement> {
+
+    private final Map<Class<?>,Object> map = new HashMap<>();
+    public CacheMetaJsonOps() {
         super(false);
-        this.data = data;
-        this.clazz = clazz;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     @Nullable
-    public <D1> D1 getData(Class<? super D1> clazz) {
-        if (clazz.isAssignableFrom(this.clazz)) {
-            return (D1) data;
-        }
-        return null;
+    public <D> D getData(Class<? super D> clazz) {
+        return (D) map.get(clazz);
+    }
+
+    @Override
+    public <D> void putData(Class<? super D> clazz, @Nullable D data) {
+        map.put(clazz, data);
     }
 }

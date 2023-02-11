@@ -60,7 +60,8 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
 
         final DataResult<String> cacheKey;
         DataResult<String> cacheKey1;
-        var dataOps = new CacheMetaJsonOps<>(data, TexSourceDataHolder.class);
+        var dataOps = new CacheMetaJsonOps();
+        dataOps.putData(TexSourceDataHolder.class, data);
         DataResult<String> cacheKeyBackground = ITexSource.CODEC.encodeStart(dataOps, background()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
         DataResult<String> cacheKeyFull = ITexSource.CODEC.encodeStart(dataOps, full()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
         if (cacheKeyBackground.result().isPresent() && cacheKeyFull.result().isPresent())
