@@ -1,0 +1,38 @@
+# Java API
+
+## Getting Started
+
+The first step to get started with the Java API is to add DynAssetGen to your development environment. All artifacts for DynAssetGen are published at `https://maven.lukebemish.dev/releases/`:
+
+```gradle
+repositories {
+    maven {
+        url "https://maven.lukebemish.dev/releases"
+    }
+}
+```
+
+For each version of DynAssetGen, three types of artifacts are published:
+* `common` jars, which are in official "Mojmaps" mappings and contain no loader-specific code
+* `quilt` jars which run on Quilt
+* `forge` jars which run on Forge
+
+The artifact coordinates take the format `dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-<type>-<minecraft version>:<version>`
+
+```gradle title="Adding artifact on Forge"
+dependencies {
+    implementation fg.deobf('dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-forge-<minecraft version>:<version>')
+}
+```
+
+```gradle title="Adding artifact on Quilt"
+dependencies {
+    modImplementation 'dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-quilt-<minecraft version>:<version>'
+}
+```
+
+## Available Versions
+
+| Minecraft Version | Latest |
+| :---------------- | :----- |
+| 1.19.3            | [![Latest 1.19.3 Version](https://img.shields.io/badge/dynamic/xml?style=for-the-badge&color=blue&label=&prefix=v&query=metadata%2F%2Flatest&url=https%3A%2F%2Fmaven.lukebemish.dev%2Freleases%2Fdev%2Flukebemish%2Fdynamicassetgenerator%2Fdynamicassetgenerator-common-1.19.3%2Fmaven-metadata.xml)](https://maven.lukebemish.dev/#/releases/dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-common-1.19.3) |
