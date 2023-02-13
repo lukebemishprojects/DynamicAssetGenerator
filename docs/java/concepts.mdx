@@ -17,7 +17,7 @@ public static final DataResourceCache DATA_CACHE =
 Resource generation is structured around several core concepts:
 * `ResourceGenerationContext`, an object which holds information about the current resource generation environment
 * `IInputStreamSource`, an object which can take a target file resource location and a generation context, and supplies an
-  `IoSupplier<InputStream>` which can be used to read the resource data.
+  `IoSupplier<InputStream>` which can be used to read the resource data, or null if no resource should be supplied.
 * `IPathAwareInputStreamSource`, a `IInputStreamSource` which is aware of which locations it can provide data for.
 * Reset listeners, callbacks which are invoked when a resource cache is reset. These should be used to invalidate any sort of
   caching
