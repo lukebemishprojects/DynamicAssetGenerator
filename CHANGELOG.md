@@ -1,3 +1,10 @@
+## Dynamic Asset Generator 3.0.2
+
+### Fixes
+- no longer errors on uncachable sources
+- Fix build to avoid loom 1.1 issues
+- More cache system changes
+
 ## Dynamic Asset Generator 3.0.1
 
 ### Fixes
