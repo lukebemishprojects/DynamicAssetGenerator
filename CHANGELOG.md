@@ -1,3 +1,8 @@
+## Dynamic Asset Generator 3.0.3
+
+### Fixes
+- Update to 1.19.4
+
 ## Dynamic Asset Generator 3.0.2
 
 ### Fixes
