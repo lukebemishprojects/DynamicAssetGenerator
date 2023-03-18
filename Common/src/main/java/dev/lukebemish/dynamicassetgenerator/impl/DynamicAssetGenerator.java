@@ -29,7 +29,7 @@ public class DynamicAssetGenerator {
 
     public static PackMetadataSection fromCache(ResourceCache cache) {
         return new PackMetadataSection(Component.literal("Dynamic Asset Generator: " + cache.getName()),
-                cache.getPackType().getVersion(SharedConstants.getCurrentVersion()));
+                SharedConstants.getCurrentVersion().getPackVersion(cache.getPackType()));
     }
 
     private static ModConfig configs;

@@ -31,7 +31,7 @@ public interface ITexSource {
         @Override
         public <T> DataResult<Pair<Codec<? extends ITexSource>, T>> decode(DynamicOps<T> ops, T input) {
             return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !ClientRegisters.ITEXSOURCES.containsKey(keyValuePair.getFirst())
-                    ? DataResult.error("Unknown dynamic texture source type: " + keyValuePair.getFirst())
+                    ? DataResult.error(() -> "Unknown dynamic texture source type: " + keyValuePair.getFirst())
                     : DataResult.success(keyValuePair.mapFirst(ClientRegisters.ITEXSOURCES::get)));
         }
 
@@ -39,7 +39,7 @@ public interface ITexSource {
         public <T> DataResult<T> encode(Codec<? extends ITexSource> input, DynamicOps<T> ops, T prefix) {
             ResourceLocation key = ClientRegisters.ITEXSOURCES.inverse().get(input);
             if (key == null) {
-                return DataResult.error("Unregistered dynamic texture source type: " + input);
+                return DataResult.error(() -> "Unregistered dynamic texture source type: " + input);
             }
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);

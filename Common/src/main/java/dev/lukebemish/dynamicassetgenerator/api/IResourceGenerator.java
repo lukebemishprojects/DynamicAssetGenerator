@@ -20,7 +20,7 @@ public interface IResourceGenerator extends IPathAwareInputStreamSource {
         @Override
         public <T> DataResult<Pair<Codec<? extends IResourceGenerator>, T>> decode(DynamicOps<T> ops, T input) {
             return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !CommonRegisters.IRESOURCEGENERATORS.containsKey(keyValuePair.getFirst())
-                    ? DataResult.error("Unknown dynamic resource generator type: " + keyValuePair.getFirst())
+                    ? DataResult.error(() -> "Unknown dynamic resource generator type: " + keyValuePair.getFirst())
                     : DataResult.success(keyValuePair.mapFirst(CommonRegisters.IRESOURCEGENERATORS::get)));
         }
 
@@ -29,7 +29,7 @@ public interface IResourceGenerator extends IPathAwareInputStreamSource {
             ResourceLocation key = CommonRegisters.IRESOURCEGENERATORS.inverse().get(input);
             if (key == null)
             {
-                return DataResult.error("Unregistered dynamic resource generator type: " + input);
+                return DataResult.error(() -> "Unregistered dynamic resource generator type: " + input);
             }
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);

@@ -31,7 +31,7 @@ public record TagFile(List<TagEntry> values, boolean replace) {
             JsonElement json = JsonParser.parseReader(reader);
             return CODEC.parse(JsonOps.INSTANCE, json);
         } catch (IOException | RuntimeException e) {
-            return DataResult.error("Error reading tag file: " + e.getMessage());
+            return DataResult.error(() -> "Error reading tag file: " + e.getMessage());
         }
     }
 }

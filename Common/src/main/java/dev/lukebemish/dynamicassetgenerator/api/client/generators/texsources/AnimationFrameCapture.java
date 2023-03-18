@@ -54,14 +54,14 @@ public record AnimationFrameCapture(String capture) implements ITexSource {
             builder.add("frame",ops.createInt(collection.getFrame()));
             AnimationSplittingSource.TimeAwareSource source = collection.getFull(capture());
             if (source == null)
-                return DataResult.error("In uncacheable state, no parent animation source to capture...");
+                return DataResult.error(() -> "In uncacheable state, no parent animation source to capture...");
             DataResult<T> parentElementTyped = ITexSource.CODEC.encodeStart(ops, source.source());
             builder.add("scale", ops.createInt(source.scale()));
             if (parentElementTyped.result().isEmpty())
-                return DataResult.error("Could not encode parent animation source: "+ parentElementTyped.error().get().message());
+                return DataResult.error(() -> "Could not encode parent animation source: "+ parentElementTyped.error().get().message());
             builder.add("parent",parentElementTyped);
             return builder.build(ops.empty());
         }
-        return DataResult.error("In uncacheable state, no parent animation source to capture...");
+        return DataResult.error(() -> "In uncacheable state, no parent animation source to capture...");
     }
 }

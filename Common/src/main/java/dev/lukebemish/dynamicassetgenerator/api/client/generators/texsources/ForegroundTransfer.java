@@ -67,9 +67,9 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
         if (cacheKeyBackground.result().isPresent() && cacheKeyFull.result().isPresent())
             cacheKey1 = DataResult.success(cacheKeyBackground.result().get() + "," + cacheKeyFull.result().get()+ "," + extendPaletteSize + "," + trimTrailing + "," + forceNeighbors + "," + fillHoles + "," + closeCutoff);
         else if (cacheKeyBackground.error().isPresent())
-            cacheKey1 = DataResult.error("Failed to encode cache key: " + cacheKeyBackground.error().get().message());
+            cacheKey1 = DataResult.error(() -> "Failed to encode cache key: " + cacheKeyBackground.error().get().message());
         else
-            cacheKey1 = DataResult.error("Failed to encode cache key: " + cacheKeyFull.error().get().message());
+            cacheKey1 = DataResult.error(() -> "Failed to encode cache key: " + cacheKeyFull.error().get().message());
         cacheKey = cacheKey1;
 
         return () -> {
