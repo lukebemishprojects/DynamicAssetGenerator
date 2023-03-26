@@ -3,6 +3,7 @@
 ### Fixes
 - Fix Overlay sources with non-square images
 - Crop source logs inconsistently
+- Overlay-like masks behave strangely and caching inverts image dimensions
 
 ## Dynamic Asset Generator 3.0.4
 
