@@ -21,4 +21,4 @@ Format:
 * `start_x` and `start_y` are the starting x and y pixels for the output image, counting from the top left. These can be negative.
 * `size_x` and `size_y` are the dimensions of the output image in the x and y directions.
 
-All the start and size parameters are relative to the `total_width`. In other words, if the `total_width` is the same as the width of the input image, then the output will be `size_x` by `size_y`, starting at `start_x` and `start_y`; if the image is twice the `total_width`, then the output will be `2*size_x` by `2_size_y`, starting at `2*start_x` and `2*start_y`; etc.
+All the start and size parameters are relative to the `total_size`. In other words, if the `total_size` is the same as the width of the input image, then the output will be `size_x` by `size_y`, starting at `start_x` and `start_y`; if the image is twice the `total_size`, then the output will be `2*size_x` by `2_size_y`, starting at `2*start_x` and `2*start_y`; etc.
