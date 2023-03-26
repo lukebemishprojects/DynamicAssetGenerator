@@ -1,3 +1,8 @@
+## Dynamic Asset Generator 3.0.5
+
+### Fixes
+- Fix Overlay sources with non-square images
+
 ## Dynamic Asset Generator 3.0.4
 
 ### Fixes
