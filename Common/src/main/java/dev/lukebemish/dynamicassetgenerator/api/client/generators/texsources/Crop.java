@@ -5,19 +5,20 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import com.mojang.blaze3d.platform.NativeImage;
+import java.io.IOException;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
-import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
+import com.mojang.blaze3d.platform.NativeImage;
+
+import net.minecraft.server.packs.resources.IoSupplier;
 
 public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, ITexSource input) implements ITexSource {
     public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -48,19 +49,21 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
             try (NativeImage inImg = suppliedInput.get()) {
                 if (totalSize() == 0) {
                     data.getLogger().error("Total image width must be non-zero");
+                    throw new IOException("Total image width must be non-zero");
                 }
                 int scale = inImg.getWidth() / totalSize();
 
                 if (scale == 0) {
                     data.getLogger().error("Image scale turned out to be 0! Image is {} wide, total width is {}",
                             inImg.getWidth(), totalSize());
+                    throw new IOException("Image scale turned out to be 0! Image is " + inImg.getWidth() + " wide, total width is " + totalSize());
                 }
 
                 int distX = sizeX() * scale;
                 int distY = sizeY() * scale;
                 if (distY < 1 || distX < 1) {
-                    DynamicAssetGenerator.LOGGER.error("Bounds of image are negative! {}, {}", sizeX(), sizeY());
-                    throw new IOException("Bounds of image are negative!");
+                    data.getLogger().error("Bounds of image are negative! {}, {}", sizeX(), sizeY());
+                    throw new IOException("Bounds of image are negative! "+sizeX()+", "+sizeY());
                 }
 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
