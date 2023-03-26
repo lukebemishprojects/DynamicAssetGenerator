@@ -11,7 +11,7 @@ public class NativeImageHelper {
     public static NativeImage of(NativeImage.Format format, int x, int y, boolean bl) {
         NativeImage ni = new NativeImage(format,x,y,bl);
         for (int i = 0; i<x; i++) {
-            for (int j = 0; j<x; j++) {
+            for (int j = 0; j<y; j++) {
                 ni.setPixelRGBA(i,j,0);
             }
         }
