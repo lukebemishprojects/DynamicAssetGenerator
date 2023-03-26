@@ -1,3 +1,8 @@
+## Dynamic Asset Generator 3.0.4
+
+### Fixes
+- Stop NativeImageHelper error on non-square images
+
 ## Dynamic Asset Generator 3.0.3
 
 ### Fixes
