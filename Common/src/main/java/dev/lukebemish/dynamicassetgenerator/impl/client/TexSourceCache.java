@@ -42,7 +42,7 @@ public final class TexSourceCache {
                     try {
                         NativeImage image = supplier.get();
                         ref.setHeld(Either.left(image));
-                        NativeImage output = NativeImageHelper.of(image.format(), image.getHeight(), image.getWidth(), false);
+                        NativeImage output = NativeImageHelper.of(image.format(), image.getWidth(), image.getHeight(), false);
                         output.copyFrom(image);
                         return Either.left(output);
                     } catch (IOException e) {
@@ -51,7 +51,7 @@ public final class TexSourceCache {
                     }
                 } else if (cached.left().isPresent()) {
                     NativeImage image = cached.left().get();
-                    NativeImage output = NativeImageHelper.of(image.format(), image.getHeight(), image.getWidth(), false);
+                    NativeImage output = NativeImageHelper.of(image.format(), image.getWidth(), image.getHeight(), false);
                     output.copyFrom(image);
                     return Either.left(output);
                 } else {

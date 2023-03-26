@@ -45,12 +45,12 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
             data.getLogger().error("Bounds of image are negative...\n{}", this);
             return null;
         }
+        if (totalSize() <= 0) {
+            data.getLogger().error("Total image width must be positive");
+            return null;
+        }
         return () -> {
             try (NativeImage inImg = suppliedInput.get()) {
-                if (totalSize() == 0) {
-                    data.getLogger().error("Total image width must be non-zero");
-                    throw new IOException("Total image width must be non-zero");
-                }
                 int scale = inImg.getWidth() / totalSize();
 
                 if (scale == 0) {
@@ -62,8 +62,8 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
                 int distX = sizeX() * scale;
                 int distY = sizeY() * scale;
                 if (distY < 1 || distX < 1) {
-                    data.getLogger().error("Bounds of image are negative! {}, {}", sizeX(), sizeY());
-                    throw new IOException("Bounds of image are negative! "+sizeX()+", "+sizeY());
+                    data.getLogger().error("Bounds of image are non-positive! {}, {}", sizeX(), sizeY());
+                    throw new IOException("Bounds of image are non-positive! "+sizeX()+", "+sizeY());
                 }
 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);

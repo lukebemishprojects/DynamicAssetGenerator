@@ -107,3 +107,11 @@ subprojects { p ->
         }
     }
 }
+
+[project(':Forge'), project(':Quilt')].each { p ->
+    ['build','publish','modrinth','curseforge'].each {
+        p.tasks.named(it) {
+            dependsOn 'checkLicense'
+        }
+    }
+}
