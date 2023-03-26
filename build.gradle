@@ -7,7 +7,7 @@ buildscript {
 plugins {
     id 'dev.lukebemish.modgitpublisher' version '1.1.2'
     id 'io.github.groovymc.modsdotgroovy' version '1.1.2'
-    id 'org.cadixdev.licenser' version '0.6.1' apply false
+    id 'org.quiltmc.gradle.licenser' version '1.+' apply false
 }
 
 modGitPublisher {
@@ -32,14 +32,14 @@ subprojects { p ->
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
     apply plugin: 'java-library'
-    apply plugin: 'org.cadixdev.licenser'
+    apply plugin: 'org.quiltmc.gradle.licenser'
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     java.withSourcesJar()
     java.withJavadocJar()
 
     license {
-        header = rootProject.file('header.txt')
+        rule rootProject.file('header.txt')
     }
 
     jar {
