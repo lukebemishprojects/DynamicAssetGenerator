@@ -8,7 +8,7 @@ Format:
 {
     "type": "dynamic_asset_generator:crop",
     "input": {   },
-    "total_width": 16,
+    "total_size": 16,
     "start_x": 0,
     "start_y": 0,
     "size_x": 8,
@@ -17,7 +17,7 @@ Format:
 ```
 
 * `input` a texture source used as an input.
-* `total_width` is the expected width of the entire original image. This is used for scaling, and consistency across different resolution resource packs.
+* `total_size` is the expected width of the entire original image. This is used for scaling, and consistency across different resolution resource packs.
 * `start_x` and `start_y` are the starting x and y pixels for the output image, counting from the top left. These can be negative.
 * `size_x` and `size_y` are the dimensions of the output image in the x and y directions.
 
