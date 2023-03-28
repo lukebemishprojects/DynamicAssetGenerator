@@ -21,8 +21,11 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
 import net.minecraft.server.packs.resources.IoSupplier;
+
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+@ApiStatus.Experimental
 public record PaletteSpreadSource(ITexSource source, float paletteCutoff, List<Range> range) implements ITexSource {
     public static final Codec<PaletteSpreadSource> CODEC = RecordCodecBuilder.create(i -> i.group(
             ITexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::source),
