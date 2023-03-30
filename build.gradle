@@ -40,6 +40,7 @@ subprojects { p ->
 
     license {
         rule rootProject.file('header.txt')
+        exclude '**/*.mcmeta'
     }
 
     jar {
