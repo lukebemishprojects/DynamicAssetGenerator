@@ -1,3 +1,11 @@
+## Dynamic Asset Generator 3.1.0
+
+### Features
+- Change PaletteSpreadSource behavior to allow for better defined ranges
+### Fixes
+- Mark PaletteSpreadSource as experimental, as it should have been (alongside masks)
+- Fix broken forge pack.mcmeta
+
 ## Dynamic Asset Generator 3.0.5
 
 ### Fixes
