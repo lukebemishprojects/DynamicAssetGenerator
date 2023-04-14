@@ -97,12 +97,14 @@ subprojects { p ->
 
     publishing {
         repositories {
-            maven {
-                name = 'PersonalMaven'
-                url = uri('https://maven.lukebemish.dev/releases')
-                credentials {
-                    username = findProperty('lukebemishMavenUser') ?: ''
-                    password = findProperty('lukebemishMavenPassword') ?: ''
+            if (findProperty('lukebemishMavenUrl')) {
+                maven {
+                    name = 'PersonalMaven'
+                    url = uri(findProperty('lukebemishMavenUrl'))
+                    credentials(AwsCredentials) {
+                        accessKey findProperty('lukebemishMavenKey') ?: ''
+                        secretKey findProperty('lukebemishMavenSecret') ?: ''
+                    }
                 }
             }
         }
