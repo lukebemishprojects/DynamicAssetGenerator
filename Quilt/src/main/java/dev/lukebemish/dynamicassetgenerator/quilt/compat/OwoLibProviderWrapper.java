@@ -67,32 +67,39 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
 
         @Override
         public Set<String> getNamespaces(@NotNull PackType type) {
-            if (type == PackType.SERVER_DATA)
+            if (type == PackType.SERVER_DATA) {
+                checkMap();
                 return tagMap.keySet().stream().map(ResourceLocation::getNamespace).collect(Collectors.toSet());
+            }
             else return Set.of();
         }
 
         @Override
         public void reset(@NotNull PackType type) {
-            tagMap = null;
+            if (type == PackType.SERVER_DATA)
+                tagMap = null;
         }
 
         private void checkMap() {
             if (tagMap == null) {
-                tagMap = new HashMap<>();
-                TagInjector.getInjections().forEach((key, values) -> {
-                    var tag = new TagFile(new ArrayList<>(values), false);
-                    JsonElement encoded;
-                    try {
-                        encoded =
-                                TagFile.CODEC.encodeStart(JsonOps.INSTANCE, tag).getOrThrow(false, s -> {});
-                    } catch (RuntimeException e) {
-                        DynamicAssetGenerator.LOGGER.error("Error encoding tag file from OwoLib entries: " + e.getMessage());
-                        return;
-                    }
-                    tagMap.put(new ResourceLocation(key.tagId().getNamespace(), "tags/" + key.type() + "/" + key.tagId().getPath() + ".json"),
-                            DynamicAssetGenerator.GSON.toJson(encoded));
-                });
+                synchronized (this) {
+                    if (tagMap != null) return;
+                    tagMap = new HashMap<>();
+                    TagInjector.getInjections().forEach((key, values) -> {
+                        var tag = new TagFile(new ArrayList<>(values), false);
+                        JsonElement encoded;
+                        try {
+                            encoded =
+                                    TagFile.CODEC.encodeStart(JsonOps.INSTANCE, tag).getOrThrow(false, s -> {
+                                    });
+                        } catch (RuntimeException e) {
+                            DynamicAssetGenerator.LOGGER.error("Error encoding tag file from OwoLib entries: " + e.getMessage());
+                            return;
+                        }
+                        tagMap.put(new ResourceLocation(key.tagId().getNamespace(), "tags/" + key.type() + "/" + key.tagId().getPath() + ".json"),
+                                DynamicAssetGenerator.GSON.toJson(encoded));
+                    });
+                }
             }
         }
     }
