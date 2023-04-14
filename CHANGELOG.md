@@ -1,3 +1,8 @@
+## Dynamic Asset Generator 3.1.1
+
+### Fixes
+- Resolve NPE in owolib compat
+
 ## Dynamic Asset Generator 3.1.0
 
 ### Features
