@@ -1,5 +1,4 @@
 name: Publish PR
-concurrency: ci-${{ github.ref }}
 on:
   workflow_run:
     workflows: [Test]
