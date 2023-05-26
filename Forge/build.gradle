@@ -1,32 +1,18 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.parchmentmc:librarian:1.+'
-        classpath 'org.spongepowered:mixingradle:0.7.+'
-    }
-}
-
 plugins {
-    id 'com.matthewprenger.cursegradle' version '1.+'
-    id "com.modrinth.minotaur" version "2.+"
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    alias libs.plugins.forgegradle
+    alias libs.plugins.librarian
+    alias libs.plugins.mixingradle
+    alias libs.plugins.minotaur
+    alias libs.plugins.cursegradle
 }
 
 apply plugin: 'java'
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
-archivesBaseName = "${artifact_id}-forge-${minecraft_version}"
+archivesBaseName = "${artifact_id}-forge-${libs.versions.minecraft.get()}"
 
 minecraft {
-    mappings channel: 'parchment', version: "${parchment_minecraft_version}-${parchment_version}-${minecraft_version}"
+    mappings channel: 'parchment', version: "${libs.versions.parchment.minecraft.get()}-${libs.versions.parchment.mappings.get()}-${libs.versions.minecraft.get()}"
     
     if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
         // This location is hardcoded in Forge and can not be changed.
@@ -86,13 +72,13 @@ minecraft {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    minecraft libs.forge
     compileOnly project(":Common")
 
-    compileOnly group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
-    annotationProcessor group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
+    compileOnly libs.autoservice
+    annotationProcessor libs.autoservice
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor "org.spongepowered:mixin:${libs.versions.mixin.get()}:processor"
 }
 
 mixin {
@@ -135,14 +121,13 @@ publishing {
 
 // Publishing
 
-if (project.hasProperty("curseforge_key")) {
+if (System.getenv('CURSEFORGE_KEY')) {
     curseforge {
-        apiKey = project.curseforge_key
+        apiKey = System.getenv('CURSEFORGE_KEY')
         project {
             id = '577096'
-            changelog = modGitPublisher.changelog
             releaseType = "${project.release_type}"
-            addGameVersion "${project.minecraft_version}"
+            addGameVersion "${libs.versions.minecraft.get()}"
             addGameVersion 'Forge'
             mainArtifact(jar) {
                 displayName = "Dynamic Asset Generator [Forge] v$project.version"
@@ -154,16 +139,15 @@ if (project.hasProperty("curseforge_key")) {
     }
 }
 
-if (project.hasProperty("modrinth_key")) {
+if (System.getenv('MODRINTH_KEY')) {
     modrinth {
-        token = project.modrinth_key
+        token = System.getenv('MODRINTH_KEY')
         projectId = '83pFEQVb'
         versionNumber = "$project.version"
         versionType = "${project.release_type}"
         detectLoaders = false
-        changelog = modGitPublisher.changelog
         uploadFile = jar
-        gameVersions = ["${project.minecraft_version}"]
+        gameVersions = ["${libs.versions.minecraft.get()}"]
         loaders = ['forge']
     }
 }

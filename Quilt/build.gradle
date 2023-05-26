@@ -1,11 +1,12 @@
 plugins {
-	id 'org.quiltmc.loom' version '1.0.+'
 	id 'maven-publish'
-	id 'com.matthewprenger.cursegradle' version '1.+'
-	id "com.modrinth.minotaur" version "2.+"
+	alias libs.plugins.cursegradle
+	alias libs.plugins.minotaur
 }
 
-archivesBaseName = "${artifact_id}-quilt-${minecraft_version}"
+apply plugin: 'org.quiltmc.loom'
+
+archivesBaseName = "${artifact_id}-quilt-${libs.versions.minecraft.get()}"
 
 repositories {
 	maven {
@@ -21,23 +22,22 @@ repositories {
 }
 
 dependencies {
-
-	minecraft "com.mojang:minecraft:${minecraft_version}"
+	minecraft libs.minecraft
 	mappings loom.layered() {
 		officialMojangMappings()
-		parchment("org.parchmentmc.data:parchment-${parchment_minecraft_version}:${parchment_version}@zip")
+		parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.mappings.get()}@zip")
 	}
-	modImplementation "org.quiltmc:quilt-loader:${quilt_loader_version}"
+	modImplementation libs.quilt.loader
 
-	modImplementation("org.quiltmc:qsl:${quilt_stdlib_version}+${minecraft_version}")
+	modImplementation libs.qsl
 
 	implementation project(":Common")
 
-	compileOnly group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
-	annotationProcessor group:'com.google.auto.service', name:'auto-service', version:'1.0.1'
+	compileOnly libs.autoservice
+	annotationProcessor libs.autoservice
 
 	// Compat
-	modCompileOnly "io.wispforest:owo-lib:${project.owo_version}"
+	modCompileOnly libs.owolib
 }
 
 loom {
@@ -108,14 +108,13 @@ publishing {
 
 // Publishing
 
-if (project.hasProperty("curseforge_key")) {
+if (System.getenv('CURSEFORGE_KEY')) {
 	curseforge {
-		apiKey = project.curseforge_key
+		apiKey = System.getenv('CURSEFORGE_KEY')
 		project {
 			id = '577096'
-			changelog = modGitPublisher.changelog
 			releaseType = "${project.release_type}"
-			addGameVersion "${project.minecraft_version}"
+			addGameVersion "${libs.versions.minecraft.get()}"
 			addGameVersion 'Quilt'
 			mainArtifact(remapJar) {
 				displayName = "Dynamic Asset Generator [Quilt] v$project.version"
@@ -130,16 +129,15 @@ if (project.hasProperty("curseforge_key")) {
 	}
 }
 
-if (project.hasProperty("modrinth_key")) {
+if (System.getenv('MODRINTH_KEY')) {
 	modrinth {
-		token = project.modrinth_key
+		token = System.getenv('MODRINTH_KEY')
 		projectId = '83pFEQVb'
 		versionNumber = "$project.version"
 		versionType = "${project.release_type}"
 		detectLoaders = false
-		changelog = modGitPublisher.changelog
 		uploadFile = remapJar
-		gameVersions = ["${project.minecraft_version}"]
+		gameVersions = ["${libs.versions.minecraft.get()}"]
 		loaders = ['quilt']
 		dependencies {
 			required.project 'qsl'

@@ -1,0 +1,49 @@
+version: 2
+registries:
+  maven-central:
+    type: maven-repository
+    url: https://repo.maven.apache.org/maven2/
+  fabricmc:
+    type: maven-repository
+    url: https://maven.fabricmc.net/
+  quiltmc:
+    type: maven-repository
+    url: https://maven.quiltmc.org/repository/release/
+  modding-inquisition:
+    type: maven-repository
+    url: https://maven.moddinginquisition.org/releases/
+  sponge:
+    type: maven-repository
+    url: https://repo.spongepowered.org/repository/maven-public/
+  parchment:
+    type: maven-repository
+    url: https://maven.parchmentmc.org/
+  forge:
+    type: maven-repository
+    url: https://maven.minecraftforge.net/
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    registries:
+      - maven-central
+      - fabricmc
+      - quiltmc
+      - modding-inquisition
+      - sponge
+      - parchment
+      - forge
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "*modsdotgroovy*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "com.mojang:minecraft"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "*minecraftforge*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.quiltmc*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

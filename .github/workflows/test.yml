@@ -1,0 +1,30 @@
+name: Test
+concurrency: ci-${{ github.ref }}
+on: [workflow_dispatch, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: 17
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: checkLicenses build
+          cache-read-only: ${{ !startsWith(github.ref, 'refs/heads/1.') }}
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: publish
+          cache-read-only: ${{ !startsWith(github.ref, 'refs/heads/1.') }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - name: Archive publishable artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: build/repo

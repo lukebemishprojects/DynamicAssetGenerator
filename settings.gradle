@@ -21,17 +21,25 @@ pluginManagement {
         }
 
         maven {
-            url "https://maven.lukebemish.dev/releases"
-        }
-
-        maven {
             name = 'TheModdingInquisition'
             url = 'https://maven.moddinginquisition.org/releases'
         }
         maven { url = 'https://maven.minecraftforge.net/' }
 
+        maven {
+            name = 'ParchmentMC'
+            url = 'https://maven.parchmentmc.org'
+        }
+
         mavenCentral()
         gradlePluginPortal()
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.toString() == 'org.spongepowered.mixin') {
+                useModule("org.spongepowered:mixingradle:${requested.version}")
+            }
+        }
     }
 }
 

@@ -28,14 +28,9 @@ ModsDotGroovy.make {
                 versionRange = ">=${this.forgeVersion}"
             }
 
-            quiltLoader {
-                versionRange = ">=${this.quiltLoaderVersion}"
-            }
-
             onQuilt {
-                mod('quilt_base') {
-                    versionRange = ">=${this.buildProperties['quilt_stdlib_version']}"
-                }
+                quiltLoader = ">=${this.quiltLoaderVersion}"
+                quilt_base = ">=${this.libs.versions.qsl}"
             }
         }
 

@@ -1,29 +1,98 @@
-buildscript {
-    dependencies {
-        classpath 'com.google.code.gson:gson:2.10'
+plugins {
+    alias libs.plugins.quilt.licenser apply false
+    alias libs.plugins.mdg.plugin
+    alias libs.plugins.quilt.loom apply false
+}
+
+version = new Properties().tap {
+    load(new FileInputStream(file('version.properties')))
+}.get('version')
+
+String lastTaggedVersion = version
+def gitTagProcess = 'git describe --abbrev=0 --tags'.execute()
+gitTagProcess.waitFor()
+if (gitTagProcess.exitValue() == 0) {
+    lastTaggedVersion = gitTagProcess.text.trim()
+    def parts = lastTaggedVersion.split("-")
+    lastTaggedVersion = parts[0..-2].join("-")
+} else {
+    logger.warn "Failed to get last tagged version: ERROR(${gitTagProcess.exitValue()})"
+}
+
+if (lastTaggedVersion == version) {
+    def currentTagProcess = 'git tag --points-at HEAD'.execute()
+    currentTagProcess.waitFor()
+    if (currentTagProcess.exitValue() != 0 || currentTagProcess.text.trim().empty) {
+        def noMetaParts = version.split("-")
+        def noBuildParts = noMetaParts[0].split("\\+")
+        def mainParts = noBuildParts[0].split("\\.")
+        mainParts[-1] = (mainParts[-1] as int + 1) as String
+        noBuildParts[0] = mainParts.join(".")
+        noMetaParts[0] = noBuildParts.join("+")
+        version = noMetaParts.join("-")
     }
 }
 
-plugins {
-    id 'dev.lukebemish.modgitpublisher' version '1.1.2'
-    id 'io.github.groovymc.modsdotgroovy' version '1.1.2'
-    id 'org.quiltmc.gradle.licenser' version '1.+' apply false
+if (System.getenv('PR_NUMBER')) {
+    version += "-pr${System.getenv('PR_NUMBER')}"
+} else if (System.getenv('SNAPSHOT_MAVEN_URL')) {
+    version += '-SNAPSHOT'
 }
 
-modGitPublisher {
-    projectName = "Dynamic Asset Generator"
-    minecraftVersion = project.minecraft_version
+subprojects {
+    version = rootProject.version
 }
 
-allprojects {p->
-    if (rootProject.hasProperty('versionOverride') && rootProject.versionOverride !== null)
-        p.version = rootProject.versionOverride
-    else
-        p.version = modGitPublisher.version
+static def getGitCommit() {
+    def proc = 'git rev-parse --short HEAD'.execute()
+    proc.waitFor()
+    if (proc.exitValue()) {
+        throw new RuntimeException("Failed to get git commit: ERROR(${proc.exitValue()})")
+    }
+    return proc.text.trim()
+}
+
+static def getGitCommitDate() {
+    def procDate = 'git log -1 --format=%at'.execute()
+    procDate.waitFor()
+    if (procDate.exitValue()) {
+        throw new RuntimeException("Failed to get git commit time: ERROR(${procDate.exitValue()})")
+    }
+    long timestamp = procDate.text.trim() as long * 1000
+    return new Date(timestamp).format(/yyyy-MM-dd HH:mm:ssZ/, TimeZone.getTimeZone("UTC"))
+}
+
+println "Version: ${version}"
+
+tasks.register('tagRelease') {
+    doLast {
+        def props = new Properties()
+        props.load(new FileInputStream(file('version.properties')))
+        props.setProperty('version', version)
+        props.store(new FileOutputStream(file('version.properties')), null)
+
+        def gitAddProcess = 'git add version.properties'.execute()
+        gitAddProcess.waitFor()
+        if (gitAddProcess.exitValue() != 0) {
+            throw new GradleException('Failed to add version.properties')
+        }
+
+        def gitCommitProcess = "git commit -m \"Bump version to ${version}\"".execute()
+        gitCommitProcess.waitFor()
+        if (gitCommitProcess.exitValue() != 0) {
+            throw new GradleException('Failed to commit version bump')
+        }
+
+        def gitTagCreateProcess = "git tag -m \"${version}-${libs.versions.minecraft.get()}\"".execute()
+        gitTagCreateProcess.waitFor()
+        if (gitTagCreateProcess.exitValue() != 0) {
+            throw new GradleException('Failed to tag release')
+        }
+    }
 }
 
 modsDotGroovy {
-    dslVersion = '1.1.3'
+    dslVersion = libs.versions.mdg.dsl.get()
     platform 'multiloader'
 }
 
@@ -32,7 +101,7 @@ subprojects { p ->
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
     apply plugin: 'java-library'
-    apply plugin: 'org.quiltmc.gradle.licenser'
+    apply plugin: libs.plugins.quilt.licenser.get().pluginId
 
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     java.withSourcesJar()
@@ -46,16 +115,15 @@ subprojects { p ->
     jar {
         manifest {
             attributes([
-                'Specification-Title'     : mod_name,
-                'Specification-Vendor'    : mod_author,
-                'Specification-Version'   : project.jar.archiveVersion,
-                'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_author,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'Timestampe'              : System.currentTimeMillis(),
-                'Built-On-Java'           : "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
-                'Build-On-Minecraft'      : minecraft_version
+                    'Specification-Title'     : mod_name,
+                    'Specification-Vendor'    : mod_author,
+                    'Specification-Version'   : rootProject.version,
+                    'Implementation-Title'    : project.name,
+                    'Implementation-Version'  : rootProject.version,
+                    'Implementation-Vendor'   : mod_author,
+                    'Implementation-Commit-Time': getGitCommitDate(),
+                    'Implementation-Commit': getGitCommit(),
+                    'Build-On-Minecraft'      : libs.versions.minecraft.get(),
             ])
         }
     }
@@ -80,7 +148,7 @@ subprojects { p ->
     }
 
     dependencies {
-        implementation 'org.jetbrains:annotations:23.0.0'
+        compileOnly libs.jetbrains.annotations
     }
 
     tasks.withType(JavaCompile).configureEach {
@@ -97,25 +165,20 @@ subprojects { p ->
 
     publishing {
         repositories {
-            if (findProperty('lukebemishMavenUrl')) {
+            if (System.getenv('PR_NUMBER')) {
+                maven {
+                    name = 'LocalMaven'
+                    url = rootProject.layout.buildDirectory.dir('repo')
+                }
+            } else {
                 maven {
                     name = 'PersonalMaven'
-                    url = uri(findProperty('lukebemishMavenUrl'))
-                    credentials(AwsCredentials) {
-                        accessKey findProperty('lukebemishMavenKey') ?: ''
-                        secretKey findProperty('lukebemishMavenSecret') ?: ''
+                    url = uri(System.getenv('SNAPSHOT_MAVEN_URL') ?: System.getenv('MAVEN_URL') ?: 'https://maven.lukebemish.dev/releases')
+                    credentials {
+                        username = System.getenv('MAVEN_USER') ?: findProperty('lukebemishMavenUser') ?: ''
+                        password = System.getenv('MAVEN_PASSWORD') ?: findProperty('lukebemishMavenPassword') ?: ''
                     }
                 }
-            }
-        }
-    }
-}
-
-[project(':Forge'), project(':Quilt')].each { p ->
-    p.afterEvaluate {
-        ['build', 'publish', 'modrinth', 'curseforge'].each {
-            p.tasks.named(it) {
-                dependsOn 'checkLicenses'
             }
         }
     }
