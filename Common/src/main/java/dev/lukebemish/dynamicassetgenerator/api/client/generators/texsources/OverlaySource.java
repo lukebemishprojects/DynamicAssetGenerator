@@ -3,20 +3,19 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask;
+package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AbstractManyOperationSource;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
 import java.util.List;
 
-public class AddMask extends AbstractManyOperationSource {
-    public static final Codec<AddMask> CODEC = AbstractManyOperationSource.makeCodec(AddMask::new);
+public class OverlaySource extends AbstractManyOperationSource {
+    public static final Codec<OverlaySource> CODEC = AbstractManyOperationSource.makeCodec(OverlaySource::new);
 
-    public AddMask(List<ITexSource> sources) {
+    public OverlaySource(List<ITexSource> sources) {
         super(sources);
     }
 
@@ -27,6 +26,6 @@ public class AddMask extends AbstractManyOperationSource {
 
     @Override
     public PointwiseOperation.ManyPointwiseOperation<Integer> getOperation() {
-        return Operations.ADD;
+        return Operations.OVERLAY;
     }
 }

@@ -23,6 +23,7 @@ public interface PointwiseOperation<T> {
     /**
      * A pointwise operation that can be applied to a single image.
      */
+    @FunctionalInterface
     interface UnaryPointwiseOperation<T> extends PointwiseOperation<T> {
         T apply(int color, boolean isInBounds);
 
@@ -36,6 +37,64 @@ public interface PointwiseOperation<T> {
             if (colors.length != 1 || inBounds.length != 1)
                 throw new IllegalArgumentException("Unary operation must have exactly one input image");
             return apply(colors[0], inBounds[0]);
+        }
+
+        /**
+         * @return a new unary operation that applies first one operation, then another
+         */
+        static <T> UnaryPointwiseOperation<T> chain(UnaryPointwiseOperation<Integer> first, UnaryPointwiseOperation<T> then) {
+            return (color, isInBounds) -> then.apply(first.apply(color, isInBounds), isInBounds);
+        }
+    }
+
+    /**
+     * A pointwise operation that can be applied to two images.
+     */
+    @FunctionalInterface
+    interface BinaryPointwiseOperation<T> extends PointwiseOperation<T> {
+        T apply(int firstColor, int secondColor, boolean isFirstInBounds, boolean isSecondInBounds);
+
+        @Override
+        default int expectedImages() {
+            return 2;
+        }
+
+        @Override
+        default T apply(int[] colors, boolean[] inBounds) {
+            if (colors.length != 2 || inBounds.length != 2)
+                throw new IllegalArgumentException("Binary operation must have exactly two input images");
+            return apply(colors[0], colors[1], inBounds[0], inBounds[1]);
+        }
+    }
+
+    /**
+     * A pointwise operation that can be applied to three images.
+     */
+    @FunctionalInterface
+    interface TernaryPointwiseOperation<T> extends PointwiseOperation<T> {
+        T apply(int firstColor, int secondColor, int thirdColor, boolean isFirstInBounds, boolean isSecondInBounds, boolean isThirdInBounds);
+
+        @Override
+        default int expectedImages() {
+            return 2;
+        }
+
+        @Override
+        default T apply(int[] colors, boolean[] inBounds) {
+            if (colors.length != 3 || inBounds.length != 3)
+                throw new IllegalArgumentException("Ternary operation must have exactly three input images");
+            return apply(colors[0], colors[1], colors[2], inBounds[0], inBounds[1], inBounds[2]);
+        }
+    }
+
+    /**
+     * A pointwise operation that can be applied to any number of images.
+     */
+    @FunctionalInterface
+    interface ManyPointwiseOperation<T> extends PointwiseOperation<T> {
+        @Override
+        default int expectedImages() {
+            return -1;
         }
     }
 }

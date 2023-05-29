@@ -11,10 +11,13 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
-import dev.lukebemish.dynamicassetgenerator.impl.client.util.IPalettePlan;
+import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
+import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
+import dev.lukebemish.dynamicassetgenerator.api.colors.operations.*;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public record CombinedPaletteImage(ITexSource overlay, ITexSource background, ITexSource paletted, boolean includeBackground, boolean stretchPaletted, int extendPaletteSize) implements ITexSource {
     public static final Codec<CombinedPaletteImage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -33,59 +36,56 @@ public record CombinedPaletteImage(ITexSource overlay, ITexSource background, IT
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        PalettePlanner planner = PalettePlanner.of(this, data, context);
-        if (planner.background == null) {
+        //PalettePlanner planner = PalettePlanner.of(this, data, context);
+        var backgroundSupplier = this.background.getSupplier(data, context);
+        var overlaySupplier = this.overlay.getSupplier(data, context);
+        var palettedSupplier = this.paletted.getSupplier(data, context);
+        if (backgroundSupplier == null) {
             data.getLogger().error("Background image was none... \n{}", background);
             return null;
         }
-        if (planner.overlay == null) {
+        if (overlaySupplier == null) {
             data.getLogger().error("Overlay image was none... \n{}", overlay);
             return null;
         }
-        if (planner.paletted == null) {
+        if (palettedSupplier == null) {
             data.getLogger().error("Paletted image was none... \n{}", paletted);
             return null;
         }
         return () -> {
-            try (NativeImage bImg = planner.background.get();
-                 NativeImage oImg = planner.overlay.get();
-                 NativeImage pImg = planner.paletted.get()) {
-                return Palette.paletteCombinedImage(bImg, oImg, pImg, planner);
+            try (NativeImage bImg = backgroundSupplier.get();
+                 NativeImage oImg = overlaySupplier.get();
+                 NativeImage pImg = palettedSupplier.get()) {
+
+                //TODO: figure out where the cutoff comes from and what to use for it
+                Palette palette = ImageUtils.getPalette(bImg, 2);
+                palette.extendToSize(extendPaletteSize);
+                final PointwiseOperation.UnaryPointwiseOperation<Integer> stretcher;
+                if (stretchPaletted) {
+                    Palette palettePalette = ImageUtils.getPalette(pImg, 2);
+                    stretcher = new ColorToPaletteOperation(palettePalette);
+                } else {
+                    stretcher = (color, isInBounds) -> color;
+                }
+
+                final PointwiseOperation.UnaryPointwiseOperation<Integer> paletteResolver = new PaletteToColorOperation(palette);
+
+                PointwiseOperation.TernaryPointwiseOperation<Integer> operation = (background,
+                                                                                   overlay,
+                                                                                   paletted,
+                                                                                   backgroundInBounds,
+                                                                                   overlayInBounds,
+                                                                                   palettedInBounds) -> {
+                    paletted = stretcher.apply(paletted, palettedInBounds);
+
+                    int resolvedPalette = paletteResolver.apply(paletted, palettedInBounds);
+                    int[] toOverlay = includeBackground ? new int[]{overlay, resolvedPalette, background} : new int[]{overlay, resolvedPalette};
+                    boolean[] toOverlayInBounds = includeBackground ? new boolean[]{overlayInBounds, palettedInBounds, backgroundInBounds} : new boolean[]{overlayInBounds, palettedInBounds};
+                    return Operations.OVERLAY.apply(toOverlay, toOverlayInBounds);
+                };
+
+                return ImageUtils.generateScaledImage(operation, List.of(bImg, oImg, pImg));
             }
         };
-    }
-
-    public static class PalettePlanner implements IPalettePlan {
-        private final CombinedPaletteImage info;
-        private IoSupplier<NativeImage> overlay;
-        private IoSupplier<NativeImage> background;
-        private IoSupplier<NativeImage> paletted;
-
-        private PalettePlanner(CombinedPaletteImage info) {
-            this.info = info;
-        }
-
-        public static PalettePlanner of(CombinedPaletteImage info, TexSourceDataHolder data, ResourceGenerationContext context) {
-            PalettePlanner out = new PalettePlanner(info);
-            out.background = info.background.getSupplier(data, context);
-            out.paletted = info.paletted.getSupplier(data, context);
-            out.overlay = info.overlay.getSupplier(data, context);
-            return out;
-        }
-
-        @Override
-        public boolean includeBackground() {
-            return info.includeBackground;
-        }
-
-        @Override
-        public boolean stretchPaletted() {
-            return info.stretchPaletted;
-        }
-
-        @Override
-        public int extend() {
-            return info.extendPaletteSize;
-        }
     }
 }
