@@ -29,7 +29,7 @@ public class Palette implements Collection<Integer> {
      */
     public Palette(double cutoff) {
         this.cutoff = cutoff;
-        this.backing = new FuzzySet<>((i1, i2) -> ColorTools.RGB24.distance(i1, i2) < cutoff, colors -> {
+        this.backing = new FuzzySet<>((i1, i2) -> ColorTools.ARGB32.distance(i1, i2) < cutoff, colors -> {
             int r = 0;
             int g = 0;
             int b = 0;
@@ -118,7 +118,7 @@ public class Palette implements Collection<Integer> {
         updateList();
     }
 
-    private static final int MAX_WIDTH = (int) Math.floor(ColorTools.RGB24.distance(0x000000, 0xFFFFFF));
+    private static final int MAX_WIDTH = (int) Math.floor(ColorTools.ARGB32.distance(0x000000, 0xFFFFFF));
 
     /**
      * Extends the high and low ends of the palette until it stretches to a given size.
@@ -126,7 +126,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public void extendToWidth(int targetWidth) {
-        this.extend(palette -> ColorTools.RGB24.distance(palette.colors.get(0), palette.colors.get(palette.colors.size() - 1)) >= targetWidth);
+        this.extend(palette -> ColorTools.ARGB32.distance(palette.colors.get(0), palette.colors.get(palette.colors.size() - 1)) >= targetWidth);
     }
 
     /**
@@ -150,10 +150,10 @@ public class Palette implements Collection<Integer> {
             throw new IllegalStateException("Color palette is empty");
         boolean isLow = true;
         boolean reachedEndpoint = false;
-        double spacing = ColorTools.RGB24.distance(colors.get(0), colors.get(colors.size() - 1)) / (colors.size() - 1);
+        double spacing = ColorTools.ARGB32.distance(colors.get(0), colors.get(colors.size() - 1)) / (colors.size() - 1);
         while (!isExtended.test(this)) {
             int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
-            double endDistance = ColorTools.RGB24.distance(end, isLow ? 0x000000 : 0xFFFFFF);
+            double endDistance = ColorTools.ARGB32.distance(end, isLow ? 0x000000 : 0xFFFFFF);
             int oldSize = colors.size();
             if (endDistance > spacing) {
                 int newColor = isLow ? 0x000000 : 0xFFFFFF;
@@ -280,7 +280,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalCenterSample() {
-        return (indexToSample(originalStart()) + indexToSample(originalEnd())) / 2;
+        return (originalStart() + originalEnd()) * 255 / colors.size() / 2;
     }
 
     /**
@@ -288,7 +288,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalStartSample() {
-        return indexToSample(originalStart());
+        return originalStart() * 255 / colors.size();
     }
 
     /**
@@ -296,7 +296,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalEndSample() {
-        return indexToSample(originalEnd());
+        return originalEnd() * 255 / colors.size();
     }
 
     /**
@@ -330,21 +330,22 @@ public class Palette implements Collection<Integer> {
      * @return a sample number pointing towards where the provided color would lie in the palette
      */
     public int getSample(int color) {
+        color = color & 0xFF000000;
         if (colors.isEmpty())
             throw new IllegalStateException("Color palette is empty");
         List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
         for (int i = 0; i < colors.size(); i++) {
-            indexWithDistance.add(Pair.of(i, ColorTools.RGB24.distance(color, colors.get(i))));
+            indexWithDistance.add(Pair.of(i, ColorTools.ARGB32.distance(color, colors.get(i))));
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
         if (indexWithDistance.size() == 1)
-            return indexToSample(indexWithDistance.get(0).getFirst());
+            return indexWithDistance.get(0).getFirst() * 255 / colors.size();
         else {
             var colorMain = indexWithDistance.get(0);
             var colorNext = indexWithDistance.get(1);
             double distance = colorMain.getSecond() + colorNext.getSecond();
             double lerp = Math.max(0, Math.min(1, colorMain.getSecond() / distance));
-            return (int) Math.round(indexToSample(colorMain.getFirst() * (1 - lerp) + colorNext.getFirst() * lerp));
+            return (int) Math.round((colorMain.getFirst() * (1 - lerp) + colorNext.getFirst() * lerp) * 255 / colors.size());
         }
     }
 
@@ -355,7 +356,7 @@ public class Palette implements Collection<Integer> {
     public int getColor(int sample) {
         if (sample < 0 || sample > 255)
             throw new IllegalArgumentException("Sample number must be between 0 and 255");
-        return colors.get(sampleToIndex(sample));
+        return colors.get(sample * colors.size() / 255);
     }
 
     /**
@@ -366,29 +367,30 @@ public class Palette implements Collection<Integer> {
             throw new IllegalStateException("Color palette is empty");
         List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
         for (int knownColor : colors) {
-            indexWithDistance.add(Pair.of(knownColor, ColorTools.RGB24.distance(color, knownColor)));
+            indexWithDistance.add(Pair.of(knownColor, ColorTools.ARGB32.distance(color, knownColor)));
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
         return indexWithDistance.get(0).getFirst();
     }
 
+    /**
+     * @return the average color of the palette
+     */
+    public int getAverage() {
+        int c = 0;
+        int r = 0;
+        int g = 0;
+        int b = 0;
+        for (int color : colors) {
+            c++;
+            r += FastColor.ARGB32.red(color);
+            g += FastColor.ARGB32.green(color);
+            b += FastColor.ARGB32.blue(color);
+        }
+        return FastColor.ARGB32.color(0xFF, r / c, g / c, b / c);
+    }
+
     private void updateList() {
-        colors = backing.stream().sorted(ColorTools.RGB24.COMPARATOR).toList();
-    }
-
-    private int indexToSample(int index) {
-        int difference = 255 / colors.size() / 2;
-        return (index * (255 - 2 * difference) / colors.size() + difference);
-    }
-
-    private double indexToSample(double index) {
-        double difference = 255d / colors.size() / 2;
-        return (index * (255 - 2 * difference) / colors.size() + difference);
-    }
-
-    private int sampleToIndex(int sample) {
-        int difference = 255 / colors.size() / 2;
-        int width = 255 - 2 * difference;
-        return (Math.min(Math.max(sample, difference), 255 - difference) - difference) * colors.size() / width;
+        colors = backing.stream().sorted(ColorTools.ARGB32.COMPARATOR).toList();
     }
 }

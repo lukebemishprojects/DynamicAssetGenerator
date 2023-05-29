@@ -15,14 +15,14 @@ public final class ColorTools {
     private ColorTools() {}
 
     /**
-     * Tool for comparing colors encoded with the least significant 24 bits representing 3 8-bit channels: red, green,
-     * and blue. Any alpha channel is ignored.
+     * Tool for comparing colors encoded with the least significant 42 bits representing 4 8-bit channels: alpha, red,
+     * green, and blue.
      */
-    public static final class RGB24 {
-        private RGB24() {}
+    public static final class ARGB32 {
+        private ARGB32() {}
 
         /**
-         * @return the Euclidean distance between two colors in RGB24 format
+         * @return the Euclidean distance between two colors, ignoring alpha
          */
         public static double distance(int color1, int color2) {
             int dr = FastColor.ARGB32.red(color1) - FastColor.ARGB32.red(color2);
@@ -33,11 +33,58 @@ public final class ColorTools {
         }
 
         /**
-         * A comparator that sorts colors by their Euclidean distance from black, with 0xFFFFFF (white) being the
-         * largest.
+         * A comparator that sorts colors by their Euclidean distance from black, ignoring alpha, with 0xFFFFFF (white)
+         * being the largest.
          */
         public static final Comparator<Integer> COMPARATOR = Comparator.comparingInt(i ->
                 FastColor.ARGB32.red(i) + FastColor.ARGB32.green(i) + FastColor.ARGB32.blue(i));
+
+        /**
+         * Calculates a composite color from two colors to layer
+         * @param over the color to layer over the other
+         * @param under the color to layer under the other
+         * @return a composite color calculated by alpha blending
+         */
+        public static int alphaBlend(int over, int under) {
+            int aOver = FastColor.ARGB32.alpha(over);
+            int aUnder = FastColor.ARGB32.alpha(under);
+            int a = aOver + (aUnder * (255 - aOver) / 255);
+            int r = (FastColor.ARGB32.red(over) * aOver + FastColor.ARGB32.red(under) * aUnder * (255 - aOver) / 255) / a;
+            int g = (FastColor.ARGB32.green(over) * aOver + FastColor.ARGB32.green(under) * aUnder * (255 - aOver) / 255) / a;
+            int b = (FastColor.ARGB32.blue(over) * aOver + FastColor.ARGB32.blue(under) * aUnder * (255 - aOver) / 255) / a;
+            return FastColor.ARGB32.color(a, r, g, b);
+        }
+
+        /**
+         * @return the provided ABGR32 encoded color in ARGB32
+         */
+        public static int fromABGR32(int color) {
+            return FastColor.ARGB32.color(
+                    FastColor.ABGR32.alpha(color),
+                    FastColor.ABGR32.red(color),
+                    FastColor.ABGR32.green(color),
+                    FastColor.ABGR32.blue(color)
+            );
+        }
+    }
+
+    /**
+     * Tool for comparing colors encoded with the least significant 32 bits representing 4 8-bit channels: alpha, blue,
+     * green, and red. {@link com.mojang.blaze3d.platform.NativeImage}s are encoded this way.
+     */
+    public static final class ABGR32 {
+
+        /**
+         * @return the provided ARGB32 encoded color in ABGR32
+         */
+        public static int fromARGB32(int color) {
+            return FastColor.ABGR32.color(
+                    FastColor.ARGB32.alpha(color),
+                    FastColor.ARGB32.blue(color),
+                    FastColor.ARGB32.green(color),
+                    FastColor.ARGB32.red(color)
+            );
+        }
     }
 
     /**

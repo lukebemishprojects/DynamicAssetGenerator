@@ -11,15 +11,17 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorEncoding;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.util.StringRepresentable;
 
 import java.util.List;
 
-public record ColorSource(List<Integer> color) implements ITexSource {
+public record ColorSource(List<Integer> color, ColorEncoding colorEncoding) implements ITexSource {
     public static final Codec<ColorSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.listOf().fieldOf("color").forGetter(s->s.color)
+            Codec.INT.listOf().fieldOf("color").forGetter(s->s.color),
+            StringRepresentable.fromEnum(ColorEncoding::values).optionalFieldOf("encoding", ColorEncoding.ARGB).forGetter(ColorSource::colorEncoding)
     ).apply(instance,ColorSource::new));
 
     @Override
@@ -30,7 +32,7 @@ public record ColorSource(List<Integer> color) implements ITexSource {
     @Override
     public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         return () -> {
-            int len = Math.min(128*128,color.size());
+            int len = color.size();
             int sideLength = 0;
             for (int i = 0; i < 8; i++) {
                 sideLength = (int) Math.pow(2,i);
@@ -45,14 +47,8 @@ public record ColorSource(List<Integer> color) implements ITexSource {
                     if (x+sideLength*y >= len) {
                         break outer;
                     }
-                    int hexColor = color.get(x+sideLength*y);
-                    ColorHolder newColor = new ColorHolder(
-                            (hexColor>>16&0xFF)/255f,
-                            (hexColor>> 8&0xFF)/255f,
-                            (hexColor    &0xFF)/255f,
-                            (hexColor>>24&0xFF)/255f
-                    );
-                    out.setPixelRGBA(x,y, ColorHolder.toColorInt(newColor));
+                    int encodedColor = colorEncoding.toABGR.applyAsInt(color.get(x+sideLength*y));
+                    out.setPixelRGBA(x,y, encodedColor);
                 }
             }
             return out;
