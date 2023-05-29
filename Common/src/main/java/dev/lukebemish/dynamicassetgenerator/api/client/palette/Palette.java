@@ -5,6 +5,7 @@ import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * A collection of RGB24 colors sorted from lightest to darkest, with a cutoff for fuzzy equality. Can be "extended" to
@@ -91,15 +92,68 @@ public class Palette implements Collection<Integer> {
         updateList();
     }
 
+    private static final int MAX_WIDTH = (int) Math.floor(ColorTools.RGB24.distance(0x000000, 0xFFFFFF));
+
     /**
      * Extends the high and low ends of the palette until it stretches to a given size.
      * @param targetWidth the target Euclidean distance between the lowest and highest colors in the palette
      * @throws IllegalStateException if the palette is empty
      */
-    public void extend(Integer targetWidth) {
+    public void extendToWidth(int targetWidth) {
+        this.extend(palette -> ColorTools.RGB24.distance(palette.colors.get(0), palette.colors.get(palette.colors.size() - 1)) >= targetWidth);
+    }
+
+    /**
+     * Extends the high and low ends of the palette until it contains a given number of colors.
+     * @param targetSize the target number of colors in the palette
+     * @throws IllegalStateException if the palette is empty
+     */
+    public void extendToSize(int targetSize) {
+        this.extend(palette -> palette.size() >= targetSize);
+    }
+
+    /**
+     * Extends the high and low ends of the palette until it satisfies a given predicate.
+     * @param isExtended predicate to test whether the palette is extended enough
+     * @throws IllegalStateException if the palette is empty
+     */
+    public void extend(Predicate<Palette> isExtended) {
         if (backing.isEmpty())
             throw new IllegalStateException("Color palette is empty");
-        // TODO implement...
+        boolean isLow = true;
+        boolean reachedEndpoint = false;
+        double spacing = ColorTools.RGB24.distance(colors.get(0), colors.get(colors.size() - 1)) / (colors.size() - 1);
+        while (!isExtended.test(this)) {
+            int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
+            double endDistance = ColorTools.RGB24.distance(end, isLow ? 0x000000 : 0xFFFFFF);
+            if (endDistance > spacing) {
+                int newColor = isLow ? 0x000000 : 0xFFFFFF;
+                if (isLow) {
+                    extendedLow++;
+                    colors.add(0, newColor);
+                } else {
+                    extendedHigh++;
+                    colors.add(newColor);
+                }
+                if (reachedEndpoint)
+                    break;
+                isLow = !isLow;
+                reachedEndpoint = true;
+            }
+
+            float lerp = (float) (spacing / endDistance);
+            int newColor = FastColor.ARGB32.lerp(lerp, end, isLow ? 0xFF000000 : 0xFFFFFFFF);
+            if (isLow) {
+                extendedLow++;
+                colors.add(0, newColor);
+            } else {
+                extendedHigh++;
+                colors.add(newColor);
+            }
+
+            if (!reachedEndpoint)
+                isLow = !isLow;
+        }
     }
 
     /**
