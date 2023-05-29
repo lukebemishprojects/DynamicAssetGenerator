@@ -1,8 +1,11 @@
-package dev.lukebemish.dynamicassetgenerator.api.client.palette;
+package dev.lukebemish.dynamicassetgenerator.api.colors;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.minecraft.util.FastColor;
 
 import java.util.Comparator;
+import java.util.function.IntUnaryOperator;
 
 /**
  * Various tools for transforming and comparing colors encoded in different ways
@@ -104,7 +107,7 @@ public final class ColorTools {
         /**
          * @return the Euclidean distance between two colors in CIELAB32 format
          */
-        public static double distance(int color1, int color2, float lightnessWeight) {
+        public static double distance(int color1, int color2) {
             int dL = lightness(color1) - lightness(color2);
             int da = a(color1) - a(color2);
             int db = b(color1) - b(color2);
@@ -126,6 +129,31 @@ public final class ColorTools {
                 return Math.pow(t, 1/3d);
             else
                 return t/(3*delta2) + 4/29d;
+        }
+    }
+
+    /**
+     * Tool for making conversions between color spaces more performant. This <em>should</em> be used if it will have a
+     * known, short lifespan; hold a comparatively small number of items; and likely have many duplicate conversions.
+     * Otherwise, it is likely more performant to simply do conversions as needed.
+     */
+    public static class ConversionCache {
+        private final Int2IntMap cache = new Int2IntOpenHashMap();
+        private final IntUnaryOperator converter;
+
+        /**
+         * Creates a new cache that will use the provided converter to convert colors.
+         * @param converter conversion function to use
+         */
+        public ConversionCache(IntUnaryOperator converter) {
+            this.converter = converter;
+        }
+
+        /**
+         * @return the provided color after conversion
+         */
+        public int convert(int color) {
+            return cache.computeIfAbsent(color, converter);
         }
     }
 

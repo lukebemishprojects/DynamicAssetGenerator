@@ -1,6 +1,7 @@
-package dev.lukebemish.dynamicassetgenerator.api.client.palette;
+package dev.lukebemish.dynamicassetgenerator.api.colors;
 
 import com.mojang.datafixers.util.Pair;
+import dev.lukebemish.dynamicassetgenerator.api.util.FuzzySet;
 import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +41,31 @@ public class Palette implements Collection<Integer> {
             return FastColor.ARGB32.color(0xFF, r / colors.size(), g / colors.size(), b / colors.size());
         });
         updateList();
+    }
+
+    /**
+     * @return a new palette with the given cutoff and colors
+     */
+    public static Palette fromColors(Collection<Integer> colors, double cutoff) {
+        Palette palette = new Palette(cutoff);
+        palette.addAll(colors);
+        return palette;
+    }
+
+    /**
+     * @return a new palette with the given cutoff and colors from the provided palette
+     */
+    public static Palette fromPalette(Palette palette, double cutoff) {
+        Palette newPalette = new Palette(cutoff);
+        newPalette.addAll(palette);
+        return newPalette;
+    }
+
+    /**
+     * @return a new palette with colors and cutoff copied from the provided palette
+     */
+    public static Palette fromPalette(Palette palette) {
+        return fromPalette(palette, palette.getCutoff());
     }
 
     /**
@@ -304,13 +330,13 @@ public class Palette implements Collection<Integer> {
      * @return a sample number pointing towards where the provided color would lie in the palette
      */
     public int getSample(int color) {
+        if (colors.isEmpty())
+            throw new IllegalStateException("Color palette is empty");
         List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
         for (int i = 0; i < colors.size(); i++) {
             indexWithDistance.add(Pair.of(i, ColorTools.RGB24.distance(color, colors.get(i))));
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
-        if (indexWithDistance.isEmpty())
-            throw new IllegalStateException("Color palette is empty");
         if (indexWithDistance.size() == 1)
             return indexWithDistance.get(0).getFirst() * 255 / colors.size();
         else {
@@ -329,6 +355,20 @@ public class Palette implements Collection<Integer> {
         if (sample < 0 || sample >= colors.size())
             return -1;
         return colors.get(sample);
+    }
+
+    /**
+     * @return the color in the palette closest to the given color
+     */
+    public int getClosestColor(int color) {
+        if (colors.isEmpty())
+            throw new IllegalStateException("Color palette is empty");
+        List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
+        for (int knownColor : colors) {
+            indexWithDistance.add(Pair.of(knownColor, ColorTools.RGB24.distance(color, knownColor)));
+        }
+        indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
+        return indexWithDistance.get(0).getFirst();
     }
 
     private void updateList() {

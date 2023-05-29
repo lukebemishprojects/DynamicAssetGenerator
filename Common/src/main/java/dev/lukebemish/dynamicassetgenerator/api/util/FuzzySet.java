@@ -1,4 +1,4 @@
-package dev.lukebemish.dynamicassetgenerator.api.client.palette;
+package dev.lukebemish.dynamicassetgenerator.api.util;
 
 import org.jetbrains.annotations.NotNull;
 
