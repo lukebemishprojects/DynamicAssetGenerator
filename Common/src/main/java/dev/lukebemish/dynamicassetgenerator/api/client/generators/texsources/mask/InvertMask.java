@@ -11,7 +11,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +40,7 @@ public record InvertMask(TexSource source) implements TexSource {
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < width; y++) {
                         int source = inImg.getPixelRGBA(x, y);
-                        Operations.INVERT.apply(source, true);
+                        out.setPixelRGBA(x, y, ~source);
                     }
                 }
                 return out;
