@@ -113,7 +113,9 @@ public class Palette implements Collection<Integer> {
     }
 
     /**
-     * Extends the high and low ends of the palette until it satisfies a given predicate.
+     * Extends the high and low ends of the palette until it satisfies a given predicate. Extension may be impossible if
+     * the palette's entries are too close together and the cutoff for equivalent colors is too broad. If the predicate
+     * is never satisfied, extension will stop when 0xFFFFFF and 0x000000 are reached.
      * @param isExtended predicate to test whether the palette is extended enough
      * @throws IllegalStateException if the palette is empty
      */
@@ -126,14 +128,15 @@ public class Palette implements Collection<Integer> {
         while (!isExtended.test(this)) {
             int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
             double endDistance = ColorTools.RGB24.distance(end, isLow ? 0x000000 : 0xFFFFFF);
+            int oldSize = colors.size();
             if (endDistance > spacing) {
                 int newColor = isLow ? 0x000000 : 0xFFFFFF;
                 if (isLow) {
-                    extendedLow++;
                     colors.add(0, newColor);
+                    reachedEndpoint = updateExtended(isLow, oldSize);
                 } else {
-                    extendedHigh++;
                     colors.add(newColor);
+                    reachedEndpoint = updateExtended(isLow, oldSize);
                 }
                 if (reachedEndpoint)
                     break;
@@ -143,17 +146,36 @@ public class Palette implements Collection<Integer> {
 
             float lerp = (float) (spacing / endDistance);
             int newColor = FastColor.ARGB32.lerp(lerp, end, isLow ? 0xFF000000 : 0xFFFFFFFF);
+            boolean didExtension;
             if (isLow) {
-                extendedLow++;
                 colors.add(0, newColor);
+                didExtension = updateExtended(isLow, oldSize);
             } else {
-                extendedHigh++;
                 colors.add(newColor);
+                didExtension = updateExtended(isLow, oldSize);
+            }
+            if (!didExtension) {
+                if (reachedEndpoint) {
+                    break;
+                } else {
+                    isLow = !isLow;
+                    reachedEndpoint = true;
+                }
             }
 
             if (!reachedEndpoint)
                 isLow = !isLow;
         }
+    }
+
+    private boolean updateExtended(boolean isLow, int oldSize) {
+        if (oldSize == colors.size())
+            return false;
+        if (isLow)
+            extendedLow++;
+        else
+            extendedHigh++;
+        return true;
     }
 
     /**
