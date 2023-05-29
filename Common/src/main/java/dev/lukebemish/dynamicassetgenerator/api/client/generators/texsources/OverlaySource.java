@@ -6,7 +6,7 @@
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.serialization.Codec;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
@@ -15,12 +15,12 @@ import java.util.List;
 public class OverlaySource extends AbstractManyOperationSource {
     public static final Codec<OverlaySource> CODEC = AbstractManyOperationSource.makeCodec(OverlaySource::new);
 
-    public OverlaySource(List<ITexSource> sources) {
+    public OverlaySource(List<TexSource> sources) {
         super(sources);
     }
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

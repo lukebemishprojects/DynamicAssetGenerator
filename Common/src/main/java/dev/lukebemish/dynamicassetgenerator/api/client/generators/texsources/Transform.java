@@ -9,22 +9,22 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-public record Transform(ITexSource input, int rotate, boolean flip) implements ITexSource {
+public record Transform(TexSource input, int rotate, boolean flip) implements TexSource {
     public static final Codec<Transform> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.CODEC.fieldOf("input").forGetter(Transform::input),
+            TexSource.CODEC.fieldOf("input").forGetter(Transform::input),
             Codec.INT.fieldOf("rotate").forGetter(Transform::rotate),
             Codec.BOOL.fieldOf("flip").forGetter(Transform::flip)
     ).apply(instance, Transform::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

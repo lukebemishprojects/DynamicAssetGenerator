@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.InputStream;
 
 @FunctionalInterface
-public interface IInputStreamSource {
+public interface InputStreamSource {
     /**
      * Gets an input stream for the given resource location.
      *

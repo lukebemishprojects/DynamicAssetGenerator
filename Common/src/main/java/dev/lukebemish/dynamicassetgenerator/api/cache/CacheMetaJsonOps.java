@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CacheMetaJsonOps extends JsonOps implements ICacheMetaDynamicOps<JsonElement> {
+public class CacheMetaJsonOps extends JsonOps implements CacheMetaDynamicOps<JsonElement> {
 
     private final Map<Class<?>,Object> map = new HashMap<>();
     public CacheMetaJsonOps() {

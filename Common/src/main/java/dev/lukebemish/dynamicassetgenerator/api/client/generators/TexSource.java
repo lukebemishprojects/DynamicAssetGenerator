@@ -24,27 +24,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public interface ITexSource {
+public interface TexSource {
 
     String METADATA_CACHE_KEY = "__dynamic_asset_generator_metadata";
-    Codec<ITexSource> CODEC = CacheMetaCodec.of(ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ITexSource>>() {
+    Codec<TexSource> CODEC = CacheMetaCodec.of(ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends TexSource>>() {
         @Override
-        public <T> DataResult<Pair<Codec<? extends ITexSource>, T>> decode(DynamicOps<T> ops, T input) {
-            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !ClientRegisters.ITEXSOURCES.containsKey(keyValuePair.getFirst())
+        public <T> DataResult<Pair<Codec<? extends TexSource>, T>> decode(DynamicOps<T> ops, T input) {
+            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !ClientRegisters.TEXSOURCES.containsKey(keyValuePair.getFirst())
                     ? DataResult.error(() -> "Unknown dynamic texture source type: " + keyValuePair.getFirst())
-                    : DataResult.success(keyValuePair.mapFirst(ClientRegisters.ITEXSOURCES::get)));
+                    : DataResult.success(keyValuePair.mapFirst(ClientRegisters.TEXSOURCES::get)));
         }
 
         @Override
-        public <T> DataResult<T> encode(Codec<? extends ITexSource> input, DynamicOps<T> ops, T prefix) {
-            ResourceLocation key = ClientRegisters.ITEXSOURCES.inverse().get(input);
+        public <T> DataResult<T> encode(Codec<? extends TexSource> input, DynamicOps<T> ops, T prefix) {
+            ResourceLocation key = ClientRegisters.TEXSOURCES.inverse().get(input);
             if (key == null) {
                 return DataResult.error(() -> "Unregistered dynamic texture source type: " + input);
             }
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);
         }
-    }).dispatch(ITexSource::codec, Function.identity()).xmap(ITexSource::cached, wrapped -> {
+    }).dispatch(TexSource::codec, Function.identity()).xmap(TexSource::cached, wrapped -> {
         while (wrapped instanceof TexSourceCachingWrapper cachingWrapper) {
             wrapped = cachingWrapper.wrapped();
         }
@@ -52,13 +52,13 @@ public interface ITexSource {
     }), new DataConsumer<>() {
         @Override
         @NotNull
-        public <T1> DataResult<T1> encode(DynamicOps<T1> ops, TexSourceDataHolder data, ITexSource object) {
+        public <T1> DataResult<T1> encode(DynamicOps<T1> ops, TexSourceDataHolder data, TexSource object) {
             return object.cacheMetadata(ops, data);
         }
     }, METADATA_CACHE_KEY, TexSourceDataHolder.class);
 
-    static <T extends ITexSource> void register(ResourceLocation rl, Codec<T> codec) {
-        ClientRegisters.ITEXSOURCES.put(rl, codec);
+    static <T extends TexSource> void register(ResourceLocation rl, Codec<T> codec) {
+        ClientRegisters.TEXSOURCES.put(rl, codec);
     }
 
     /**
@@ -74,13 +74,13 @@ public interface ITexSource {
         return DataResult.success(ops.empty());
     }
 
-    Codec<? extends ITexSource> codec();
+    Codec<? extends TexSource> codec();
 
     @Nullable
     IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context);
 
     @ApiStatus.Experimental
-    default ITexSource cached() {
+    default TexSource cached() {
         if (this instanceof TexSourceCachingWrapper) return this;
         return new TexSourceCachingWrapper(this);
     }

@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TexSourceDataHolder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ITexSource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TexSource.class);
 
     public TexSourceDataHolder() {
         put(Logger.class, LOGGER);

@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.colors.ColorEncoding;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
@@ -18,14 +18,14 @@ import net.minecraft.util.StringRepresentable;
 
 import java.util.List;
 
-public record ColorSource(List<Integer> color, ColorEncoding colorEncoding) implements ITexSource {
+public record ColorSource(List<Integer> color, ColorEncoding colorEncoding) implements TexSource {
     public static final Codec<ColorSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.listOf().fieldOf("color").forGetter(s->s.color),
             StringRepresentable.fromEnum(ColorEncoding::values).optionalFieldOf("encoding", ColorEncoding.ARGB).forGetter(ColorSource::colorEncoding)
     ).apply(instance,ColorSource::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

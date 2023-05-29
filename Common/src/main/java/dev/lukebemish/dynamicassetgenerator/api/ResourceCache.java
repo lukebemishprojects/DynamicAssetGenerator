@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public abstract class ResourceCache {
     protected static final String SOURCE_JSON_DIR = DynamicAssetGenerator.MOD_ID;
-    protected List<Supplier<? extends IPathAwareInputStreamSource>> cache = new ArrayList<>();
+    protected List<Supplier<? extends PathAwareInputStreamSource>> cache = new ArrayList<>();
     private final List<Resettable> resetListeners = new ArrayList<>();
 
     public static <T extends ResourceCache> T register(T cache, Pack.Position position) {
@@ -52,11 +52,11 @@ public abstract class ResourceCache {
         Map<ResourceLocation, IoSupplier<InputStream>> outputsSetup = new HashMap<>();
         this.cache.forEach(p-> {
             try {
-                IPathAwareInputStreamSource source = p.get();
+                PathAwareInputStreamSource source = p.get();
                 Set<ResourceLocation> rls = source.getLocations();
                 rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl, getContext()))));
             } catch (Throwable e) {
-                DynamicAssetGenerator.LOGGER.error("Issue setting up IPathAwareInputStreamSource:",e);
+                DynamicAssetGenerator.LOGGER.error("Issue setting up PathAwareInputStreamSource:",e);
             }
         });
 
@@ -137,35 +137,35 @@ public abstract class ResourceCache {
     }
 
     @SuppressWarnings("unused")
-    public void planSource(ResourceLocation rl, IInputStreamSource source) {
+    public void planSource(ResourceLocation rl, InputStreamSource source) {
         cache.add(wrap(()->Set.of(rl),source));
     }
 
     @SuppressWarnings("unused")
-    public void planSource(Supplier<Set<ResourceLocation>> locations, IInputStreamSource source) {
+    public void planSource(Supplier<Set<ResourceLocation>> locations, InputStreamSource source) {
         cache.add(wrap(locations, source));
     }
 
     @SuppressWarnings("unused")
-    public void planSource(Set<ResourceLocation> locations, IInputStreamSource source) {
+    public void planSource(Set<ResourceLocation> locations, InputStreamSource source) {
         cache.add(wrap(()->locations, source));
     }
 
-    public void planSource(IPathAwareInputStreamSource source) {
+    public void planSource(PathAwareInputStreamSource source) {
         cache.add(()->source);
         if (source instanceof Resettable resettable)
             planResetListener(resettable);
     }
 
-    public void planSource(Supplier<? extends IPathAwareInputStreamSource> source) {
+    public void planSource(Supplier<? extends PathAwareInputStreamSource> source) {
         cache.add(source);
     }
 
     @NotNull
     public abstract PackType getPackType();
 
-    public static Supplier<IPathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, IInputStreamSource source) {
-        return () -> new IPathAwareInputStreamSource() {
+    public static Supplier<PathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, InputStreamSource source) {
+        return () -> new PathAwareInputStreamSource() {
             @Override
             public @NotNull Set<ResourceLocation> getLocations() {
                 return rls.get();

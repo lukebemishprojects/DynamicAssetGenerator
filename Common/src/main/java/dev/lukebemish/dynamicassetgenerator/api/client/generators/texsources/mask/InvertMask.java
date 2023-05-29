@@ -9,20 +9,20 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-public record InvertMask(ITexSource source) implements ITexSource {
+public record InvertMask(TexSource source) implements TexSource {
     public static final Codec<InvertMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITexSource.CODEC.fieldOf("source").forGetter(InvertMask::source)
+            TexSource.CODEC.fieldOf("source").forGetter(InvertMask::source)
     ).apply(i, InvertMask::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

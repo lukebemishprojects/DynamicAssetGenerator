@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
@@ -22,14 +22,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 
-public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITexSource generator) implements ITexSource {
+public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, TexSource generator) implements TexSource {
     public static final Codec<AnimationSplittingSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Codec.STRING, TimeAwareSource.CODEC).fieldOf("sources").forGetter(AnimationSplittingSource::sources),
-            ITexSource.CODEC.fieldOf("generator").forGetter(AnimationSplittingSource::generator)
+            TexSource.CODEC.fieldOf("generator").forGetter(AnimationSplittingSource::generator)
     ).apply(instance, AnimationSplittingSource::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -170,9 +170,9 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, ITe
         }
     }
 
-    public record TimeAwareSource(ITexSource source, int scale) {
+    public record TimeAwareSource(TexSource source, int scale) {
         public static final Codec<TimeAwareSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ITexSource.CODEC.fieldOf("source").forGetter(TimeAwareSource::source),
+                TexSource.CODEC.fieldOf("source").forGetter(TimeAwareSource::source),
                 Codec.INT.optionalFieldOf("scale",1).forGetter(TimeAwareSource::scale)
         ).apply(instance,TimeAwareSource::new));
     }

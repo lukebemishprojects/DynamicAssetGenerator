@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
-public interface IPathAwareInputStreamSource extends IInputStreamSource {
+public interface PathAwareInputStreamSource extends InputStreamSource {
 
 
     @NotNull

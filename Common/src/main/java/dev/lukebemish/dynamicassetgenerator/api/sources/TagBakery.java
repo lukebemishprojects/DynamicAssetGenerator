@@ -5,7 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.sources;
 
-import dev.lukebemish.dynamicassetgenerator.api.IPathAwareInputStreamSource;
+import dev.lukebemish.dynamicassetgenerator.api.PathAwareInputStreamSource;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
-public class TagBakery implements IPathAwareInputStreamSource {
+public class TagBakery implements PathAwareInputStreamSource {
     private Map<ResourceLocation, List<Supplier<Set<ResourceLocation>>>> bakedTags;
     private final List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> tagQueue;
 

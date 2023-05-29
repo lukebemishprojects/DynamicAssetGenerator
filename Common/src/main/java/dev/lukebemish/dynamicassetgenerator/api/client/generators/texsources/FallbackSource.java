@@ -10,7 +10,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
@@ -19,10 +19,10 @@ import org.slf4j.helpers.NOPLogger;
 
 import java.io.IOException;
 
-public record FallbackSource(ITexSource original, ITexSource fallback) implements ITexSource {
+public record FallbackSource(TexSource original, TexSource fallback) implements TexSource {
     public static final Codec<FallbackSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.CODEC.fieldOf("original").forGetter(FallbackSource::original),
-            ITexSource.CODEC.fieldOf("fallback").forGetter(FallbackSource::fallback)
+            TexSource.CODEC.fieldOf("original").forGetter(FallbackSource::original),
+            TexSource.CODEC.fieldOf("fallback").forGetter(FallbackSource::fallback)
     ).apply(instance, FallbackSource::new));
 
     public Codec<FallbackSource> codec() {

@@ -10,7 +10,7 @@ import java.io.IOException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
@@ -20,14 +20,14 @@ import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.server.packs.resources.IoSupplier;
 
-public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, ITexSource input) implements ITexSource {
+public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, TexSource input) implements TexSource {
     public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("total_size").forGetter(Crop::totalSize),
             Codec.INT.fieldOf("start_x").forGetter(Crop::startX),
             Codec.INT.fieldOf("size_x").forGetter(Crop::sizeX),
             Codec.INT.fieldOf("start_y").forGetter(Crop::startY),
             Codec.INT.fieldOf("size_y").forGetter(Crop::sizeY),
-            ITexSource.CODEC.fieldOf("input").forGetter(Crop::input)
+            TexSource.CODEC.fieldOf("input").forGetter(Crop::input)
     ).apply(instance, Crop::new));
 
     public Codec<Crop> codec() {

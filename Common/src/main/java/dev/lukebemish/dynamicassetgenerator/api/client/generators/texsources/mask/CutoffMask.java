@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
@@ -20,15 +20,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public record CutoffMask(Channel channel, ITexSource source, float cutoff) implements ITexSource {
+public record CutoffMask(Channel channel, TexSource source, float cutoff) implements TexSource {
     public static final Codec<CutoffMask> CODEC = RecordCodecBuilder.create(i->i.group(
             StringRepresentable.fromEnum(Channel::values).optionalFieldOf("channel",Channel.ALPHA).forGetter(CutoffMask::channel),
-            ITexSource.CODEC.fieldOf("source").forGetter(CutoffMask::source),
+            TexSource.CODEC.fieldOf("source").forGetter(CutoffMask::source),
             Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(CutoffMask::cutoff)
     ).apply(i,CutoffMask::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

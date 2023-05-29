@@ -31,7 +31,7 @@ public class CacheMetaCodec<A, D> implements Codec<A> {
     @Override
     public <T> DataResult<T> encode(A input, DynamicOps<T> ops, T prefix) {
         DataResult<T> result = wrapped.encode(input, ops, prefix);
-        if (ops instanceof ICacheMetaDynamicOps<T> cacheOps) {
+        if (ops instanceof CacheMetaDynamicOps<T> cacheOps) {
             D opsData = cacheOps.getData(dataClass);
             if (opsData != null) {
                 DataResult<T> metadata = dataConsumer.encode(ops, opsData, input);

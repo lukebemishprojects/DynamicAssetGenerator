@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AnimationSplittingSource;
@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
 
-public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements IResourceGenerator {
+public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements ResourceGenerator {
     public static final Codec<TextureMetaGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.listOf().fieldOf("sources").forGetter(TextureMetaGenerator::sources),
             AnimationData.CODEC.optionalFieldOf("animation").forGetter(TextureMetaGenerator::animation),
@@ -143,7 +143,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
     }
 
     @Override
-    public Codec<? extends IResourceGenerator> codec() {
+    public Codec<? extends ResourceGenerator> codec() {
         return CODEC;
     }
 

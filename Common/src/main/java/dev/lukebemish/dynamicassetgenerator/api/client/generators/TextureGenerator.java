@@ -9,7 +9,7 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
@@ -22,18 +22,18 @@ import java.io.InputStream;
 import java.util.Set;
 import java.util.function.Function;
 
-public class TextureGenerator implements IResourceGenerator {
+public class TextureGenerator implements ResourceGenerator {
     public static final Codec<TextureGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("output_location").forGetter(dyn->dyn.outputLocation),
-            ITexSource.CODEC.fieldOf("input").forGetter(dyn->dyn.input)
+            TexSource.CODEC.fieldOf("input").forGetter(dyn->dyn.input)
     ).apply(instance, TextureGenerator::new));
 
     private final ResourceLocation outputLocation;
-    private final ITexSource input;
+    private final TexSource input;
 
     private Function<ResourceGenerationContext, IoSupplier<NativeImage>> source;
 
-    public TextureGenerator(ResourceLocation outputLocation, ITexSource source) {
+    public TextureGenerator(ResourceLocation outputLocation, TexSource source) {
         this.input = source;
         this.outputLocation = outputLocation;
         if (input!=null && outputLocation!=null) {
@@ -74,7 +74,7 @@ public class TextureGenerator implements IResourceGenerator {
     }
 
     @Override
-    public Codec<? extends IResourceGenerator> codec() {
+    public Codec<? extends ResourceGenerator> codec() {
         return CODEC;
     }
 }

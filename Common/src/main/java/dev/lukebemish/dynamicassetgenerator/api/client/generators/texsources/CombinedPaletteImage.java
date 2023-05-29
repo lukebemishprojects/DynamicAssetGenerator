@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
@@ -19,11 +19,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record CombinedPaletteImage(ITexSource overlay, ITexSource background, ITexSource paletted, boolean includeBackground, boolean stretchPaletted, int extendPaletteSize) implements ITexSource {
+public record CombinedPaletteImage(TexSource overlay, TexSource background, TexSource paletted, boolean includeBackground, boolean stretchPaletted, int extendPaletteSize) implements TexSource {
     public static final Codec<CombinedPaletteImage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.CODEC.fieldOf("overlay").forGetter(s->s.overlay),
-            ITexSource.CODEC.fieldOf("background").forGetter(s->s.background),
-            ITexSource.CODEC.fieldOf("paletted").forGetter(s->s.paletted),
+            TexSource.CODEC.fieldOf("overlay").forGetter(s->s.overlay),
+            TexSource.CODEC.fieldOf("background").forGetter(s->s.background),
+            TexSource.CODEC.fieldOf("paletted").forGetter(s->s.paletted),
             Codec.BOOL.fieldOf("include_background").forGetter(s->s.includeBackground),
             Codec.BOOL.fieldOf("stretch_paletted").forGetter(s->s.stretchPaletted),
             Codec.INT.fieldOf("extend_palette_size").forGetter(s->s.extendPaletteSize)

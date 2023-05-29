@@ -9,22 +9,22 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-public record GrowMask(ITexSource source, float growth, float cutoff) implements ITexSource {
+public record GrowMask(TexSource source, float growth, float cutoff) implements TexSource {
     public static final Codec<GrowMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITexSource.CODEC.fieldOf("source").forGetter(GrowMask::source),
+            TexSource.CODEC.fieldOf("source").forGetter(GrowMask::source),
             Codec.FLOAT.optionalFieldOf("growth",1f/16f).forGetter(GrowMask::growth),
             Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(GrowMask::cutoff)
     ).apply(i, GrowMask::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

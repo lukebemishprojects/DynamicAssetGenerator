@@ -15,7 +15,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
@@ -26,9 +26,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 @ApiStatus.Experimental
-public record PaletteSpreadSource(ITexSource source, float paletteCutoff, List<Range> range) implements ITexSource {
+public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Range> range) implements TexSource {
     public static final Codec<PaletteSpreadSource> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::source),
+            TexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::source),
             Codec.FLOAT.optionalFieldOf("palette_cutoff", Palette.DEFAULT_CUTOFF).forGetter(PaletteSpreadSource::paletteCutoff),
             Codec.either(Range.CODEC, Range.CODEC.listOf()).xmap(
                     either -> either.map(List::of, Function.identity()),
@@ -84,7 +84,7 @@ public record PaletteSpreadSource(ITexSource source, float paletteCutoff, List<R
     }
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

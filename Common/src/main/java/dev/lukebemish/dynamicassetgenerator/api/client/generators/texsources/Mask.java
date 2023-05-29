@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
@@ -18,14 +18,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record Mask(ITexSource input, ITexSource mask) implements ITexSource {
+public record Mask(TexSource input, TexSource mask) implements TexSource {
     public static final Codec<Mask> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.CODEC.fieldOf("input").forGetter(Mask::input),
-            ITexSource.CODEC.fieldOf("mask").forGetter(Mask::mask)
+            TexSource.CODEC.fieldOf("input").forGetter(Mask::input),
+            TexSource.CODEC.fieldOf("mask").forGetter(Mask::mask)
     ).apply(instance, Mask::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

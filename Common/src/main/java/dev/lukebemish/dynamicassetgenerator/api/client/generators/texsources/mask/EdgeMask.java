@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
@@ -22,16 +22,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public record EdgeMask(ITexSource source, boolean countOutsideFrame, List<Direction> edges, float cutoff) implements ITexSource {
+public record EdgeMask(TexSource source, boolean countOutsideFrame, List<Direction> edges, float cutoff) implements TexSource {
     public static final Codec<EdgeMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITexSource.CODEC.fieldOf("source").forGetter(EdgeMask::source),
+            TexSource.CODEC.fieldOf("source").forGetter(EdgeMask::source),
             Codec.BOOL.optionalFieldOf("count_outside_frame",false).forGetter(EdgeMask::countOutsideFrame),
             StringRepresentable.fromEnum(Direction::values).listOf().optionalFieldOf("edges", Arrays.stream(Direction.values()).toList()).forGetter(EdgeMask::edges),
             Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(EdgeMask::cutoff)
     ).apply(i, EdgeMask::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

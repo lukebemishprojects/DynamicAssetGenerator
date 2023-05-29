@@ -11,7 +11,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaJsonOps;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.PaletteExtractor;
@@ -20,13 +20,13 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.util.IPalettePlan;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSource newBackground,
+public record ForegroundTransfer(TexSource background, TexSource full, TexSource newBackground,
                                  int extendPaletteSize, boolean trimTrailing, boolean forceNeighbors, boolean fillHoles,
-                                 double closeCutoff) implements ITexSource {
+                                 double closeCutoff) implements TexSource {
     public static final Codec<ForegroundTransfer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ITexSource.CODEC.fieldOf("background").forGetter(ForegroundTransfer::background),
-            ITexSource.CODEC.fieldOf("full").forGetter(ForegroundTransfer::full),
-            ITexSource.CODEC.fieldOf("new_background").forGetter(ForegroundTransfer::newBackground),
+            TexSource.CODEC.fieldOf("background").forGetter(ForegroundTransfer::background),
+            TexSource.CODEC.fieldOf("full").forGetter(ForegroundTransfer::full),
+            TexSource.CODEC.fieldOf("new_background").forGetter(ForegroundTransfer::newBackground),
             Codec.INT.fieldOf("extend_palette_size").forGetter(ForegroundTransfer::extendPaletteSize),
             Codec.BOOL.fieldOf("trim_trailing").forGetter(ForegroundTransfer::trimTrailing),
             Codec.BOOL.fieldOf("force_neighbors").forGetter(ForegroundTransfer::forceNeighbors),
@@ -35,7 +35,7 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
     ).apply(instance, ForegroundTransfer::new));
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -62,8 +62,8 @@ public record ForegroundTransfer(ITexSource background, ITexSource full, ITexSou
         DataResult<String> cacheKey1;
         var dataOps = new CacheMetaJsonOps();
         dataOps.putData(TexSourceDataHolder.class, data);
-        DataResult<String> cacheKeyBackground = ITexSource.CODEC.encodeStart(dataOps, background()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
-        DataResult<String> cacheKeyFull = ITexSource.CODEC.encodeStart(dataOps, full()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
+        DataResult<String> cacheKeyBackground = TexSource.CODEC.encodeStart(dataOps, background()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
+        DataResult<String> cacheKeyFull = TexSource.CODEC.encodeStart(dataOps, full()).map(DynamicAssetGenerator.GSON_FLAT::toJson);
         if (cacheKeyBackground.result().isPresent() && cacheKeyFull.result().isPresent())
             cacheKey1 = DataResult.success(cacheKeyBackground.result().get() + "," + cacheKeyFull.result().get()+ "," + extendPaletteSize + "," + trimTrailing + "," + forceNeighbors + "," + fillHoles + "," + closeCutoff);
         else if (cacheKeyBackground.error().isPresent())
