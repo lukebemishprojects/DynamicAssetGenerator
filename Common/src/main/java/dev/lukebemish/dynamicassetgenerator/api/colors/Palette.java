@@ -280,7 +280,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalCenterSample() {
-        return (originalStart() + originalEnd()) * 255 / colors.size() / 2;
+        return (indexToSample(originalStart()) + indexToSample(originalEnd())) / 2;
     }
 
     /**
@@ -288,7 +288,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalStartSample() {
-        return originalStart() * 255 / colors.size();
+        return indexToSample(originalStart());
     }
 
     /**
@@ -296,7 +296,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalEndSample() {
-        return originalEnd() * 255 / colors.size();
+        return indexToSample(originalEnd());
     }
 
     /**
@@ -338,23 +338,24 @@ public class Palette implements Collection<Integer> {
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
         if (indexWithDistance.size() == 1)
-            return indexWithDistance.get(0).getFirst() * 255 / colors.size();
+            return indexToSample(indexWithDistance.get(0).getFirst());
         else {
             var colorMain = indexWithDistance.get(0);
             var colorNext = indexWithDistance.get(1);
             double distance = colorMain.getSecond() + colorNext.getSecond();
             double lerp = Math.max(0, Math.min(1, colorMain.getSecond() / distance));
-            return (int) Math.round((colorMain.getFirst() * (1 - lerp) + colorNext.getFirst() * lerp) * 255 / colors.size());
+            return (int) Math.round(indexToSample(colorMain.getFirst() * (1 - lerp) + colorNext.getFirst() * lerp));
         }
     }
 
     /**
      * @return the color in the palette closes to the given sample number
+     * @throws IllegalArgumentException if the sample number is not between 0 and 255
      */
     public int getColor(int sample) {
-        if (sample < 0 || sample >= colors.size())
-            return -1;
-        return colors.get(sample);
+        if (sample < 0 || sample > 255)
+            throw new IllegalArgumentException("Sample number must be between 0 and 255");
+        return colors.get(sampleToIndex(sample));
     }
 
     /**
@@ -373,5 +374,21 @@ public class Palette implements Collection<Integer> {
 
     private void updateList() {
         colors = backing.stream().sorted(ColorTools.RGB24.COMPARATOR).toList();
+    }
+
+    private int indexToSample(int index) {
+        int difference = 255 / colors.size() / 2;
+        return (index * (255 - 2 * difference) / colors.size() + difference);
+    }
+
+    private double indexToSample(double index) {
+        double difference = 255d / colors.size() / 2;
+        return (index * (255 - 2 * difference) / colors.size() + difference);
+    }
+
+    private int sampleToIndex(int sample) {
+        int difference = 255 / colors.size() / 2;
+        int width = 255 - 2 * difference;
+        return (Math.min(Math.max(sample, difference), 255 - difference) - difference) * colors.size() / width;
     }
 }
