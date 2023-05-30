@@ -60,32 +60,38 @@ public class DynamicAssetGeneratorClient {
         //testing
         String test = System.getProperty("dynamicassetgenerator.test");
         if (test != null && test.equals("true")) {
+            double defaultLowCutoff = 0.05d;
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("item/apple"),
                     new CombinedPaletteImage(new TextureReader(new ResourceLocation("dynamic_asset_generator:empty")),
-                            new TextureReader(new ResourceLocation("item/apple")),
+                            new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("item/iron_ingot")),
                             false, false, 6)));
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/end_stone"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/redstone_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
-                            6,true,true,true, 0.2d)));
+                            6,true,true,true, defaultLowCutoff)));
+            ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/diorite"),
+                    new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
+                            new TextureReader(new ResourceLocation("block/coal_ore")),
+                            new TextureReader(new ResourceLocation("block/stone")),
+                            6,true,true,true, defaultLowCutoff)));
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/tuff"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/coal_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
-                            6,true,true,true, 0.2d)));
+                            6,true,true,true, defaultLowCutoff)));
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/calcite"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/iron_ore")),
                             new TextureReader(new ResourceLocation("block/end_stone")),
-                            6,true,true,true, 0.2d)));
+                            6,true,true,true, defaultLowCutoff)));
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/andesite"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/redstone_ore")),
                             new TextureReader(new ResourceLocation("block/andesite")),
-                            6,true,true,true, 0.2d)));
-            ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/magma"),
+                            6,true,true,true, defaultLowCutoff)));
+            ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/moss_block"),
                     new AnimationSplittingSource(Map.of("magma",
                             new AnimationSplittingSource.TimeAwareSource(new TextureReader(new ResourceLocation("block/magma")),1),
                             "prismarine",
@@ -103,7 +109,7 @@ public class DynamicAssetGeneratorClient {
                             Optional.of(List.of(1,4)))),
                     Optional.empty(),
                     Optional.empty(),
-                    new ResourceLocation("block/magma")));
+                    new ResourceLocation("block/moss_block")));
         }
     }
 }

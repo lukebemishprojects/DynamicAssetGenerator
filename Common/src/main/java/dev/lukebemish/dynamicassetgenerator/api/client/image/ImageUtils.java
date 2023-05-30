@@ -26,7 +26,7 @@ public final class ImageUtils {
         Palette palette = new Palette(cutoff);
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
-                palette.add(ColorTools.ARGB32.fromABGR32(image.getPixelRGBA(i, j)));
+                palette.add(safeGetPixelARGB(image, i, j));
             }
         }
         return palette;
@@ -78,7 +78,7 @@ public final class ImageUtils {
      * encoding
      */
     public static int safeGetPixelARGB(NativeImage image, int x, int y) {
-        return safeGetPixelABGR(image, x, y, 0);
+        return safeGetPixelARGB(image, x, y, 0);
     }
 
     /**

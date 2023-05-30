@@ -273,7 +273,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalCenterSample() {
-        return (originalStart() + originalEnd()) * 255 / colors.size() / 2;
+        return (originalStart() + originalEnd()) * 256 / colors.size() / 2;
     }
 
     /**
@@ -281,7 +281,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalStartSample() {
-        return originalStart() * 255 / colors.size();
+        return originalStart() * 256 / colors.size();
     }
 
     /**
@@ -289,7 +289,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public int originalEndSample() {
-        return originalEnd() * 255 / colors.size();
+        return originalEnd() * 256 / colors.size();
     }
 
     /**
@@ -301,8 +301,7 @@ public class Palette implements Collection<Integer> {
         if (backing.isEmpty()) {
             throw new IllegalStateException("Color palette is empty");
         }
-        var originalSampleSize = originalSize() * 255 / colors.size();
-        return originalSample * originalSampleSize / 255 + originalStartSample();
+        return originalSample * originalSize() / colors.size() + originalStartSample();
     }
 
     /**
@@ -314,8 +313,8 @@ public class Palette implements Collection<Integer> {
         if (originalSize() == 0) {
             throw new IllegalStateException("Original color palette was empty");
         }
-        var originalSampleSize = originalSize() * 255 / colors.size();
-        var output = (extendedSample - originalStartSample()) * 255 / originalSampleSize;
+        var originalSampleSize = originalSize() * 256 / colors.size();
+        var output = (extendedSample - originalStartSample()) * 256 / originalSampleSize;
         return ColorTools.clamp8(output);
     }
 
@@ -323,7 +322,7 @@ public class Palette implements Collection<Integer> {
      * @return a sample number pointing towards where the provided color would lie in the palette
      */
     public int getSample(int color) {
-        color = color & 0xFF000000;
+        color = color | 0xFF000000;
         if (colors.isEmpty())
             throw new IllegalStateException("Color palette is empty");
         List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
@@ -332,13 +331,13 @@ public class Palette implements Collection<Integer> {
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
         if (indexWithDistance.size() == 1 || indexWithDistance.get(0).getSecond() <= this.cutoff)
-            return indexWithDistance.get(0).getFirst() * 255 / colors.size();
+            return indexWithDistance.get(0).getFirst() * 256 / colors.size();
         else {
             var colorMain = indexWithDistance.get(0);
             var colorNext = indexWithDistance.get(1);
             double distance = colorMain.getSecond() + colorNext.getSecond();
             double lerp = Math.max(0, Math.min(1, colorMain.getSecond() / distance));
-            return (int) Math.round((colorMain.getFirst() * (1 - lerp) + colorNext.getFirst() * lerp) * 255 / colors.size());
+            return (int) Math.round((colorMain.getFirst() * (1 - lerp) + colorNext.getFirst() * lerp) * 256 / colors.size());
         }
     }
 
@@ -349,7 +348,7 @@ public class Palette implements Collection<Integer> {
     public int getColor(int sample) {
         if (sample < 0 || sample > 255)
             throw new IllegalArgumentException("Sample number must be between 0 and 255");
-        return colors.get(sample * colors.size() / 255);
+        return colors.get(sample * colors.size() / 256);
     }
 
     /**

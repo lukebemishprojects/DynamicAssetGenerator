@@ -67,6 +67,7 @@ public record CombinedPaletteImage(TexSource overlay, TexSource background, TexS
 
     @NotNull
     public static NativeImage combineImages(NativeImage backgroundImage, NativeImage overlayImage, NativeImage paletteImage, PaletteCombiningOptions options) {
+        //TODO: Figure out this cutoff
         Palette palette = ImageUtils.getPalette(backgroundImage, 2);
         palette.extend(options.palettePredicate());
         final PointwiseOperation.Unary<Integer> stretcher;

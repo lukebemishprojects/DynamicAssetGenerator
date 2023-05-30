@@ -164,7 +164,7 @@ public class ForegroundExtractor implements Closeable {
                                     lowest = dist;
                                     alpha = a;
                                     fIndex = f;
-                                    bSample = b * 255 / backgroundPalette.size();
+                                    bSample = b * 256 / backgroundPalette.size();
                                     skipOverlay = false;
                                 }
                             }
@@ -267,11 +267,11 @@ public class ForegroundExtractor implements Closeable {
         //write paletted image base stuff
         for (int x = 0; x < dim; x++) {
             for (int y = 0; y < dim; y++) {
-                int bC = ImageUtils.safeGetPixelARGB(background, x / bs, y / bs);
-                int wC = ImageUtils.safeGetPixelARGB(withOverlay, x / ws, y / ws);
-                if (backgroundPalette.contains(wC)) {
-                    int wSample = backgroundPalette.getSample(wC);
-                    int bSample = backgroundPalette.getSample(bC);
+                int bColor = ImageUtils.safeGetPixelARGB(background, x / bs, y / bs);
+                int wColor = ImageUtils.safeGetPixelARGB(withOverlay, x / ws, y / ws);
+                if (backgroundPalette.contains(wColor)) {
+                    int wSample = backgroundPalette.getSample(wColor);
+                    int bSample = backgroundPalette.getSample(bColor);
                     if (wSample != bSample) {
                         ImageUtils.safeSetPixelABGR(pImg, x, y, FastColor.ABGR32.color(255, wSample, wSample, wSample));
                     }
@@ -279,18 +279,18 @@ public class ForegroundExtractor implements Closeable {
                     //the color sampled isn't in the palette. Now it gets painful...
                     //we could just try dumping it in the overlay, but that isn't going to work too well for some pixels.
                     //let's first find the minimum distance from the palette.
-                    int closestSample = backgroundPalette.getSample(wC);
+                    int closestSample = backgroundPalette.getSample(wColor);
                     int closestColor = backgroundPalette.getColor(closestSample);
                     //Now let's check how close it is.
-                    double distance = ColorTools.CIELAB32.distance(rgb2labCache.convert(wC), rgb2labCache.convert(closestColor));
+                    double distance = ColorTools.CIELAB32.distance(rgb2labCache.convert(wColor), rgb2labCache.convert(closestColor));
                     if (distance <= closeCutoff * maxDiff) {
                         //Add it to the post-processing queue
                         ImageUtils.safeSetPixelABGR(pImg, x, y, FastColor.ABGR32.color(255, closestSample, closestSample, closestSample));
-                        postQueue.add(new PostCalcEvent(x, y, wC, distance));
+                        postQueue.add(new PostCalcEvent(x, y, wColor, distance));
                     } else {
                         //It's too far away. Write to the overlay.
-                        ImageUtils.safeGetPixelARGB(oImg, x, y, wC);
-                        frontColors.add(wC);
+                        ImageUtils.safeGetPixelARGB(oImg, x, y, wColor);
+                        frontColors.add(wColor);
                     }
                 }
             }
@@ -396,7 +396,7 @@ public class ForegroundExtractor implements Closeable {
                             lowest = dist;
                             alpha = a;
                             fIndex = f;
-                            bSample = b * 255 / backgroundPalette.size();
+                            bSample = b * 256 / backgroundPalette.size();
                             skipOverlay = false;
                         }
                     }
