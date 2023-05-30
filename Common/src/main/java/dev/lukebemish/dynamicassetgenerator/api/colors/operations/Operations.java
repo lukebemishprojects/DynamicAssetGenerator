@@ -6,14 +6,14 @@ import net.minecraft.util.FastColor;
 public final class Operations {
     private Operations() {}
 
-    public static final PointwiseOperation.BinaryPointwiseOperation<Integer> MASK = (i, m, iInBounds, mInBounds) -> {
+    public static final PointwiseOperation.Binary<Integer> MASK = (i, m, iInBounds, mInBounds) -> {
         if (!mInBounds || !iInBounds)
             return 0;
         int newAlpha = (i >> 24 & 0xFF) << 24;
         return (i & 0xFFFFFF) | newAlpha;
     };
 
-    public static final PointwiseOperation.ManyPointwiseOperation<Integer> OVERLAY = (colors, inBounds) -> {
+    public static final PointwiseOperation.Any<Integer> OVERLAY = (colors, inBounds) -> {
         if (colors.length == 0)
             return 0;
         int color = 0;
@@ -25,7 +25,7 @@ public final class Operations {
         return color;
     };
 
-    public static final PointwiseOperation.ManyPointwiseOperation<Integer> ADD = (colors, inBounds) -> {
+    public static final PointwiseOperation.Any<Integer> ADD = (colors, inBounds) -> {
         if (colors.length == 0)
             return 0;
         int alpha = 0;
@@ -43,7 +43,7 @@ public final class Operations {
         return FastColor.ARGB32.color(ColorTools.clamp8(alpha), ColorTools.clamp8(red), ColorTools.clamp8(green), ColorTools.clamp8(blue));
     };
 
-    public static final PointwiseOperation.ManyPointwiseOperation<Integer> MULTIPLY = (colors, inBounds) -> {
+    public static final PointwiseOperation.Any<Integer> MULTIPLY = (colors, inBounds) -> {
         if (colors.length == 0)
             return 0;
         float alpha = 255;
@@ -65,7 +65,7 @@ public final class Operations {
         return FastColor.ARGB32.color(ColorTools.clamp8((int) alpha), ColorTools.clamp8((int) red), ColorTools.clamp8((int) green), ColorTools.clamp8((int) blue));
     };
 
-    public static final PointwiseOperation.UnaryPointwiseOperation<Integer> INVERT = (color, inBounds) -> {
+    public static final PointwiseOperation.Unary<Integer> INVERT = (color, inBounds) -> {
         if (!inBounds)
             return 0;
         return ~color;

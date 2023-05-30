@@ -15,9 +15,11 @@ import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.*;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 public record CombinedPaletteImage(TexSource overlay, TexSource background, TexSource paletted, boolean includeBackground, boolean stretchPaletted, int extendPaletteSize) implements TexSource {
     public static final Codec<CombinedPaletteImage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -58,34 +60,41 @@ public record CombinedPaletteImage(TexSource overlay, TexSource background, TexS
                  NativeImage pImg = palettedSupplier.get()) {
 
                 //TODO: figure out where the cutoff comes from and what to use for it
-                Palette palette = ImageUtils.getPalette(bImg, 2);
-                palette.extendToSize(extendPaletteSize);
-                final PointwiseOperation.UnaryPointwiseOperation<Integer> stretcher;
-                if (stretchPaletted) {
-                    Palette palettePalette = ImageUtils.getPalette(pImg, 2);
-                    stretcher = new ColorToPaletteOperation(palettePalette);
-                } else {
-                    stretcher = (color, isInBounds) -> color;
-                }
-
-                final PointwiseOperation.UnaryPointwiseOperation<Integer> paletteResolver = new PaletteToColorOperation(palette);
-
-                PointwiseOperation.TernaryPointwiseOperation<Integer> operation = (background,
-                                                                                   overlay,
-                                                                                   paletted,
-                                                                                   backgroundInBounds,
-                                                                                   overlayInBounds,
-                                                                                   palettedInBounds) -> {
-                    paletted = stretcher.apply(paletted, palettedInBounds);
-
-                    int resolvedPalette = paletteResolver.apply(paletted, palettedInBounds);
-                    int[] toOverlay = includeBackground ? new int[]{overlay, resolvedPalette, background} : new int[]{overlay, resolvedPalette};
-                    boolean[] toOverlayInBounds = includeBackground ? new boolean[]{overlayInBounds, palettedInBounds, backgroundInBounds} : new boolean[]{overlayInBounds, palettedInBounds};
-                    return Operations.OVERLAY.apply(toOverlay, toOverlayInBounds);
-                };
-
-                return ImageUtils.generateScaledImage(operation, List.of(bImg, oImg, pImg));
+                return combineImages(bImg, oImg, pImg, new PaletteCombiningOptions(palette -> palette.size() >= extendPaletteSize, stretchPaletted, includeBackground));
             }
         };
     }
+
+    @NotNull
+    public static NativeImage combineImages(NativeImage backgroundImage, NativeImage overlayImage, NativeImage paletteImage, PaletteCombiningOptions options) {
+        Palette palette = ImageUtils.getPalette(backgroundImage, 2);
+        palette.extend(options.palettePredicate());
+        final PointwiseOperation.Unary<Integer> stretcher;
+        if (options.stretchPaletted()) {
+            Palette palettePalette = ImageUtils.getPalette(paletteImage, 2);
+            stretcher = new ColorToPaletteOperation(palettePalette);
+        } else {
+            stretcher = (color, isInBounds) -> color;
+        }
+
+        final PointwiseOperation.Unary<Integer> paletteResolver = new PaletteToColorOperation(palette);
+
+        PointwiseOperation.Ternary<Integer> operation = (background,
+                                                         overlay,
+                                                         paletted,
+                                                         backgroundInBounds,
+                                                         overlayInBounds,
+                                                         palettedInBounds) -> {
+            paletted = stretcher.apply(paletted, palettedInBounds);
+
+            int resolvedPalette = paletteResolver.apply(paletted, palettedInBounds);
+            int[] toOverlay = options.includeBackground() ? new int[]{overlay, resolvedPalette, background} : new int[]{overlay, resolvedPalette};
+            boolean[] toOverlayInBounds = options.includeBackground() ? new boolean[]{overlayInBounds, palettedInBounds, backgroundInBounds} : new boolean[]{overlayInBounds, palettedInBounds};
+            return Operations.OVERLAY.apply(toOverlay, toOverlayInBounds);
+        };
+
+        return ImageUtils.generateScaledImage(operation, List.of(backgroundImage, overlayImage, paletteImage));
+    }
+
+    public record PaletteCombiningOptions(Predicate<Palette> palettePredicate, boolean stretchPaletted, boolean includeBackground) { }
 }

@@ -63,6 +63,38 @@ public final class ImageUtils {
     }
 
     /**
+     * @return the color at a given position in an image, or a default value if the position is out of bounds, in ARGB32
+     * encoding
+     */
+    public static int safeGetPixelARGB(NativeImage image, int x, int y, int def) {
+        if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
+            return def;
+        }
+        return ColorTools.ARGB32.fromABGR32(image.getPixelRGBA(x, y));
+    }
+
+    /**
+     * @return the color at a given position in an image, or 0x00000000 if the position is out of bounds, in ARGB32
+     * encoding
+     */
+    public static int safeGetPixelARGB(NativeImage image, int x, int y) {
+        return safeGetPixelABGR(image, x, y, 0);
+    }
+
+    /**
+     * Sets the color at a given position in an image, if the position is in bounds.
+     * @return whether the position was in bounds, in ARGB32 encoding
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public static boolean safeSetPixelARGB(NativeImage image, int x, int y, int color) {
+        if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
+            return false;
+        }
+        image.setPixelRGBA(x, y, ColorTools.ABGR32.fromARGB32(color));
+        return true;
+    }
+
+    /**
      * Calculates the dimensions of an image that can contain all the supplied images, scaled so that their widths are
      * all equal.
      */
@@ -105,13 +137,10 @@ public final class ImageUtils {
                 int[] colors = new int[pointwiseOperation.expectedImages()];
                 boolean[] inBounds = new boolean[pointwiseOperation.expectedImages()];
                 for (int k = 0; k < pointwiseOperation.expectedImages(); k++) {
-                    int color = safeGetPixelABGR(images.get(k), i * images.get(k).getWidth() / width, j * images.get(k).getHeight() / height, -1);
-                    inBounds[k] = colors[k] != -1;
-                    if (color != -1) {
-                        colors[k] = ColorTools.ARGB32.fromABGR32(color);
-                    } else {
-                        colors[k] = 0;
-                    }
+                    int x = i * images.get(k).getWidth() / width;
+                    int y = j * images.get(k).getHeight() / height;
+                    colors[k] = safeGetPixelARGB(images.get(k), x, y, 0);
+                    inBounds[k] = (x >= 0 && x < images.get(k).getWidth() && y >= 0 && y < images.get(k).getHeight());
                 }
                 T t = pointwiseOperation.apply(colors, inBounds);
                 consumer.accept(i, j, t);
@@ -132,7 +161,7 @@ public final class ImageUtils {
         int width = scaledSize.getFirst();
         int height = scaledSize.getSecond();
         NativeImage out = new NativeImage(width, height, false);
-        applyScaledOperation(pointwiseOperation, (x, y, color) -> safeSetPixelABGR(out, x, y, color), images);
+        applyScaledOperation(pointwiseOperation, (x, y, color) -> safeSetPixelARGB(out, x, y, color), images);
         return out;
     }
 }

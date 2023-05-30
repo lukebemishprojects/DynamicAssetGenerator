@@ -5,11 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import java.util.List;
-import java.util.function.Function;
-
 import com.mojang.blaze3d.platform.NativeImage;
-
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -17,19 +13,22 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
+import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
+import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
+import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
-
+import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.function.Function;
 
 @ApiStatus.Experimental
 public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Range> range) implements TexSource {
     public static final Codec<PaletteSpreadSource> CODEC = RecordCodecBuilder.create(i -> i.group(
             TexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::source),
-            Codec.FLOAT.optionalFieldOf("palette_cutoff", Palette.DEFAULT_CUTOFF).forGetter(PaletteSpreadSource::paletteCutoff),
+            Codec.FLOAT.optionalFieldOf("palette_cutoff", 2f).forGetter(PaletteSpreadSource::paletteCutoff),
             Codec.either(Range.CODEC, Range.CODEC.listOf()).xmap(
                     either -> either.map(List::of, Function.identity()),
                     list -> list.size() == 1 ? Either.left(list.get(0)) : Either.right(list)
@@ -38,11 +37,11 @@ public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Ra
                     return DataResult.error(() -> "Ranges must be disjoint");
                 }
                 return DataResult.success(list);
-            }, DataResult::success).optionalFieldOf("range", List.of(new Range(0.0f,1.0f))).forGetter(PaletteSpreadSource::range)
+            }, DataResult::success).optionalFieldOf("range", List.of(new Range(0,255))).forGetter(PaletteSpreadSource::range)
     ).apply(i,PaletteSpreadSource::new));
 
-    public record Range(float lowerBound, float upperBound) {
-        public static final Codec<Range> CODEC = Codec.floatRange(0.0f,1.0f).listOf().flatXmap(list -> {
+    public record Range(int lowerBound, int upperBound) {
+        public static final Codec<Range> CODEC = Codec.intRange(0,255).listOf().flatXmap(list -> {
             if (list.size() != 2) {
                 return DataResult.error(() -> "Range must have exactly 2 elements");
             }
@@ -67,16 +66,16 @@ public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Ra
         return true;
     }
 
-    static float mapToRange(float value, List<Range> ranges) {
-        float sum = 0.0f;
+    static int mapToRange(int value, List<Range> ranges) {
+        int sum = 0;
         for (Range range : ranges) {
             sum += range.upperBound()-range.lowerBound();
         }
-        float current = 0.0f;
+        int current = 0;
         for (Range range : ranges) {
-            float rangeSize = range.upperBound()-range.lowerBound();
+            int rangeSize = range.upperBound()-range.lowerBound();
             if (value < current+rangeSize) {
-                return range.lowerBound()+(value-current)*(rangeSize/sum);
+                return range.lowerBound()+(value-current)*rangeSize/sum;
             }
             current += rangeSize;
         }
@@ -97,25 +96,15 @@ public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Ra
         }
         return () -> {
             try (NativeImage sourceImg = source.get()) {
-                Palette palette = Palette.extractPalette(sourceImg, 0, paletteCutoff());
-                NativeImage outImg = NativeImageHelper.of(NativeImage.Format.RGBA, sourceImg.getWidth(), sourceImg.getHeight(), false);
+                //TODO: Palette cutoff, still...
+                Palette palette = ImageUtils.getPalette(sourceImg, paletteCutoff());
+                PointwiseOperation.Unary<Integer> operation = (c, i) -> {
+                    int sample = palette.getSample(c);
+                    sample = mapToRange(sample, range());
+                    return FastColor.ARGB32.color(0xFF, sample, sample, sample);
+                };
 
-                int maxIndex = palette.getSize()-1;
-
-                for (int x = 0; x < sourceImg.getWidth(); x++) {
-                    for (int y = 0; y < sourceImg.getHeight(); y++) {
-                        ColorHolder original = ColorHolder.fromColorInt(sourceImg.getPixelRGBA(x,y));
-                        if (original.getA() == 0) {
-                            outImg.setPixelRGBA(x,y,0);
-                            continue;
-                        }
-                        float ramp = ((float) palette.closestTo(original))/maxIndex;
-                        float value = mapToRange(ramp, range());
-                        outImg.setPixelRGBA(x,y,ColorHolder.toColorInt(new ColorHolder(value,value,value,original.getA())));
-                    }
-                }
-
-                return outImg;
+                return ImageUtils.generateScaledImage(operation, List.of(sourceImg));
             }
         };
     }

@@ -7,7 +7,7 @@ import net.minecraft.util.FastColor;
  * A single-image pointwise operation that maps from a color to a palette sample number.
  */
 @SuppressWarnings("unused")
-public class ColorToPaletteOperation implements PointwiseOperation.UnaryPointwiseOperation<Integer> {
+public class ColorToPaletteOperation implements PointwiseOperation.Unary<Integer> {
     private final Palette palette;
 
     public ColorToPaletteOperation(Palette palette) {
@@ -22,7 +22,9 @@ public class ColorToPaletteOperation implements PointwiseOperation.UnaryPointwis
     public Integer apply(int color, boolean isInBounds) {
         if (!isInBounds)
             return 0;
-        int value = palette.getSample(color) & 0xFF;
+        if ((color & 0xFF000000) == 0)
+            return 0;
+        int value = palette.getSample(color);
         return FastColor.ARGB32.color(FastColor.ARGB32.alpha(color), value, value, value);
     }
 }

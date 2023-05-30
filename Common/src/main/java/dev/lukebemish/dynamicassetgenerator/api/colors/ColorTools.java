@@ -49,6 +49,7 @@ public final class ColorTools {
             int aOver = FastColor.ARGB32.alpha(over);
             int aUnder = FastColor.ARGB32.alpha(under);
             int a = aOver + (aUnder * (255 - aOver) / 255);
+            if (a == 0) return 0;
             int r = (FastColor.ARGB32.red(over) * aOver + FastColor.ARGB32.red(under) * aUnder * (255 - aOver) / 255) / a;
             int g = (FastColor.ARGB32.green(over) * aOver + FastColor.ARGB32.green(under) * aUnder * (255 - aOver) / 255) / a;
             int b = (FastColor.ARGB32.blue(over) * aOver + FastColor.ARGB32.blue(under) * aUnder * (255 - aOver) / 255) / a;

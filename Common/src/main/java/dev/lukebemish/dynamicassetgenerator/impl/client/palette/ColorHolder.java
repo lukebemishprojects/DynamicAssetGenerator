@@ -6,7 +6,6 @@
 package dev.lukebemish.dynamicassetgenerator.impl.client.palette;
 
 import dev.lukebemish.dynamicassetgenerator.impl.client.ColorConversionUtils;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -17,15 +16,6 @@ public class ColorHolder implements Comparable<ColorHolder> {
     private final float b;
     private final float a;
 
-    public static int toColorInt(ColorHolder color) {
-        int ret = 0;
-        ret |= (Math.round(Mth.clamp(color.a*255, 0, 255))&0xFF)<<24;
-        ret |= (Math.round(Mth.clamp(color.b*255, 0, 255))&0xFF)<<16;
-        ret |= (Math.round(Mth.clamp(color.g*255, 0, 255))&0xFF)<< 8;
-        ret |= (Math.round(Mth.clamp(color.r*255, 0, 255))&0xFF);
-        return ret;
-    }
-
     public static ColorHolder fromColorInt(int color) {
         return new ColorHolder(
                 (color    &0xFF)/255f,
@@ -35,43 +25,11 @@ public class ColorHolder implements Comparable<ColorHolder> {
         );
     }
 
-    public ColorHolder(float v) {
-        this.r = v;
-        this.g = v;
-        this.b = v;
-        this.a = 1.0f;
-    }
-
     public ColorHolder(float r, float g, float b) {
         this.r = r;
         this.g = g;
         this.b = b;
         this.a = 1.0f;
-    }
-
-    public ColorHolder clamp() {
-        float r,g,b,a;
-        a = this.getA();
-        r = this.getR();
-        g = this.getG();
-        b = this.getB();
-        if (r > 1.0f)
-            r = 1.0f;
-        if (g > 1.0f)
-            g = 1.0f;
-        if (b > 1.0f)
-            b = 1.0f;
-        if (a > 1.0f)
-            a = 1.0f;
-        if (r < 0.0f)
-            r = 0.0f;
-        if (g < 0.0f)
-            g = 0.0f;
-        if (b < 0.0f)
-            b = 0.0f;
-        if (a < 0.0f)
-            a = 0.0f;
-        return new ColorHolder(r,g,b,a);
     }
 
     public ColorHolder(float r, float g, float b, float a) {
@@ -111,62 +69,6 @@ public class ColorHolder implements Comparable<ColorHolder> {
         return 0;
     }
 
-    public static ColorHolder alphaBlend(ColorHolder over, ColorHolder under) {
-        float a0 = over.a + under.a * (1-over.a);
-        float r0 = (over.r* over.a + under.r* under.a*(1-over.a))/a0;
-        float g0 = (over.g* over.a + under.g* under.a*(1-over.a))/a0;
-        float b0 = (over.b* over.a + under.b* under.a*(1-over.a))/a0;
-        return new ColorHolder(r0,g0,b0,a0);
-    }
-
-    public ColorHolder withA(float a) {
-        return new ColorHolder(this.r,this.g,this.b,a);
-    }
-
-    public double distanceToLS(ColorHolder c) {
-        ColorHolder c1 = c.toHLS();
-        ColorHolder c2 = this.toHLS();
-        return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
-                        (c2.b-c1.b)*(c2.b-c1.b));
-    }
-
-    private static final double HYBRID_W_LS = 2;
-    private static final double HYBRID_W_LAB = 1;
-    public double distanceToHybrid(ColorHolder c) {
-        return (distanceToLS(c)*HYBRID_W_LS+distanceToLab(c)*HYBRID_W_LAB)/(HYBRID_W_LS+HYBRID_W_LAB);
-    }
-
-    public double distanceToHLS(ColorHolder c) {
-        ColorHolder c1 = c.toHLS();
-        ColorHolder c2 = this.toHLS();
-        return Math.sqrt((c2.r-c1.r)*(c2.r-c1.r)+
-                (c2.g-c1.g)*(c2.g-c1.g)+
-                (c2.b-c1.b)*(c2.b-c1.b));
-    }
-
-    public double distanceToRGB(ColorHolder c) {
-        ColorHolder c2 = this;
-        return Math.sqrt((c2.r- c.r)*(c2.r- c.r)+
-                (c2.g- c.g)*(c2.g- c.g)+
-                (c2.b- c.b)*(c2.b- c.b));
-    }
-
-    public double distanceToLab(ColorHolder c) {
-        return distanceToLab(c,1);
-    }
-    public double euDistanceToLab(ColorHolder c) {
-        ColorHolder c1 = c.toCIELAB();
-        ColorHolder c2 = this.toCIELAB();
-        return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
-                (c2.b-c1.b)*(c2.b-c1.b)+(c2.r-c1.r)*(c2.r-c1.r));
-    }
-    public double distanceToLab(ColorHolder c, float weightL) {
-        ColorHolder c1 = c.toCIELAB();
-        ColorHolder c2 = this.toCIELAB();
-        return Math.sqrt((c2.g-c1.g)*(c2.g-c1.g)+
-                (c2.b-c1.b)*(c2.b-c1.b)) + Math.abs(c2.r-c1.r)/2*weightL;
-    }
-
     public ColorHolder toHLS() {
         float max = max(r,g,b);
         float min = min(r,g,b);
@@ -188,49 +90,8 @@ public class ColorHolder implements Comparable<ColorHolder> {
         return new ColorHolder(h,l,s);
     }
 
-    public ColorHolder fromHLS() {
-        float h = r;
-        float l = g;
-        float s = b;
-        float _a, _b, _c, _d, _e;
-
-        if (s == 0) {
-            _c = _d = _e = l;
-        } else {
-            _a = l < 0.5 ? (l * (1 + s)) : (l + s - l * s);
-            _b = 2 * l - _a;
-            _c = hlsRgbHelper(_b, _a, h + 1.0f / 3);
-            _d = hlsRgbHelper(_b, _a, h);
-            _e = hlsRgbHelper(_b, _a, h - 1.0f / 3);
-        }
-        return new ColorHolder(_c,_d,_e);
-    }
-
-    private static float hlsRgbHelper(float p, float q, float h) {
-        if (h < 0) {
-            h += 1;
-        }
-        if (h > 1) {
-            h -= 1;
-        }
-        if (6 * h < 1) {
-            return p + ((q - p) * 6 * h);
-        }
-        if (2 * h < 1) {
-            return q;
-        }
-        if (3 * h < 2) {
-            return p + ((q - p) * 6 * ((2.0f / 3.0f) - h));
-        }
-        return p;
-    }
-
     public ColorHolder toCIELAB() {
         return ColorConversionUtils.rgb2lab(this);
-    }
-
-    public ColorHolder fromCIELAB() {
-        return ColorConversionUtils.lab2rgb(this);
     }
 
     private static float max(float a, float b, float c) {
@@ -239,18 +100,6 @@ public class ColorHolder implements Comparable<ColorHolder> {
 
     private static float min(float a, float b, float c) {
         return Math.min(Math.min(a,b),c);
-    }
-
-    public float get_L() {
-        return this.r;
-    }
-
-    public float get_a() {
-        return this.g;
-    }
-
-    public float get_b() {
-        return this.b;
     }
 
     public float getH() {
@@ -288,7 +137,4 @@ public class ColorHolder implements Comparable<ColorHolder> {
         return b;
     }
 
-    public int toInt() {
-        return ColorHolder.toColorInt(this);
-    }
 }

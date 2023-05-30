@@ -26,7 +26,7 @@ public class MultiplyMask extends AbstractManyOperationSource {
     }
 
     @Override
-    public PointwiseOperation.ManyPointwiseOperation<Integer> getOperation() {
+    public PointwiseOperation.Any<Integer> getOperation() {
         return Operations.MULTIPLY;
     }
 }

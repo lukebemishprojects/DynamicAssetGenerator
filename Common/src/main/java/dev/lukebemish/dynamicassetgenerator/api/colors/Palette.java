@@ -154,16 +154,13 @@ public class Palette implements Collection<Integer> {
         while (!isExtended.test(this)) {
             int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
             double endDistance = ColorTools.ARGB32.distance(end, isLow ? 0x000000 : 0xFFFFFF);
-            int oldSize = colors.size();
-            if (endDistance > spacing) {
+            int oldSize = backing.size();
+            if (endDistance < spacing) {
                 int newColor = isLow ? 0x000000 : 0xFFFFFF;
-                if (isLow) {
-                    colors.add(0, newColor);
-                    reachedEndpoint = updateExtended(isLow, oldSize);
-                } else {
-                    colors.add(newColor);
-                    reachedEndpoint = updateExtended(isLow, oldSize);
-                }
+                backing.add(newColor);
+                reachedEndpoint = !updateExtended(isLow, oldSize);
+                if (!reachedEndpoint)
+                    updateList();
                 if (reachedEndpoint)
                     break;
                 isLow = !isLow;
@@ -172,14 +169,10 @@ public class Palette implements Collection<Integer> {
 
             float lerp = (float) (spacing / endDistance);
             int newColor = FastColor.ARGB32.lerp(lerp, end, isLow ? 0xFF000000 : 0xFFFFFFFF);
-            boolean didExtension;
-            if (isLow) {
-                colors.add(0, newColor);
-                didExtension = updateExtended(isLow, oldSize);
-            } else {
-                colors.add(newColor);
-                didExtension = updateExtended(isLow, oldSize);
-            }
+            backing.add(newColor);
+            boolean didExtension = updateExtended(isLow, oldSize);
+            if (didExtension)
+                updateList();
             if (!didExtension) {
                 if (reachedEndpoint) {
                     break;
@@ -195,7 +188,7 @@ public class Palette implements Collection<Integer> {
     }
 
     private boolean updateExtended(boolean isLow, int oldSize) {
-        if (oldSize == colors.size())
+        if (oldSize == backing.size())
             return false;
         if (isLow)
             extendedLow++;
@@ -338,7 +331,7 @@ public class Palette implements Collection<Integer> {
             indexWithDistance.add(Pair.of(i, ColorTools.ARGB32.distance(color, colors.get(i))));
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
-        if (indexWithDistance.size() == 1)
+        if (indexWithDistance.size() == 1 || indexWithDistance.get(0).getSecond() <= this.cutoff)
             return indexWithDistance.get(0).getFirst() * 255 / colors.size();
         else {
             var colorMain = indexWithDistance.get(0);
@@ -357,6 +350,13 @@ public class Palette implements Collection<Integer> {
         if (sample < 0 || sample > 255)
             throw new IllegalArgumentException("Sample number must be between 0 and 255");
         return colors.get(sample * colors.size() / 255);
+    }
+
+    /**
+     * @return the color in the palette at the given index
+     */
+    public int getColorFromIndex(int index) {
+        return colors.get(index);
     }
 
     /**

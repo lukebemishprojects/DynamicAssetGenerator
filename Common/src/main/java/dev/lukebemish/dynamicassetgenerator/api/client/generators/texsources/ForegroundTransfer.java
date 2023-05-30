@@ -13,12 +13,13 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaJsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.client.PaletteExtractor;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.Palette;
-import dev.lukebemish.dynamicassetgenerator.impl.client.util.IPalettePlan;
+import dev.lukebemish.dynamicassetgenerator.impl.client.ForegroundExtractor;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Predicate;
 
 public record ForegroundTransfer(TexSource background, TexSource full, TexSource newBackground,
                                  int extendPaletteSize, boolean trimTrailing, boolean forceNeighbors, boolean fillHoles,
@@ -77,42 +78,16 @@ public record ForegroundTransfer(TexSource background, TexSource full, TexSource
                  NativeImage nImg = newBackground.get();
                  NativeImage fImg = full.get()) {
 
-                try (PaletteExtractor extractor = new PaletteExtractor(context.cacheName(), cacheKey, bImg, fImg, this.extendPaletteSize(), this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles())) {
-                    PalettePlanner planner = PalettePlanner.of(extractor);
+                Predicate<Palette> extend = p -> p.size() >= extendPaletteSize;
+                try (ForegroundExtractor extractor = new ForegroundExtractor(context.cacheName(), cacheKey, bImg, fImg, extend, this.trimTrailing(), this.forceNeighbors(), this.closeCutoff()).fillHoles(this.fillHoles())) {
+                    var options = new CombinedPaletteImage.PaletteCombiningOptions(extend, false, true);
                     extractor.unCacheOrReCalc();
                     try (NativeImage pImg = extractor.getPalettedImg();
                          NativeImage oImg = extractor.getOverlayImg()) {
-                        return Palette.paletteCombinedImage(nImg, oImg, pImg, planner);
+                        return CombinedPaletteImage.combineImages(nImg, oImg, pImg, options);
                     }
                 }
             }
         };
-    }
-
-    public static class PalettePlanner implements IPalettePlan {
-        private final PaletteExtractor extractor;
-
-        private PalettePlanner(PaletteExtractor extractor) {
-            this.extractor = extractor;
-        }
-
-        public static PalettePlanner of(PaletteExtractor extractor) {
-            return new PalettePlanner(extractor);
-        }
-
-        @Override
-        public boolean includeBackground() {
-            return true;
-        }
-
-        @Override
-        public boolean stretchPaletted() {
-            return false;
-        }
-
-        @Override
-        public int extend() {
-            return extractor.extend;
-        }
     }
 }

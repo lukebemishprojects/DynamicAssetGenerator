@@ -27,7 +27,7 @@ abstract public class AbstractManyOperationSource implements TexSource {
         return sources;
     }
 
-    public abstract PointwiseOperation.ManyPointwiseOperation<Integer> getOperation();
+    public abstract PointwiseOperation.Any<Integer> getOperation();
 
     public static <T extends AbstractManyOperationSource> Codec<T> makeCodec(Function<List<TexSource>, T> ctor) {
         return RecordCodecBuilder.create(instance -> instance.group(

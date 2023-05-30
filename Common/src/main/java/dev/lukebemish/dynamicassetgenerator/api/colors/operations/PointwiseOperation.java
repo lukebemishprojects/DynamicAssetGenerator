@@ -24,7 +24,7 @@ public interface PointwiseOperation<T> {
      * A pointwise operation that can be applied to a single image.
      */
     @FunctionalInterface
-    interface UnaryPointwiseOperation<T> extends PointwiseOperation<T> {
+    interface Unary<T> extends PointwiseOperation<T> {
         T apply(int color, boolean isInBounds);
 
         @Override
@@ -40,9 +40,16 @@ public interface PointwiseOperation<T> {
         }
 
         /**
+         * @return a new unary operation that always returns the value it is provided
+         */
+        static Unary<Integer> identity() {
+            return (color, isInBounds) -> color;
+        }
+
+        /**
          * @return a new unary operation that applies first one operation, then another
          */
-        static <T> UnaryPointwiseOperation<T> chain(UnaryPointwiseOperation<Integer> first, UnaryPointwiseOperation<T> then) {
+        static <T> Unary<T> chain(Unary<Integer> first, Unary<T> then) {
             return (color, isInBounds) -> then.apply(first.apply(color, isInBounds), isInBounds);
         }
     }
@@ -51,7 +58,7 @@ public interface PointwiseOperation<T> {
      * A pointwise operation that can be applied to two images.
      */
     @FunctionalInterface
-    interface BinaryPointwiseOperation<T> extends PointwiseOperation<T> {
+    interface Binary<T> extends PointwiseOperation<T> {
         T apply(int firstColor, int secondColor, boolean isFirstInBounds, boolean isSecondInBounds);
 
         @Override
@@ -71,12 +78,12 @@ public interface PointwiseOperation<T> {
      * A pointwise operation that can be applied to three images.
      */
     @FunctionalInterface
-    interface TernaryPointwiseOperation<T> extends PointwiseOperation<T> {
+    interface Ternary<T> extends PointwiseOperation<T> {
         T apply(int firstColor, int secondColor, int thirdColor, boolean isFirstInBounds, boolean isSecondInBounds, boolean isThirdInBounds);
 
         @Override
         default int expectedImages() {
-            return 2;
+            return 3;
         }
 
         @Override
@@ -91,10 +98,22 @@ public interface PointwiseOperation<T> {
      * A pointwise operation that can be applied to any number of images.
      */
     @FunctionalInterface
-    interface ManyPointwiseOperation<T> extends PointwiseOperation<T> {
+    interface Any<T> extends PointwiseOperation<T> {
         @Override
         default int expectedImages() {
             return -1;
+        }
+
+        default Unary<T> unary() {
+            return (color, isInBounds) -> apply(new int[] { color }, new boolean[] { isInBounds });
+        }
+
+        default Binary<T> binary() {
+            return (firstColor, secondColor, isFirstInBounds, isSecondInBounds) -> apply(new int[] { firstColor, secondColor }, new boolean[] { isFirstInBounds, isSecondInBounds });
+        }
+
+        default Ternary<T> ternary() {
+            return (firstColor, secondColor, thirdColor, isFirstInBounds, isSecondInBounds, isThirdInBounds) -> apply(new int[] { firstColor, secondColor, thirdColor }, new boolean[] { isFirstInBounds, isSecondInBounds, isThirdInBounds });
         }
     }
 }

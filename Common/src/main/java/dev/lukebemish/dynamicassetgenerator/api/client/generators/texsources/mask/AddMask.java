@@ -26,7 +26,7 @@ public class AddMask extends AbstractManyOperationSource {
     }
 
     @Override
-    public PointwiseOperation.ManyPointwiseOperation<Integer> getOperation() {
+    public PointwiseOperation.Any<Integer> getOperation() {
         return Operations.ADD;
     }
 }

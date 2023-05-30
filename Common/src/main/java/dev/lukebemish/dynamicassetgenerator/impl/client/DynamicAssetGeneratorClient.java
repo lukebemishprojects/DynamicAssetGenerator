@@ -60,6 +60,11 @@ public class DynamicAssetGeneratorClient {
         //testing
         String test = System.getProperty("dynamicassetgenerator.test");
         if (test != null && test.equals("true")) {
+            ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("item/apple"),
+                    new CombinedPaletteImage(new TextureReader(new ResourceLocation("dynamic_asset_generator:empty")),
+                            new TextureReader(new ResourceLocation("item/apple")),
+                            new TextureReader(new ResourceLocation("item/iron_ingot")),
+                            false, false, 6)));
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("block/end_stone"),
                     new ForegroundTransfer(new TextureReader(new ResourceLocation("block/stone")),
                             new TextureReader(new ResourceLocation("block/redstone_ore")),
