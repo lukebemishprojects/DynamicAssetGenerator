@@ -31,9 +31,10 @@ import java.util.function.Predicate;
 public class ForegroundExtractor implements Closeable {
     private static final int[] X_SAMPLING_ORDER = new int[]{-1, -1, -1, 0, 0, 0, 1, 1, 1};
     private static final int[] Y_SAMPLING_ORDER = new int[]{-1, 0, 1, -1, 0, 1, -1, 0, 1};
-    private static final int PALETTE_CUTOFF = 2;
 
     private static final Map<ResourceLocation, Map<String, CacheReference<OutputHolder>>> MULTI_CACHE = new ConcurrentHashMap<>();
+
+    private static final double HYBRID_WEIGHT = 0.33;
 
     private boolean fillHoles =false;
 
@@ -51,6 +52,7 @@ public class ForegroundExtractor implements Closeable {
     private OutputHolder outputHolder;
 
     private final ColorTools.ConversionCache rgb2labCache = new ColorTools.ConversionCache(ColorTools.CIELAB32::fromARGB32);
+    private final ColorTools.ConversionCache rgb2hslCache = new ColorTools.ConversionCache(ColorTools.HSL24::fromARGB32);
 
     public ForegroundExtractor(ResourceLocation cacheName, DataResult<String> cacheKey, NativeImage background, NativeImage withOverlay, Predicate<Palette> extend, boolean trimTrailingPaletteLookup, boolean forceOverlayNeighbors, double closeCutoff) {
         this.cacheName = cacheName;
@@ -87,14 +89,14 @@ public class ForegroundExtractor implements Closeable {
         //Assemble palette for background
         NativeImage oImg = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
         NativeImage pImg = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
-        Palette backgroundPalette = ImageUtils.getPalette(background, PALETTE_CUTOFF);
+        Palette backgroundPalette = ImageUtils.getPalette(background);
         backgroundPalette.extend(this.extend);
-        Palette withOverlayPalette = ImageUtils.getPalette(withOverlay, PALETTE_CUTOFF);
+        Palette withOverlayPalette = ImageUtils.getPalette(withOverlay);
 
         Clusterer clusterer = new Clusterer(Clusterer.minimumSpacing(backgroundPalette));
         clusterer.addCluster(new Cluster(backgroundPalette));
 
-        Palette notBackgroundPalette = new Palette(PALETTE_CUTOFF);
+        Palette notBackgroundPalette = new Palette();
 
         for (int color : withOverlayPalette) {
             if (backgroundPalette.contains(color)) continue;
@@ -104,7 +106,7 @@ public class ForegroundExtractor implements Closeable {
 
         clusterer.run();
 
-        Palette fColors = new Palette(PALETTE_CUTOFF);
+        Palette fColors = new Palette();
 
         int bgCat = clusterer.getCategory(backgroundPalette.getColor(0));
 
@@ -159,7 +161,7 @@ public class ForegroundExtractor implements Closeable {
                                 int bColor = backgroundPalette.getColorFromIndex(b);
                                 int fColor = fColors.getColorFromIndex(f);
                                 int fWithAlpha = (fColor & 0xFFFFFF) | (a << 24);
-                                double dist = ColorTools.CIELAB32.distance(rgb2labCache.convert(ColorTools.ARGB32.alphaBlend(fWithAlpha, bColor)), rgb2labCache.convert(wC));
+                                double dist = mixedDistance(ColorTools.ARGB32.alphaBlend(fWithAlpha, bColor), wC);
                                 if (dist < lowest) {
                                     lowest = dist;
                                     alpha = a;
@@ -172,7 +174,7 @@ public class ForegroundExtractor implements Closeable {
                                 int bColor = backgroundPalette.getColorFromIndex(b);
                                 int fColor = fColors.getColorFromIndex(b1);
                                 int fWithAlpha = (fColor & 0xFFFFFF) | (a << 24);
-                                double dist = ColorTools.CIELAB32.distance(rgb2labCache.convert(ColorTools.ARGB32.alphaBlend(fWithAlpha, bColor)), rgb2labCache.convert(wC));
+                                double dist = mixedDistance(ColorTools.ARGB32.alphaBlend(fWithAlpha, bColor), wC);
                                 if (dist < lowest) {
                                     lowest = dist;
                                     alpha = a;
@@ -184,7 +186,7 @@ public class ForegroundExtractor implements Closeable {
                     }
                     for (int f = 0; f < fColors.size(); f++) {
                         int fColor = fColors.getColorFromIndex(f);
-                        double dist = ColorTools.CIELAB32.distance(rgb2labCache.convert(fColor), rgb2labCache.convert(wC));
+                        double dist = mixedDistance(fColor, wC);
                         if (dist < lowest) {
                             lowest = dist;
                             alpha = 255;
@@ -248,20 +250,20 @@ public class ForegroundExtractor implements Closeable {
         //Assemble palette for background
         NativeImage oImg = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
         NativeImage pImg = NativeImageHelper.of(NativeImage.Format.RGBA, dim, dim, false);
-        Palette backgroundPalette = ImageUtils.getPalette(background, PALETTE_CUTOFF);
+        Palette backgroundPalette = ImageUtils.getPalette(background);
         backgroundPalette.extend(this.extend);
-        Palette withOverlayPalette = ImageUtils.getPalette(withOverlay, PALETTE_CUTOFF);
+        Palette withOverlayPalette = ImageUtils.getPalette(withOverlay);
         withOverlayPalette.extend(this.extend);
 
         double maxDiff = 0;
         for (int c1 : backgroundPalette) {
             for (int c2 : backgroundPalette) {
-                double diff = ColorTools.CIELAB32.distance(rgb2labCache.convert(c1), rgb2labCache.convert(c2));
+                double diff = mixedDistance(c1, c2);
                 if (diff > maxDiff) maxDiff = diff;
             }
         }
 
-        Palette frontColors = new Palette(PALETTE_CUTOFF);
+        Palette frontColors = new Palette();
 
         ArrayList<PostCalcEvent> postQueue = new ArrayList<>();
         //write paletted image base stuff
@@ -282,14 +284,14 @@ public class ForegroundExtractor implements Closeable {
                     int closestSample = backgroundPalette.getSample(wColor);
                     int closestColor = backgroundPalette.getColor(closestSample);
                     //Now let's check how close it is.
-                    double distance = ColorTools.CIELAB32.distance(rgb2labCache.convert(wColor), rgb2labCache.convert(closestColor));
+                    double distance = mixedDistance(wColor, closestColor);
                     if (distance <= closeCutoff * maxDiff) {
                         //Add it to the post-processing queue
-                        ImageUtils.safeSetPixelABGR(pImg, x, y, FastColor.ABGR32.color(255, closestSample, closestSample, closestSample));
+                        ImageUtils.safeSetPixelABGR(pImg, x, y, FastColor.ABGR32.color(0xFF, closestSample, closestSample, closestSample));
                         postQueue.add(new PostCalcEvent(x, y, wColor, distance));
                     } else {
                         //It's too far away. Write to the overlay.
-                        ImageUtils.safeGetPixelARGB(oImg, x, y, wColor);
+                        ImageUtils.safeSetPixelARGB(oImg, x, y, wColor);
                         frontColors.add(wColor);
                     }
                 }
@@ -373,11 +375,33 @@ public class ForegroundExtractor implements Closeable {
         this.outputHolder = new OutputHolder(oImg, pImg);
     }
 
+    private double mixedDistance(int color1, int color2) {
+        int c1Lab = rgb2labCache.convert(color1);
+        int c2Lab = rgb2labCache.convert(color2);
+        int c1hsl = rgb2hslCache.convert(color1);
+        int c2hsl = rgb2hslCache.convert(color2);
+
+        double d1 = ColorTools.CIELAB32.hueDistance(c1Lab, c2Lab) + Math.abs(ColorTools.CIELAB32.lightness(c1Lab) - ColorTools.CIELAB32.lightness(c2Lab))/2d;
+        double d2 = ColorTools.HSL24.colorlessDistance(c1hsl, c2hsl);
+
+        return d1 * HYBRID_WEIGHT + d2 * (1 - HYBRID_WEIGHT);
+    }
+
     private void runPostCalcQueue(NativeImage oImg, NativeImage pImg, Palette backgroundPalette, Palette frontColors, List<PostCalcEvent> postQueue) {
         for (PostCalcEvent e : postQueue) {
             int x = e.x();
             int y = e.y();
             int wColor = e.wColor();
+
+            int frontSample = frontColors.getSample(wColor);
+            int closeSample = backgroundPalette.getSample(wColor);
+            if (mixedDistance(backgroundPalette.getColor(closeSample), wColor)
+                    > mixedDistance(frontColors.getColor(frontSample), wColor)) {
+                ImageUtils.safeSetPixelARGB(oImg, x, y, wColor | 0xFF000000);
+                ImageUtils.safeSetPixelARGB(pImg, x, y, 0);
+                return;
+            }
+
             int fIndex = 0;
             int bSample = 0;
             double lowest = 255*255;
@@ -388,10 +412,7 @@ public class ForegroundExtractor implements Closeable {
                     int bColor = backgroundPalette.getColorFromIndex(b);
                     for (int f = 0; f < frontColors.size(); f++) {
                         int fColor = frontColors.getColorFromIndex(f);
-                        double dist = ColorTools.CIELAB32.distance(
-                                rgb2labCache.convert(wColor),
-                                rgb2labCache.convert(ColorTools.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor))
-                        );
+                        double dist = mixedDistance(wColor, ColorTools.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor));
                         if (dist < lowest) {
                             lowest = dist;
                             alpha = a;
@@ -403,10 +424,7 @@ public class ForegroundExtractor implements Closeable {
                     for (int b1 = 0; b1 < backgroundPalette.size(); b1++) {
                         int fColor = backgroundPalette.getColorFromIndex(b1);
                         int blend = ColorTools.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor);
-                        double dist = ColorTools.CIELAB32.distance(
-                                rgb2labCache.convert(wColor),
-                                rgb2labCache.convert(blend)
-                        );
+                        double dist = mixedDistance(wColor, blend);
                         if (dist < lowest) {
                             lowest = dist;
                             alpha = a;
@@ -418,10 +436,7 @@ public class ForegroundExtractor implements Closeable {
             }
             for (int f = 0; f < frontColors.size(); f++) {
                 int fColor = frontColors.getColorFromIndex(f);
-                double dist = ColorTools.CIELAB32.distance(
-                        rgb2labCache.convert(wColor),
-                        rgb2labCache.convert(fColor)
-                );
+                double dist = mixedDistance(wColor, fColor);
                 if (dist < lowest) {
                     lowest = dist;
                     alpha = 255;
@@ -429,19 +444,12 @@ public class ForegroundExtractor implements Closeable {
                     skipOverlay = false;
                 }
             }
-            ImageUtils.safeSetPixelABGR(oImg, x, y, FastColor.ABGR32.color(255, bSample, bSample, bSample));
+            ImageUtils.safeSetPixelABGR(pImg, x, y, FastColor.ABGR32.color(255, bSample, bSample, bSample));
             if (!skipOverlay) {
                 int overlayColor = (frontColors.getColorFromIndex(fIndex) & 0xFFFFFF) | (alpha << 24);
                 ImageUtils.safeSetPixelARGB(oImg, x, y, overlayColor);
             }
-            int frontSample = frontColors.getSample(wColor);
-            int closeSample = backgroundPalette.getSample(wColor);
-            if (ColorTools.CIELAB32.distance(rgb2labCache.convert(backgroundPalette.getColor(closeSample)), rgb2labCache.convert(wColor))
-                    > ColorTools.CIELAB32.distance(rgb2labCache.convert(frontColors.getColor(frontSample)), rgb2labCache.convert(wColor))) {
-                ImageUtils.safeSetPixelARGB(oImg, x, y, frontColors.getColor(frontSample) | 0xFF000000);
-                alpha = 255;
-            }
-            if (alpha >= 255)
+            if (alpha == 255)
                 ImageUtils.safeSetPixelARGB(pImg, x, y, 0);
         }
     }

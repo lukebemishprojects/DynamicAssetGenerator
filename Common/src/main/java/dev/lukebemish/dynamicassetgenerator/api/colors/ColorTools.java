@@ -15,7 +15,7 @@ public final class ColorTools {
     private ColorTools() {}
 
     /**
-     * Tool for comparing colors encoded with the least significant 42 bits representing 4 8-bit channels: alpha, red,
+     * Tool for comparing colors encoded with the least significant 32 bits representing 4 8-bit channels: alpha, red,
      * green, and blue.
      */
     public static final class ARGB32 {
@@ -149,7 +149,7 @@ public final class ColorTools {
             double a_ = (500*(cielabF(x/XN) - cielabF(y/YN)));
             double b_ = (200*(cielabF(y/YN) - cielabF(z/ZN)));
 
-            return ((int) Math.round(l) << 16 & 0xFF) | ((int) Math.round(a_) << 8 & 0xFF) | ((int) Math.round(b_) & 0xFF) | (FastColor.ARGB32.alpha(color) << 24);
+            return (((int) Math.round(l) & 0xFF) << 16) | (((int) Math.round(a_) & 0xFF) << 8) | ((int) Math.round(b_) & 0xFF) | (FastColor.ARGB32.alpha(color) << 24);
         }
 
         /**
@@ -160,8 +160,17 @@ public final class ColorTools {
             int da = a(color1) - a(color2);
             int db = b(color1) - b(color2);
 
-            //TODO: test this in production with clustering setup and see if it's sufficient.
             return Math.sqrt(da*da + db*db + dL*dL);
+        }
+
+        /**
+         * @return the Euclidean distance between two colors in CIELAB32 format, ignoring the lightness channel
+         */
+        public static double hueDistance(int color1, int color2) {
+            int da = a(color1) - a(color2);
+            int db = b(color1) - b(color2);
+
+            return Math.sqrt(da*da + db*db);
         }
 
         private static final double XN = 0.95047;
@@ -177,6 +186,86 @@ public final class ColorTools {
                 return Math.pow(t, 1/3d);
             else
                 return t/(3*delta2) + 4/29d;
+        }
+    }
+
+    /**
+     * Tool for comparing colors encoded with the least significant 24 bits representing 3 8-bit channels: hue,
+     * saturation, and lightness.
+     */
+    public static class HSL24 {
+
+        /**
+         * A comparator that sorts colors by the lightness of their HSL24 encoding.
+         */
+        public static final Comparator<Integer> COMPARATOR = Comparator.comparingInt(HSL24::lightness);
+
+        /**
+         * @return the hue channel of a color
+         */
+        public static int hue(int color) {
+            return (color >> 16) & 0xFF;
+        }
+
+        /**
+         * @return the saturation channel of a color
+         */
+        public static int saturation(int color) {
+            return (color >> 8) & 0xFF;
+        }
+
+        /**
+         * @return the lightness channel of a color
+         */
+        public static int lightness(int color) {
+            return color & 0xFF;
+        }
+
+        /**
+         * @return the provided ARGB32 color in its nearest matching encoding
+         */
+        public static int fromARGB32(int color) {
+            int r = FastColor.ARGB32.red(color);
+            int g = FastColor.ARGB32.green(color);
+            int b = FastColor.ARGB32.blue(color);
+
+            int max = Math.max(r, Math.max(g, b));
+            int min = Math.min(r, Math.min(g, b));
+
+            int h, s, l;
+
+            l = (max + min) / 2;
+            if (max == min) {
+                h = s = 0;
+            } else {
+                int diff = max-min;
+                s = l >= 0x80 ? diff*0xFF / (2*0xFF - max - min) : diff*0xFF / (max + min);
+                int m = max==r ? 0 : max==g ? 1 : 2;
+                h = switch (m) {
+                    case 0 -> (g - b)*0xFF / diff + (g < b ? 6*0xFF : 0);
+                    case 1 -> (b - r)*0xFF / diff + 2*0xFF;
+                    default -> (r - g)*0xFF / diff + 4*0xFF;
+                };
+                h/=6;
+            }
+            return ((h & 0xFF) << 16) | ((s & 0xFF) << 8) | l;
+        }
+
+        /**
+         * @return a color from the given channels
+         */
+        public static int color(int hue, int lightness, int saturation) {
+            return ((hue & 0xFF) << 16) | ((saturation & 0xFF) << 8) | (lightness & 0xFF);
+        }
+
+        /**
+         * @return the Euclidean distance between two colors in HSL24 format, ignoring the hue channel
+         */
+        public static double colorlessDistance(int color1, int color2) {
+            int dS = saturation(color1) - saturation(color2);
+            int dL = lightness(color1) - lightness(color2);
+
+            return Math.sqrt(dS*dS + dL*dL);
         }
     }
 

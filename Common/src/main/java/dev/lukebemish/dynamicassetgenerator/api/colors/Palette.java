@@ -23,6 +23,15 @@ public class Palette implements Collection<Integer> {
     private int extendedLow = 0;
     private int extendedHigh = 0;
 
+    public static final double DEFAULT_CUTOFF = 2f;
+
+    /**
+     * Creates a new palette with the default cutoff.
+     */
+    public Palette() {
+        this(DEFAULT_CUTOFF);
+    }
+
     /**
      * Creates a new palette with the given cutoff.
      * @param cutoff cutoff for fuzzy equality

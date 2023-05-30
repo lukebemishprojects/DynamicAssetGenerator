@@ -59,7 +59,6 @@ public record CombinedPaletteImage(TexSource overlay, TexSource background, TexS
                  NativeImage oImg = overlaySupplier.get();
                  NativeImage pImg = palettedSupplier.get()) {
 
-                //TODO: figure out where the cutoff comes from and what to use for it
                 return combineImages(bImg, oImg, pImg, new PaletteCombiningOptions(palette -> palette.size() >= extendPaletteSize, stretchPaletted, includeBackground));
             }
         };
@@ -67,12 +66,11 @@ public record CombinedPaletteImage(TexSource overlay, TexSource background, TexS
 
     @NotNull
     public static NativeImage combineImages(NativeImage backgroundImage, NativeImage overlayImage, NativeImage paletteImage, PaletteCombiningOptions options) {
-        //TODO: Figure out this cutoff
-        Palette palette = ImageUtils.getPalette(backgroundImage, 2);
+        Palette palette = ImageUtils.getPalette(backgroundImage);
         palette.extend(options.palettePredicate());
         final PointwiseOperation.Unary<Integer> stretcher;
         if (options.stretchPaletted()) {
-            Palette palettePalette = ImageUtils.getPalette(paletteImage, 2);
+            Palette palettePalette = ImageUtils.getPalette(paletteImage);
             stretcher = new ColorToPaletteOperation(palettePalette);
         } else {
             stretcher = (color, isInBounds) -> color;

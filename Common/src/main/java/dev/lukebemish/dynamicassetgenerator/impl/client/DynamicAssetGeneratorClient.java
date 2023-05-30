@@ -60,7 +60,7 @@ public class DynamicAssetGeneratorClient {
         //testing
         String test = System.getProperty("dynamicassetgenerator.test");
         if (test != null && test.equals("true")) {
-            double defaultLowCutoff = 0.05d;
+            double defaultLowCutoff = 0.3;
             ASSET_CACHE.planSource(new TextureGenerator(new ResourceLocation("item/apple"),
                     new CombinedPaletteImage(new TextureReader(new ResourceLocation("dynamic_asset_generator:empty")),
                             new TextureReader(new ResourceLocation("block/stone")),

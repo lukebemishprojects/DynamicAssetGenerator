@@ -25,10 +25,10 @@ import java.util.List;
 import java.util.function.Function;
 
 @ApiStatus.Experimental
-public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Range> range) implements TexSource {
+public record PaletteSpreadSource(TexSource source, double paletteCutoff, List<Range> range) implements TexSource {
     public static final Codec<PaletteSpreadSource> CODEC = RecordCodecBuilder.create(i -> i.group(
             TexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::source),
-            Codec.FLOAT.optionalFieldOf("palette_cutoff", 2f).forGetter(PaletteSpreadSource::paletteCutoff),
+            Codec.DOUBLE.optionalFieldOf("palette_cutoff", Palette.DEFAULT_CUTOFF).forGetter(PaletteSpreadSource::paletteCutoff),
             Codec.either(Range.CODEC, Range.CODEC.listOf()).xmap(
                     either -> either.map(List::of, Function.identity()),
                     list -> list.size() == 1 ? Either.left(list.get(0)) : Either.right(list)
@@ -96,7 +96,6 @@ public record PaletteSpreadSource(TexSource source, float paletteCutoff, List<Ra
         }
         return () -> {
             try (NativeImage sourceImg = source.get()) {
-                //TODO: Palette cutoff, still...
                 Palette palette = ImageUtils.getPalette(sourceImg, paletteCutoff());
                 PointwiseOperation.Unary<Integer> operation = (c, i) -> {
                     int sample = palette.getSample(c);
