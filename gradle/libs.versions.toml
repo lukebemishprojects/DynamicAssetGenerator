@@ -11,7 +11,7 @@ qsl = "5.0.0-beta.1+1.19.4"
 
 mdg_plugin = "1.2.0"
 mdg_dsl = "1.3.0"
-autoservice = "1.0.1"
+autoservice = "1.1.0"
 
 quilt_loom = "1.1.23"
 quilt_licenser = "2.0.1"
