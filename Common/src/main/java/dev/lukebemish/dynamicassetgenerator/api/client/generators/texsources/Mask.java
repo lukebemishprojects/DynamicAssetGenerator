@@ -12,7 +12,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
-import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
+import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperations;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,7 @@ public record Mask(TexSource input, TexSource mask) implements TexSource {
             try (NativeImage inImg = input.get();
                  NativeImage maskImg = mask.get()) {
 
-                return ImageUtils.generateScaledImage(Operations.MASK, List.of(inImg, maskImg));
+                return ImageUtils.generateScaledImage(ColorOperations.MASK, List.of(inImg, maskImg));
             }
         };
     }

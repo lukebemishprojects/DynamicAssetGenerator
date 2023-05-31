@@ -107,7 +107,7 @@ public record CombinedPaletteImage(TexSource overlay, TexSource background, TexS
             int resolvedPalette = paletteResolver.apply(paletted, palettedInBounds);
             int[] toOverlay = options.includeBackground() ? new int[]{overlay, resolvedPalette, background} : new int[]{overlay, resolvedPalette};
             boolean[] toOverlayInBounds = options.includeBackground() ? new boolean[]{overlayInBounds, palettedInBounds, backgroundInBounds} : new boolean[]{overlayInBounds, palettedInBounds};
-            return Operations.OVERLAY.apply(toOverlay, toOverlayInBounds);
+            return ColorOperations.OVERLAY.apply(toOverlay, toOverlayInBounds);
         };
 
         return ImageUtils.generateScaledImage(operation, List.of(backgroundImage, overlayImage, paletteImage));

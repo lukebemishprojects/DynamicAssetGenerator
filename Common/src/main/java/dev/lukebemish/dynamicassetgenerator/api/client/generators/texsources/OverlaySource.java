@@ -7,7 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
-import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
+import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperations;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
 import java.util.List;
@@ -26,6 +26,6 @@ public class OverlaySource extends AbstractManyOperationSource {
 
     @Override
     public PointwiseOperation.Any<Integer> getOperation() {
-        return Operations.OVERLAY;
+        return ColorOperations.OVERLAY;
     }
 }

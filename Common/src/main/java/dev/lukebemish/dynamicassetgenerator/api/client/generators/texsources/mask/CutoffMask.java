@@ -15,7 +15,6 @@ import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Channel;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -42,7 +41,7 @@ public record CutoffMask(Channel channel, TexSource source, int cutoff) implemen
         return () -> {
             PointwiseOperation.Unary<Integer> operation = PointwiseOperation.Unary.chain(
                     channel.makeOperation(),
-                    (c, i) -> i ? (FastColor.ARGB32.alpha(c) >= cutoff ? 0xFFFFFFFF : 0) : 0
+                    (c, i) -> i ? (c >= cutoff ? 0xFFFFFFFF : 0) : 0
             );
             try (NativeImage inImg = input.get()) {
                 return ImageUtils.generateScaledImage(operation, List.of(inImg));

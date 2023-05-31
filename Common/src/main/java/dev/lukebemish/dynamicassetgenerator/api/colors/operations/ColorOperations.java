@@ -3,16 +3,26 @@ package dev.lukebemish.dynamicassetgenerator.api.colors.operations;
 import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
 import net.minecraft.util.FastColor;
 
-public final class Operations {
-    private Operations() {}
+/**
+ * A collection of common pointwise operations on colors.
+ */
+public final class ColorOperations {
+    private ColorOperations() {}
 
+    /**
+     * A pointwise operation that combines the alpha channel of the second color with the RGB channels of the first.
+     */
     public static final PointwiseOperation.Binary<Integer> MASK = (i, m, iInBounds, mInBounds) -> {
         if (!mInBounds || !iInBounds)
             return 0;
-        int newAlpha = (i >> 24 & 0xFF) << 24;
+        int newAlpha = m & 0xFF000000;
         return (i & 0xFFFFFF) | newAlpha;
     };
 
+    /**
+     * A pointwise operation that overlays all provided colors, using alpha compositing. The first provided color is the
+     * top layer, and the last provided color is the bottom layer.
+     */
     public static final PointwiseOperation.Any<Integer> OVERLAY = (colors, inBounds) -> {
         if (colors.length == 0)
             return 0;
@@ -25,6 +35,9 @@ public final class Operations {
         return color;
     };
 
+    /**
+     * A pointwise operation that adds all provided colors together, clamping the result to 255.
+     */
     public static final PointwiseOperation.Any<Integer> ADD = (colors, inBounds) -> {
         if (colors.length == 0)
             return 0;
@@ -43,6 +56,9 @@ public final class Operations {
         return FastColor.ARGB32.color(ColorTools.clamp8(alpha), ColorTools.clamp8(red), ColorTools.clamp8(green), ColorTools.clamp8(blue));
     };
 
+    /**
+     * A pointwise operation that multiplies all provided colors together, scaling to a 0-255 range.
+     */
     public static final PointwiseOperation.Any<Integer> MULTIPLY = (colors, inBounds) -> {
         if (colors.length == 0)
             return 0;
@@ -65,6 +81,9 @@ public final class Operations {
         return FastColor.ARGB32.color(ColorTools.clamp8((int) alpha), ColorTools.clamp8((int) red), ColorTools.clamp8((int) green), ColorTools.clamp8((int) blue));
     };
 
+    /**
+     * A pointwise operation that inverts the color.
+     */
     public static final PointwiseOperation.Unary<Integer> INVERT = (color, inBounds) -> {
         if (!inBounds)
             return 0;

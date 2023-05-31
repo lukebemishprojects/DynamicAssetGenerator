@@ -7,6 +7,9 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 
 import java.util.Collection;
 
+/**
+ * A custer of colors, to be used with a {@link Clusterer}.
+ */
 public class Cluster {
     private final IntList colors = new IntArrayList();
 

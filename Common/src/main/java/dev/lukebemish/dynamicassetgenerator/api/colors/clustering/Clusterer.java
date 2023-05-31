@@ -4,6 +4,9 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
 
 import java.util.*;
 
+/**
+ * A tool for grouping colors by agglomerative clustering. Groups are represented by {@link Cluster}s.
+ */
 @SuppressWarnings("unused")
 public class Clusterer {
     private final Map<Integer, Integer> colorToClusterIndex = new HashMap<>();

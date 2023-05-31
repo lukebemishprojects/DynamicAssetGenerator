@@ -10,6 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 import java.util.function.Supplier;
 
+/**
+ * Represents a channel of a color, and how a pointwise operator to retrieve that color from an ARGB32 encoded color.
+ */
 public enum Channel implements StringRepresentable {
     RED(() -> new ChannelOperation(2)),
     GREEN(() -> new ChannelOperation(1)),

@@ -34,7 +34,10 @@ public record ChannelMask(TexSource source, Channel channel) implements TexSourc
             return null;
         }
         return () -> {
-            PointwiseOperation.Unary<Integer> operation = channel.makeOperation();
+            PointwiseOperation.Unary<Integer> operation = PointwiseOperation.Unary.chain(
+                    channel.makeOperation(),
+                    (c, i) -> ((c & 0xFF) << 24) | 0xFFFFFF
+            );
             try (NativeImage inImg = input.get()) {
                 return ImageUtils.generateScaledImage(operation, List.of(inImg));
             }

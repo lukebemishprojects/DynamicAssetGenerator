@@ -8,7 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.ma
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AbstractManyOperationSource;
-import dev.lukebemish.dynamicassetgenerator.api.colors.operations.Operations;
+import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperations;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
 import java.util.List;
@@ -27,6 +27,6 @@ public class MultiplyMask extends AbstractManyOperationSource {
 
     @Override
     public PointwiseOperation.Any<Integer> getOperation() {
-        return Operations.MULTIPLY;
+        return ColorOperations.MULTIPLY;
     }
 }

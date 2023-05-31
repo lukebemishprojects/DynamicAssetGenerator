@@ -14,7 +14,9 @@ import java.util.stream.IntStream;
 /**
  * A collection of RGB24 colors sorted from lightest to darkest, with a cutoff for fuzzy equality. Can be "extended" to
  * a given range by creating new colors at the endpoints as needed. Provides transforms between palette colors and
- * "sample numbers", which are integers in the range [0, 255] corresponding to the position of a color in the palette.
+ * "sample numbers", which are integers in the range [0, 255] corresponding to the position of a color in the palette. A
+ * palette can contain any number of colors, but the sample numbers will always be in the range [0, 255] - meaning that
+ * adding more than 256 colors will be meaningless.
  */
 @SuppressWarnings("unused")
 public class Palette implements Collection<Integer> {
@@ -26,6 +28,9 @@ public class Palette implements Collection<Integer> {
     private int extendedLow = 0;
     private int extendedHigh = 0;
 
+    /**
+     * Default cutoff for fuzzy equality.
+     */
     public static final double DEFAULT_CUTOFF = 3.5f;
 
     /**
@@ -37,7 +42,7 @@ public class Palette implements Collection<Integer> {
 
     /**
      * Creates a new palette with the given cutoff.
-     * @param cutoff cutoff for fuzzy equality
+     * @param cutoff cutoff for fuzzy equality; measures Euclidean distance in RGB24 space
      */
     public Palette(double cutoff) {
         this.cutoff = cutoff;
