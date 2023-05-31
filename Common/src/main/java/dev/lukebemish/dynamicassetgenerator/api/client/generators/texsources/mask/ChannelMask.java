@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2022 Luke Bemish and contributors
- * SPDX-License-Identifier: LGPL-3.0-or-later
- */
-
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask;
 
 import com.mojang.blaze3d.platform.NativeImage;
@@ -15,17 +10,16 @@ import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Channel;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public record CutoffMask(Channel channel, TexSource source, int cutoff) implements TexSource {
-    public static final Codec<CutoffMask> CODEC = RecordCodecBuilder.create(i->i.group(
-            Channel.CODEC.optionalFieldOf("channel",Channel.ALPHA).forGetter(CutoffMask::channel),
-            TexSource.CODEC.fieldOf("source").forGetter(CutoffMask::source),
-            Codec.INT.optionalFieldOf("cutoff",128).forGetter(CutoffMask::cutoff)
-    ).apply(i,CutoffMask::new));
+@SuppressWarnings("unused")
+public record ChannelMask(TexSource source, Channel channel) implements TexSource {
+    public static final Codec<ChannelMask> CODEC = RecordCodecBuilder.create(i -> i.group(
+            TexSource.CODEC.fieldOf("source").forGetter(ChannelMask::source),
+            Channel.CODEC.fieldOf("channel").forGetter(ChannelMask::channel)
+    ).apply(i, ChannelMask::new));
 
     @Override
     public Codec<? extends TexSource> codec() {
@@ -40,10 +34,7 @@ public record CutoffMask(Channel channel, TexSource source, int cutoff) implemen
             return null;
         }
         return () -> {
-            PointwiseOperation.Unary<Integer> operation = PointwiseOperation.Unary.chain(
-                    channel.makeOperation(),
-                    (c, i) -> i ? (FastColor.ARGB32.alpha(c) >= cutoff ? 0xFFFFFFFF : 0) : 0
-            );
+            PointwiseOperation.Unary<Integer> operation = channel.makeOperation();
             try (NativeImage inImg = input.get()) {
                 return ImageUtils.generateScaledImage(operation, List.of(inImg));
             }

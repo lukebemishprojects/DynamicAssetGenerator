@@ -14,6 +14,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -66,7 +67,7 @@ public record PaletteSpreadSource(TexSource source, double paletteCutoff, List<R
         return true;
     }
 
-    static int mapToRange(int value, List<Range> ranges) {
+    static int mapToRange(float value, List<Range> ranges) {
         int sum = 0;
         for (Range range : ranges) {
             sum += range.upperBound()-range.lowerBound();
@@ -75,7 +76,8 @@ public record PaletteSpreadSource(TexSource source, double paletteCutoff, List<R
         for (Range range : ranges) {
             int rangeSize = range.upperBound()-range.lowerBound();
             if (value < current+rangeSize) {
-                return range.lowerBound()+(value-current)*rangeSize/sum;
+                float out = range.lowerBound()+(value-current)*rangeSize/sum;
+                return ColorTools.clamp8((int) (out + 0.5));
             }
             current += rangeSize;
         }
@@ -95,15 +97,29 @@ public record PaletteSpreadSource(TexSource source, double paletteCutoff, List<R
             return null;
         }
         return () -> {
-            try (NativeImage sourceImg = source.get()) {
-                Palette palette = ImageUtils.getPalette(sourceImg, paletteCutoff());
-                PointwiseOperation.Unary<Integer> operation = (c, i) -> {
-                    int sample = palette.getSample(c);
-                    sample = mapToRange(sample, range());
-                    return FastColor.ARGB32.color(0xFF, sample, sample, sample);
+            try (NativeImage paletteImage = source.get()) {
+                int min = 0xFF;
+                int max = 0x00;
+                for (int i = 0; i < paletteImage.getWidth(); i++) {
+                    for (int j = 0; j < paletteImage.getHeight(); j++) {
+                        int color = paletteImage.getPixelRGBA(i, j);
+                        int value = (FastColor.ABGR32.red(color) + FastColor.ABGR32.green(color) + FastColor.ABGR32.blue(color))/3;
+                        if (value < min)
+                            min = value;
+                        if (value > max)
+                            max = value;
+                    }
+                }
+                int finalMax = max;
+                int finalMin = min;
+                PointwiseOperation.Unary<Integer> operation = (color, isInBounds) -> {
+                    int value = (FastColor.ARGB32.red(color) + FastColor.ARGB32.green(color) + FastColor.ARGB32.blue(color))/3;
+                    float stretched = (value - finalMin) * 255f / (finalMax - finalMin);
+                    int out = mapToRange(stretched, range());
+                    return FastColor.ARGB32.color(FastColor.ARGB32.alpha(color), out, out, out);
                 };
 
-                return ImageUtils.generateScaledImage(operation, List.of(sourceImg));
+                return ImageUtils.generateScaledImage(operation, List.of(paletteImage));
             }
         };
     }

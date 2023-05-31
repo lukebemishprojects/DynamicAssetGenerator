@@ -11,8 +11,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
+import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
 import dev.lukebemish.dynamicassetgenerator.impl.util.MultiCloser;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.ApiStatus;
@@ -20,7 +21,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, TexSource generator) implements TexSource {
     public static final Codec<AnimationSplittingSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -61,8 +64,8 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, Tex
                         throw new IOException("Source not shaped correctly for an animation...");
                     }
                 }
-                int lcm = lcm(counts);
-                int lcmWidth = lcm(imageList.stream().map(NativeImage::getWidth).toList());
+                int lcm = Maath.lcm(counts);
+                int lcmWidth = Maath.lcm(imageList.stream().map(NativeImage::getWidth).toList());
                 NativeImage output = NativeImageHelper.of(NativeImage.Format.RGBA, lcmWidth, lcmWidth*lcm, false);
                 for (int i = 0; i < lcm; i++) {
                     Map<String, NativeImage> map = new HashMap<>();
@@ -85,7 +88,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, Tex
                         int scale = lcmWidth/sWidth;
                         for (int x = 0; x < lcmWidth; x++) {
                             for (int y = 0; y < lcmWidth; y++) {
-                                int color = SafeImageExtraction.get(supplied, x/scale, y/scale);
+                                int color = ImageUtils.safeGetPixelABGR(supplied, x/scale, y/scale);
                                 output.setPixelRGBA(x,y+i*lcmWidth,color);
                             }
                         }
@@ -94,29 +97,6 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, Tex
                 return output;
             }
         };
-    }
-
-    private static int gcd(int i1, int i2) {
-        if (i1==0||i2==0)
-            return i1+i2;
-        int max = Math.max(i1,i2);
-        int min = Math.min(i1,i2);
-        return gcd(max % min, min);
-    }
-
-    private static int lcm(int i1, int i2) {
-        return (i1*i2)/gcd(i1,i2);
-    }
-
-    @ApiStatus.Internal
-    public static int lcm(List<Integer> ints) {
-        if (ints.size() <= 1)
-            return ints.get(0);
-        if (ints.size() == 2)
-            return lcm(ints.get(0),ints.get(1));
-        List<Integer> newInts = new ArrayList<>(ints.subList(2,ints.size()));
-        newInts.add(0,lcm(ints.get(0),ints.get(1)));
-        return lcm(newInts);
     }
 
     private static int getFrameCount(NativeImage image) {
@@ -130,7 +110,7 @@ public record AnimationSplittingSource(Map<String, TimeAwareSource> sources, Tex
         NativeImage output = NativeImageHelper.of(input.format(), size, size, false);
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
-                output.setPixelRGBA(x,y,SafeImageExtraction.get(input,x,((part/scale)%numFull)*size+y));
+                output.setPixelRGBA(x, y, ImageUtils.safeGetPixelABGR(input, x, ((part/scale)%numFull)*size+y));
             }
         }
         return output;

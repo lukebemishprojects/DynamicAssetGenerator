@@ -11,8 +11,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public record Transform(TexSource input, int rotate, boolean flip) implements Te
                 NativeImage output2 = NativeImageHelper.of(output.format(), output.getWidth(), output.getHeight(), false);
                 for (int x = 0; x < output.getWidth(); x++) {
                     for (int y = 0; y < output.getHeight(); y++) {
-                        output2.setPixelRGBA((output.getWidth()-1-x),y, SafeImageExtraction.get(output,x,y));
+                        output2.setPixelRGBA((output.getWidth()-1-x),y, ImageUtils.safeGetPixelABGR(output,x,y));
                     }
                 }
                 output.close();
@@ -61,7 +61,7 @@ public record Transform(TexSource input, int rotate, boolean flip) implements Te
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
                 //noinspection SuspiciousNameCombination
-                output.setPixelRGBA(y, w - x - 1, SafeImageExtraction.get(input,x, y));
+                output.setPixelRGBA(y, w - x - 1, ImageUtils.safeGetPixelABGR(input,x, y));
         input.close();
         return output;
     }

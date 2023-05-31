@@ -10,7 +10,6 @@ import java.util.function.IntUnaryOperator;
 /**
  * Various tools for transforming and comparing colors encoded in different ways
  */
-@SuppressWarnings("unused")
 public final class ColorTools {
     private ColorTools() {}
 
@@ -93,7 +92,6 @@ public final class ColorTools {
      * the "L", "a", and "b" channels of a CIELAB encoding. Assumes standard illuminant D65.
      */
     public static final class CIELAB32 {
-        private static final double MAX_LINEAR = Math.pow(255, 2.2);
         private CIELAB32() {}
 
         /**
@@ -163,16 +161,6 @@ public final class ColorTools {
             return Math.sqrt(da*da + db*db + dL*dL);
         }
 
-        /**
-         * @return the Euclidean distance between two colors in CIELAB32 format, ignoring the lightness channel
-         */
-        public static double hueDistance(int color1, int color2) {
-            int da = a(color1) - a(color2);
-            int db = b(color1) - b(color2);
-
-            return Math.sqrt(da*da + db*db);
-        }
-
         private static final double XN = 0.95047;
         private static final double YN = 1.00000;
         private static final double ZN = 1.08883;
@@ -190,15 +178,22 @@ public final class ColorTools {
     }
 
     /**
-     * Tool for comparing colors encoded with the least significant 24 bits representing 3 8-bit channels: hue,
+     * Tool for comparing colors encoded with the least significant 32 bits representing 4 8-bit channels: alpha, hue,
      * saturation, and lightness.
      */
-    public static class HSL24 {
+    public static class HSL32 {
 
         /**
          * A comparator that sorts colors by the lightness of their HSL24 encoding.
          */
-        public static final Comparator<Integer> COMPARATOR = Comparator.comparingInt(HSL24::lightness);
+        public static final Comparator<Integer> COMPARATOR = Comparator.comparingInt(HSL32::lightness);
+
+        /**
+         * @return the alpha channel of a color
+         */
+        public static int alpha(int color) {
+            return (color >> 24) & 0xFF;
+        }
 
         /**
          * @return the hue channel of a color
@@ -248,7 +243,7 @@ public final class ColorTools {
                 };
                 h/=6;
             }
-            return ((h & 0xFF) << 16) | ((s & 0xFF) << 8) | l;
+            return ((h & 0xFF) << 16) | ((s & 0xFF) << 8) | l | (FastColor.ARGB32.alpha(color) << 24);
         }
 
         /**
@@ -256,16 +251,6 @@ public final class ColorTools {
          */
         public static int color(int hue, int lightness, int saturation) {
             return ((hue & 0xFF) << 16) | ((saturation & 0xFF) << 8) | (lightness & 0xFF);
-        }
-
-        /**
-         * @return the Euclidean distance between two colors in HSL24 format, ignoring the hue channel
-         */
-        public static double colorlessDistance(int color1, int color2) {
-            int dS = saturation(color1) - saturation(color2);
-            int dL = lightness(color1) - lightness(color2);
-
-            return Math.sqrt(dS*dS + dL*dL);
         }
     }
 
@@ -287,10 +272,18 @@ public final class ColorTools {
         }
 
         /**
-         * @return the provided color after conversion
+         * @return the provided color after conversion. This operation is thread-safe.
          */
         public int convert(int color) {
-            return cache.computeIfAbsent(color, converter);
+            if (cache.containsKey(color))
+                return cache.get(color);
+            synchronized (cache) {
+                if (cache.containsKey(color))
+                    return cache.get(color);
+                int result = converter.applyAsInt(color);
+                cache.put(color, result);
+                return result;
+            }
         }
     }
 

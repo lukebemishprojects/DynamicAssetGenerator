@@ -12,15 +12,15 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.Nullable;
 
-public record GrowMask(TexSource source, float growth, float cutoff) implements TexSource {
+public record GrowMask(TexSource source, float growth, int cutoff) implements TexSource {
     public static final Codec<GrowMask> CODEC = RecordCodecBuilder.create(i -> i.group(
             TexSource.CODEC.fieldOf("source").forGetter(GrowMask::source),
             Codec.FLOAT.optionalFieldOf("growth",1f/16f).forGetter(GrowMask::growth),
-            Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(GrowMask::cutoff)
+            Codec.INT.optionalFieldOf("cutoff",128).forGetter(GrowMask::cutoff)
     ).apply(i, GrowMask::new));
 
     @Override
@@ -62,7 +62,7 @@ public record GrowMask(TexSource source, float growth, float cutoff) implements 
                                 int x1 = x+i;
                                 int y1 = y+j;
                                 if (!(x1 < toGrow || y1 < toGrow || x1 >= width - toGrow || y1 >= width - toGrow) &&
-                                        ColorHolder.fromColorInt(inImg.getPixelRGBA(x1,y1)).getA() > cutoff)
+                                        FastColor.ABGR32.alpha(inImg.getPixelRGBA(x1,y1)) >= cutoff)
                                     shouldGrow = true;
                             }
                         }

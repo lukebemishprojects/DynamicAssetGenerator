@@ -5,20 +5,18 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
-import java.io.IOException;
-
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.util.SafeImageExtraction;
+import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.blaze3d.platform.NativeImage;
-
-import net.minecraft.server.packs.resources.IoSupplier;
+import java.io.IOException;
 
 public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, TexSource input) implements TexSource {
     public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -69,7 +67,7 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
                 for (int x = 0; x < distX; x++) {
                     for (int y = 0; y < distY; y++) {
-                        int c = SafeImageExtraction.get(inImg, (x + startX() * scale), (y + startY() * scale));
+                        int c = ImageUtils.safeGetPixelABGR(inImg, (x + startX() * scale), (y + startY() * scale));
                         out.setPixelRGBA(x, y, c);
                     }
                 }

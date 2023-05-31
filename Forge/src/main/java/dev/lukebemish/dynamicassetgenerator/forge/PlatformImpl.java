@@ -6,14 +6,14 @@
 package dev.lukebemish.dynamicassetgenerator.forge;
 
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.services.IPlatform;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.services.Platform;
 import com.google.auto.service.AutoService;
 import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 
-@AutoService(IPlatform.class)
-public class PlatformImpl implements IPlatform {
+@AutoService(Platform.class)
+public class PlatformImpl implements Platform {
     public Path getConfigFolder() {
         return FMLPaths.CONFIGDIR.get();
     }

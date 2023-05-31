@@ -12,11 +12,11 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AnimationSplittingSource;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
@@ -111,7 +111,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
 
             for (int i = 0; i < frameCount.size(); i++)
                 relFrameCount.add(frameCount.get(i) * scale.get(i));
-            int totalLength = AnimationSplittingSource.lcm(relFrameCount);
+            int totalLength = Maath.lcm(relFrameCount);
 
             if (!sources.contains(patternSourceRl)) {
                 DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSourceRl);

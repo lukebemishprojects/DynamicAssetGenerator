@@ -9,6 +9,6 @@ import net.minecraft.server.packs.PackResources;
 
 import java.util.List;
 
-public interface IResourceDegrouper {
+public interface ResourceDegrouper {
     List<? extends PackResources> unpackPacks(List<? extends PackResources> packs);
 }

@@ -12,8 +12,8 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,12 +22,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public record EdgeMask(TexSource source, boolean countOutsideFrame, List<Direction> edges, float cutoff) implements TexSource {
+public record EdgeMask(TexSource source, boolean countOutsideFrame, List<Direction> edges, int cutoff) implements TexSource {
     public static final Codec<EdgeMask> CODEC = RecordCodecBuilder.create(i -> i.group(
             TexSource.CODEC.fieldOf("source").forGetter(EdgeMask::source),
             Codec.BOOL.optionalFieldOf("count_outside_frame",false).forGetter(EdgeMask::countOutsideFrame),
             StringRepresentable.fromEnum(Direction::values).listOf().optionalFieldOf("edges", Arrays.stream(Direction.values()).toList()).forGetter(EdgeMask::edges),
-            Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(EdgeMask::cutoff)
+            Codec.INT.optionalFieldOf("cutoff",128).forGetter(EdgeMask::cutoff)
     ).apply(i, EdgeMask::new));
 
     @Override
@@ -52,12 +52,13 @@ public record EdgeMask(TexSource source, boolean countOutsideFrame, List<Directi
                 for (int x = 0; x < width; x++) {
                     for (int y = 0; y < width; y++) {
                         boolean isEdge = false;
-                        if (ColorHolder.fromColorInt(inImg.getPixelRGBA(x, y)).getA() > cutoff) {
+                        int color = inImg.getPixelRGBA(x,y);
+                        if (FastColor.ABGR32.alpha(color) >= cutoff) {
                             for (int i = 0; i < xs.length; i++) {
                                 int x1 = xs[i]+x;
                                 int y1 = ys[i]+y;
                                 if ((countOutsideFrame && (x1 < 0 || y1 < 0 || x1 > width-1 || y1 > width-1)) ||
-                                        ColorHolder.fromColorInt(inImg.getPixelRGBA(x1,y1)).getA() <= cutoff)
+                                        FastColor.ABGR32.alpha(inImg.getPixelRGBA(x1,y1)) < cutoff)
                                     isEdge = true;
                             }
                         }

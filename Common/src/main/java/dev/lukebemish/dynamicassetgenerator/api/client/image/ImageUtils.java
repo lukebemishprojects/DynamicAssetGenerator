@@ -182,26 +182,26 @@ public final class ImageUtils {
         int width = scaledSize.getFirst();
         int height = scaledSize.getSecond();
         int numImages = images.size();
-        IntStream.range(0, width*height).parallel().forEach(index -> {
-            int i = index % width;
-            int j = index / width;
-            int[] colors = new int[numImages];
-            boolean[] inBounds = new boolean[numImages];
-            for (int k = 0; k < numImages; k++) {
-                int x = i * images.get(k).getWidth() / width;
-                int y = j * images.get(k).getHeight() / height;
-                colors[k] = safeGetPixelARGB(images.get(k), x, y, 0);
-                inBounds[k] = (x >= 0 && x < images.get(k).getWidth() && y >= 0 && y < images.get(k).getHeight());
+        IntStream.range(0, width).parallel().forEach(i -> {
+            for (int j = 0; j < height; j++) {
+                int[] colors = new int[numImages];
+                boolean[] inBounds = new boolean[numImages];
+                for (int k = 0; k < numImages; k++) {
+                    int x = i * images.get(k).getWidth() / width;
+                    int y = j * images.get(k).getHeight() / height;
+                    colors[k] = safeGetPixelARGB(images.get(k), x, y, 0);
+                    inBounds[k] = (x >= 0 && x < images.get(k).getWidth() && y >= 0 && y < images.get(k).getHeight());
+                }
+                T t = pointwiseOperation.apply(colors, inBounds);
+                consumer.accept(i, j, t);
             }
-            T t = pointwiseOperation.apply(colors, inBounds);
-            consumer.accept(i, j, t);
         });
     }
 
     /**
      * Generates an image by applying a pointwise operation to a list of images, scaled so that their widths are all
      * equal.
-     * @param pointwiseOperation the operation to apply
+     * @param pointwiseOperation the operation to apply. Is applied in parallel and must be threadsafe
      * @param images the images to apply the operation to. The number of images must match the number expected by the
      *               operation, or the operation must expect any number of images
      * @return the generated image

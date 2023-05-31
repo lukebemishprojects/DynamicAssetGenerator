@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import java.util.List;
 
 @Mixin(PackRepository.class)
-public interface IPackRepositoryMixin {
+public interface PackRepositoryMixin {
     @Accessor
     List<Pack> getSelected();
 }

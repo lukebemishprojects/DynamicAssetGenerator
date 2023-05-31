@@ -1,12 +1,15 @@
 package dev.lukebemish.dynamicassetgenerator.api.colors;
 
 import com.mojang.datafixers.util.Pair;
+import dev.lukebemish.dynamicassetgenerator.api.colors.geometry.ColorCoordinates;
+import dev.lukebemish.dynamicassetgenerator.api.colors.geometry.LineSegment;
 import dev.lukebemish.dynamicassetgenerator.api.util.FuzzySet;
 import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 /**
  * A collection of RGB24 colors sorted from lightest to darkest, with a cutoff for fuzzy equality. Can be "extended" to
@@ -17,13 +20,13 @@ import java.util.function.Predicate;
 public class Palette implements Collection<Integer> {
     private final Set<Integer> backing;
     private List<Integer> colors;
-
+    private List<LineSegment> lines;
     private final double cutoff;
 
     private int extendedLow = 0;
     private int extendedHigh = 0;
 
-    public static final double DEFAULT_CUTOFF = 2f;
+    public static final double DEFAULT_CUTOFF = 3.5f;
 
     /**
      * Creates a new palette with the default cutoff.
@@ -157,42 +160,53 @@ public class Palette implements Collection<Integer> {
     public void extend(Predicate<Palette> isExtended) {
         if (backing.isEmpty())
             throw new IllegalStateException("Color palette is empty");
-        boolean isLow = true;
-        boolean reachedEndpoint = false;
         double spacing = ColorTools.ARGB32.distance(colors.get(0), colors.get(colors.size() - 1)) / (colors.size() - 1);
+        boolean reachedLow = false;
+        boolean reachedHigh = false;
         while (!isExtended.test(this)) {
-            int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
-            double endDistance = ColorTools.ARGB32.distance(end, isLow ? 0x000000 : 0xFFFFFF);
-            int oldSize = backing.size();
-            if (endDistance < spacing) {
-                int newColor = isLow ? 0x000000 : 0xFFFFFF;
-                backing.add(newColor);
-                reachedEndpoint = !updateExtended(isLow, oldSize);
-                if (!reachedEndpoint)
-                    updateList();
-                if (reachedEndpoint)
-                    break;
-                isLow = !isLow;
-                reachedEndpoint = true;
-            }
-
-            float lerp = (float) (spacing / endDistance);
-            int newColor = FastColor.ARGB32.lerp(lerp, end, isLow ? 0xFF000000 : 0xFFFFFFFF);
-            backing.add(newColor);
-            boolean didExtension = updateExtended(isLow, oldSize);
-            if (didExtension)
-                updateList();
-            if (!didExtension) {
-                if (reachedEndpoint) {
-                    break;
-                } else {
+            boolean isLow = true;
+            do {
+                if (isLow && reachedLow || !isLow && reachedHigh) {
                     isLow = !isLow;
-                    reachedEndpoint = true;
+                    continue;
                 }
-            }
+                int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
+                double endDistance = ColorTools.ARGB32.distance(end, isLow ? 0x000000 : 0xFFFFFF);
+                int oldSize = backing.size();
+                if (endDistance < spacing) {
+                    int newColor = isLow ? 0x000000 : 0xFFFFFF;
+                    backing.add(newColor);
+                    if (updateExtended(isLow, oldSize))
+                        updateList();
+                    if (isLow)
+                        reachedLow = true;
+                    else
+                        reachedHigh = true;
+                    continue;
+                }
 
-            if (!reachedEndpoint)
+                int target = isLow ? 0x00 : 0xFF;
+                int r = (int) ((FastColor.ARGB32.red(end) * (endDistance - spacing) + target * spacing) / endDistance);
+                int g = (int) ((FastColor.ARGB32.green(end) * (endDistance - spacing) + target * spacing) / endDistance);
+                int b = (int) ((FastColor.ARGB32.blue(end) * (endDistance - spacing) + target * spacing) / endDistance);
+                int newColor = FastColor.ARGB32.color(0xFF, r, g, b);
+                backing.add(newColor);
+                boolean didExtension = updateExtended(isLow, oldSize);
+                if (didExtension)
+                    updateList();
+                if (!didExtension) {
+                    if (isLow) {
+                        reachedLow = true;
+                    } else {
+                        reachedHigh = true;
+                    }
+                }
                 isLow = !isLow;
+            } while (!isLow);
+
+            if (reachedLow && reachedHigh) {
+                break;
+            }
         }
     }
 
@@ -398,7 +412,19 @@ public class Palette implements Collection<Integer> {
         return FastColor.ARGB32.color(0xFF, r / c, g / c, b / c);
     }
 
+    /**
+     * @return the minimum distance between the given color and line segments formed between consecutive colors in the
+     * palette, in the given color coordinates
+     */
+    public double distanceToPolyLine(int color, ColorCoordinates coordinates) {
+        return lines.stream().mapToDouble(line -> line.distanceTo(color, coordinates)).min().orElseThrow(() -> new IllegalStateException("Color palette is empty"));
+    }
+
     private void updateList() {
         colors = backing.stream().sorted(ColorTools.ARGB32.COMPARATOR).toList();
+        if (colors.size() >= 1)
+            lines = IntStream.range(1, colors.size()).mapToObj(i -> new LineSegment(colors.get(i-1), colors.get(i))).toList();
+        else
+            lines = List.of();
     }
 }

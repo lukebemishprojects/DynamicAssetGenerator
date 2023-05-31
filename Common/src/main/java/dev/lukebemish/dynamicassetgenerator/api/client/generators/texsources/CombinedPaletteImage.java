@@ -15,6 +15,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.*;
 import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,8 +71,25 @@ public record CombinedPaletteImage(TexSource overlay, TexSource background, TexS
         palette.extend(options.palettePredicate());
         final PointwiseOperation.Unary<Integer> stretcher;
         if (options.stretchPaletted()) {
-            Palette palettePalette = ImageUtils.getPalette(paletteImage);
-            stretcher = new ColorToPaletteOperation(palettePalette);
+            int min = 0xFF;
+            int max = 0x00;
+            for (int i = 0; i < paletteImage.getWidth(); i++) {
+                for (int j = 0; j < paletteImage.getHeight(); j++) {
+                    int color = paletteImage.getPixelRGBA(i, j);
+                    int value = (FastColor.ABGR32.red(color) + FastColor.ABGR32.green(color) + FastColor.ABGR32.blue(color))/3;
+                    if (value < min)
+                        min = value;
+                    if (value > max)
+                        max = value;
+                }
+            }
+            int finalMax = max;
+            int finalMin = min;
+            stretcher = (color, isInBounds) -> {
+                int value = (FastColor.ARGB32.red(color) + FastColor.ARGB32.green(color) + FastColor.ARGB32.blue(color))/3;
+                int stretched = (value - finalMin) * 255 / (finalMax - finalMin);
+                return FastColor.ARGB32.color(FastColor.ARGB32.alpha(color), stretched, stretched, stretched);
+            };
         } else {
             stretcher = (color, isInBounds) -> color;
         }

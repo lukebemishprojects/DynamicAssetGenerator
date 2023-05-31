@@ -8,7 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client;
 import com.google.common.collect.ImmutableList;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
-import dev.lukebemish.dynamicassetgenerator.mixin.IPackRepositoryMixin;
+import dev.lukebemish.dynamicassetgenerator.mixin.PackRepositoryMixin;
 import dev.lukebemish.dynamicassetgenerator.impl.util.InvisibleProviderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -39,7 +39,7 @@ public class ClientPrePackRepository {
             for (var provider : InvisibleProviderUtils.INVISIBLE_RESOURCE_PROVIDERS)
                 provider.reset(PackType.CLIENT_RESOURCES);
             resources = Stream.concat(
-                    Services.DEGROUPER.unpackPacks(((IPackRepositoryMixin) Minecraft.getInstance().getResourcePackRepository()).getSelected().stream()
+                    Services.DEGROUPER.unpackPacks(((PackRepositoryMixin) Minecraft.getInstance().getResourcePackRepository()).getSelected().stream()
                                     .filter(p->!(p.getId().startsWith(DynamicAssetGenerator.MOD_ID+':'))).map(Pack::open)
                                     .filter(p->!(p.packId().startsWith(DynamicAssetGenerator.MOD_ID+':')))
                                     .collect(ImmutableList.toImmutableList()))

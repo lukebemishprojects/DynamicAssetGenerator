@@ -7,7 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.impl.platform.services;
 
 import java.nio.file.Path;
 
-public interface IPlatform {
+public interface Platform {
     Path getConfigFolder();
     Path getModDataFolder();
 }

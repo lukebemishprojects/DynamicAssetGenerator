@@ -107,9 +107,14 @@ subprojects { p ->
     java.withSourcesJar()
     java.withJavadocJar()
 
+    javadoc {
+        include "**/api/**"
+    }
+
     license {
         rule rootProject.file('header.txt')
         exclude '**/*.mcmeta'
+        exclude '**/package-info.java'
     }
 
     jar {

@@ -6,14 +6,14 @@
 package dev.lukebemish.dynamicassetgenerator.quilt;
 
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.services.IPlatform;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.services.Platform;
 import com.google.auto.service.AutoService;
 import org.quiltmc.loader.api.QuiltLoader;
 
 import java.nio.file.Path;
 
-@AutoService(IPlatform.class)
-public class PlatformImpl implements IPlatform {
+@AutoService(Platform.class)
+public class PlatformImpl implements Platform {
     public Path getConfigFolder() {
         return QuiltLoader.getConfigDir();
     }
