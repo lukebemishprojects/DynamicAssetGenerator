@@ -18,13 +18,13 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import java.io.IOException;
 import java.util.Objects;
 
-public final class TextureReader implements TexSource {
-    public static final Codec<TextureReader> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("path").forGetter(TextureReader::getPath)
-    ).apply(instance, TextureReader::new));
+public final class TextureReaderSource implements TexSource {
+    public static final Codec<TextureReaderSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ResourceLocation.CODEC.fieldOf("path").forGetter(TextureReaderSource::getPath)
+    ).apply(instance, TextureReaderSource::new));
     private final ResourceLocation path;
 
-    private TextureReader(ResourceLocation path) {
+    private TextureReaderSource(ResourceLocation path) {
         this.path = path;
     }
 
@@ -58,9 +58,9 @@ public final class TextureReader implements TexSource {
             return this;
         }
 
-        public TextureReader build() {
+        public TextureReaderSource build() {
             Objects.requireNonNull(path);
-            return new TextureReader(path);
+            return new TextureReaderSource(path);
         }
     }
 }

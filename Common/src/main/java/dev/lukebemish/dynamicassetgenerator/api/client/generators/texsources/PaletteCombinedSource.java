@@ -25,19 +25,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public final class CombinedPaletteImage implements TexSource {
+public final class PaletteCombinedSource implements TexSource {
     private static final boolean DEFAULT_INCLUDE_BACKGROUND = true;
     private static final boolean DEFAULT_STRETCH_PALETTED = false;
     private static final int DEFAULT_EXTEND_PALETTE_SIZE = 6;
 
-    public static final Codec<CombinedPaletteImage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TexSource.CODEC.fieldOf("overlay").forGetter(CombinedPaletteImage::getOverlay),
-            TexSource.CODEC.fieldOf("background").forGetter(CombinedPaletteImage::getBackground),
-            TexSource.CODEC.fieldOf("paletted").forGetter(CombinedPaletteImage::getPaletted),
-            Codec.BOOL.optionalFieldOf("include_background", DEFAULT_INCLUDE_BACKGROUND).forGetter(CombinedPaletteImage::isIncludeBackground),
-            Codec.BOOL.optionalFieldOf("stretch_paletted", DEFAULT_STRETCH_PALETTED).forGetter(CombinedPaletteImage::isStretchPaletted),
-            Codec.INT.optionalFieldOf("extend_palette_size", DEFAULT_EXTEND_PALETTE_SIZE).forGetter(CombinedPaletteImage::getExtendPaletteSize)
-    ).apply(instance, CombinedPaletteImage::new));
+    public static final Codec<PaletteCombinedSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            TexSource.CODEC.fieldOf("overlay").forGetter(PaletteCombinedSource::getOverlay),
+            TexSource.CODEC.fieldOf("background").forGetter(PaletteCombinedSource::getBackground),
+            TexSource.CODEC.fieldOf("paletted").forGetter(PaletteCombinedSource::getPaletted),
+            Codec.BOOL.optionalFieldOf("include_background", DEFAULT_INCLUDE_BACKGROUND).forGetter(PaletteCombinedSource::isIncludeBackground),
+            Codec.BOOL.optionalFieldOf("stretch_paletted", DEFAULT_STRETCH_PALETTED).forGetter(PaletteCombinedSource::isStretchPaletted),
+            Codec.INT.optionalFieldOf("extend_palette_size", DEFAULT_EXTEND_PALETTE_SIZE).forGetter(PaletteCombinedSource::getExtendPaletteSize)
+    ).apply(instance, PaletteCombinedSource::new));
     private final TexSource overlay;
     private final TexSource background;
     private final TexSource paletted;
@@ -45,7 +45,7 @@ public final class CombinedPaletteImage implements TexSource {
     private final boolean stretchPaletted;
     private final int extendPaletteSize;
 
-    private CombinedPaletteImage(TexSource overlay, TexSource background, TexSource paletted, boolean includeBackground, boolean stretchPaletted, int extendPaletteSize) {
+    private PaletteCombinedSource(TexSource overlay, TexSource background, TexSource paletted, boolean includeBackground, boolean stretchPaletted, int extendPaletteSize) {
         this.overlay = overlay;
         this.background = background;
         this.paletted = paletted;
@@ -55,7 +55,7 @@ public final class CombinedPaletteImage implements TexSource {
     }
 
     @Override
-    public Codec<CombinedPaletteImage> codec() {
+    public Codec<PaletteCombinedSource> codec() {
         return CODEC;
     }
 
@@ -202,11 +202,11 @@ public final class CombinedPaletteImage implements TexSource {
             return this;
         }
 
-        public CombinedPaletteImage build() {
+        public PaletteCombinedSource build() {
             Objects.requireNonNull(overlay);
             Objects.requireNonNull(background);
             Objects.requireNonNull(paletted);
-            return new CombinedPaletteImage(overlay, background, paletted, includeBackground, stretchPaletted, extendPaletteSize);
+            return new PaletteCombinedSource(overlay, background, paletted, includeBackground, stretchPaletted, extendPaletteSize);
         }
     }
 }

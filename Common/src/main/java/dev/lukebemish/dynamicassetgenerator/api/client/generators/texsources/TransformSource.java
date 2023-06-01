@@ -18,17 +18,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class Transform implements TexSource {
-    public static final Codec<Transform> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TexSource.CODEC.fieldOf("input").forGetter(Transform::getInput),
-            Codec.INT.fieldOf("rotate").forGetter(Transform::getRotate),
-            Codec.BOOL.fieldOf("flip").forGetter(Transform::isFlip)
-    ).apply(instance, Transform::new));
+public final class TransformSource implements TexSource {
+    public static final Codec<TransformSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            TexSource.CODEC.fieldOf("input").forGetter(TransformSource::getInput),
+            Codec.INT.fieldOf("rotate").forGetter(TransformSource::getRotate),
+            Codec.BOOL.fieldOf("flip").forGetter(TransformSource::isFlip)
+    ).apply(instance, TransformSource::new));
     private final TexSource input;
     private final int rotate;
     private final boolean flip;
 
-    private Transform(TexSource input, int rotate, boolean flip) {
+    private TransformSource(TexSource input, int rotate, boolean flip) {
         this.input = input;
         this.rotate = rotate;
         this.flip = flip;
@@ -109,9 +109,9 @@ public final class Transform implements TexSource {
             return this;
         }
 
-        public Transform build() {
+        public TransformSource build() {
             Objects.requireNonNull(input);
-            return new Transform(input, rotate, flip);
+            return new TransformSource(input, rotate, flip);
         }
     }
 }

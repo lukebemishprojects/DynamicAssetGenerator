@@ -22,23 +22,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public final class ForegroundTransfer implements TexSource {
+public final class ForegroundTransferSource implements TexSource {
     private static final int DEFAULT_EXTEND_PALETTE_SIZE = 6;
     private static final boolean DEFAULT_TRIM_TRAILING = true;
     private static final boolean DEFAULT_FORCE_NEIGHBORS = true;
     private static final boolean DEFAULT_FILL_HOLES = true;
     private static final double DEFAULT_CLOSE_CUTOFF = 2;
 
-    public static final Codec<ForegroundTransfer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TexSource.CODEC.fieldOf("background").forGetter(ForegroundTransfer::getBackground),
-            TexSource.CODEC.fieldOf("full").forGetter(ForegroundTransfer::getFull),
-            TexSource.CODEC.fieldOf("new_background").forGetter(ForegroundTransfer::getNewBackground),
-            Codec.INT.optionalFieldOf("extend_palette_size", DEFAULT_EXTEND_PALETTE_SIZE).forGetter(ForegroundTransfer::getExtendPaletteSize),
-            Codec.BOOL.optionalFieldOf("trim_trailing", DEFAULT_TRIM_TRAILING).forGetter(ForegroundTransfer::isTrimTrailing),
-            Codec.BOOL.optionalFieldOf("force_neighbors", DEFAULT_FORCE_NEIGHBORS).forGetter(ForegroundTransfer::isForceNeighbors),
-            Codec.BOOL.optionalFieldOf("fill_holes", DEFAULT_FILL_HOLES).forGetter(ForegroundTransfer::isFillHoles),
-            Codec.DOUBLE.optionalFieldOf("close_cutoff", DEFAULT_CLOSE_CUTOFF).forGetter(ForegroundTransfer::getCloseCutoff)
-    ).apply(instance, ForegroundTransfer::new));
+    public static final Codec<ForegroundTransferSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            TexSource.CODEC.fieldOf("background").forGetter(ForegroundTransferSource::getBackground),
+            TexSource.CODEC.fieldOf("full").forGetter(ForegroundTransferSource::getFull),
+            TexSource.CODEC.fieldOf("new_background").forGetter(ForegroundTransferSource::getNewBackground),
+            Codec.INT.optionalFieldOf("extend_palette_size", DEFAULT_EXTEND_PALETTE_SIZE).forGetter(ForegroundTransferSource::getExtendPaletteSize),
+            Codec.BOOL.optionalFieldOf("trim_trailing", DEFAULT_TRIM_TRAILING).forGetter(ForegroundTransferSource::isTrimTrailing),
+            Codec.BOOL.optionalFieldOf("force_neighbors", DEFAULT_FORCE_NEIGHBORS).forGetter(ForegroundTransferSource::isForceNeighbors),
+            Codec.BOOL.optionalFieldOf("fill_holes", DEFAULT_FILL_HOLES).forGetter(ForegroundTransferSource::isFillHoles),
+            Codec.DOUBLE.optionalFieldOf("close_cutoff", DEFAULT_CLOSE_CUTOFF).forGetter(ForegroundTransferSource::getCloseCutoff)
+    ).apply(instance, ForegroundTransferSource::new));
     private final TexSource background;
     private final TexSource full;
     private final TexSource newBackground;
@@ -48,9 +48,9 @@ public final class ForegroundTransfer implements TexSource {
     private final boolean fillHoles;
     private final double closeCutoff;
 
-    private ForegroundTransfer(TexSource background, TexSource full, TexSource newBackground,
-                              int extendPaletteSize, boolean trimTrailing, boolean forceNeighbors, boolean fillHoles,
-                              double closeCutoff) {
+    private ForegroundTransferSource(TexSource background, TexSource full, TexSource newBackground,
+                                     int extendPaletteSize, boolean trimTrailing, boolean forceNeighbors, boolean fillHoles,
+                                     double closeCutoff) {
         this.background = background;
         this.full = full;
         this.newBackground = newBackground;
@@ -106,11 +106,11 @@ public final class ForegroundTransfer implements TexSource {
 
                 Predicate<Palette> extend = p -> p.size() >= extendPaletteSize;
                 try (ForegroundExtractor extractor = new ForegroundExtractor(context.cacheName(), cacheKey, bImg, fImg, extend, this.isTrimTrailing(), this.isForceNeighbors(), this.getCloseCutoff()).fillHoles(this.isFillHoles())) {
-                    var options = new CombinedPaletteImage.PaletteCombiningOptions(extend, false, true);
+                    var options = new PaletteCombinedSource.PaletteCombiningOptions(extend, false, true);
                     extractor.unCacheOrReCalc();
                     try (NativeImage pImg = extractor.getPalettedImg();
                          NativeImage oImg = extractor.getOverlayImg()) {
-                        return CombinedPaletteImage.combineImages(nImg, oImg, pImg, options);
+                        return PaletteCombinedSource.combineImages(nImg, oImg, pImg, options);
                     }
                 }
             }
@@ -199,11 +199,11 @@ public final class ForegroundTransfer implements TexSource {
             return this;
         }
 
-        public ForegroundTransfer build() {
+        public ForegroundTransferSource build() {
             Objects.requireNonNull(background);
             Objects.requireNonNull(full);
             Objects.requireNonNull(newBackground);
-            return new ForegroundTransfer(background, full, newBackground, extendPaletteSize, trimTrailing, forceNeighbors, fillHoles, closeCutoff);
+            return new ForegroundTransferSource(background, full, newBackground, extendPaletteSize, trimTrailing, forceNeighbors, fillHoles, closeCutoff);
         }
     }
 }

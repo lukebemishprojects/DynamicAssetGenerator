@@ -19,15 +19,15 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
-public final class Crop implements TexSource {
-    public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.fieldOf("total_size").forGetter(Crop::getTotalSize),
-            Codec.INT.fieldOf("start_x").forGetter(Crop::getStartX),
-            Codec.INT.fieldOf("size_x").forGetter(Crop::getSizeX),
-            Codec.INT.fieldOf("start_y").forGetter(Crop::getStartY),
-            Codec.INT.fieldOf("size_y").forGetter(Crop::getSizeY),
-            TexSource.CODEC.fieldOf("input").forGetter(Crop::getInput)
-    ).apply(instance, Crop::new));
+public final class CropSource implements TexSource {
+    public static final Codec<CropSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.INT.fieldOf("total_size").forGetter(CropSource::getTotalSize),
+            Codec.INT.fieldOf("start_x").forGetter(CropSource::getStartX),
+            Codec.INT.fieldOf("size_x").forGetter(CropSource::getSizeX),
+            Codec.INT.fieldOf("start_y").forGetter(CropSource::getStartY),
+            Codec.INT.fieldOf("size_y").forGetter(CropSource::getSizeY),
+            TexSource.CODEC.fieldOf("input").forGetter(CropSource::getInput)
+    ).apply(instance, CropSource::new));
     private final int totalSize;
     private final int startX;
     private final int sizeX;
@@ -35,7 +35,7 @@ public final class Crop implements TexSource {
     private final int sizeY;
     private final TexSource input;
 
-    private Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, TexSource input) {
+    private CropSource(int totalSize, int startX, int sizeX, int startY, int sizeY, TexSource input) {
         this.totalSize = totalSize;
         this.startX = startX;
         this.sizeX = sizeX;
@@ -44,7 +44,7 @@ public final class Crop implements TexSource {
         this.input = input;
     }
 
-    public Codec<Crop> codec() {
+    public Codec<CropSource> codec() {
         return CODEC;
     }
 
@@ -154,9 +154,9 @@ public final class Crop implements TexSource {
             return this;
         }
 
-        public Crop build() {
+        public CropSource build() {
             Objects.requireNonNull(input);
-            return new Crop(totalSize, startX, sizeX, startY, sizeY, input);
+            return new CropSource(totalSize, startX, sizeX, startY, sizeY, input);
         }
     }
 }

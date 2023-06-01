@@ -1,0 +1,15 @@
+{
+  "type" : "dynamic_asset_generator:texture",
+  "output_location" : "minecraft:block/gravel",
+  "input" : {
+    "type" : "dynamic_asset_generator:shadowed",
+    "background": {
+      "type" : "dynamic_asset_generator:texture",
+      "path" : "minecraft:block/stone"
+    },
+    "foreground": {
+      "type" : "dynamic_asset_generator:texture",
+      "path" : "test:block/gravel"
+    }
+  }
+}

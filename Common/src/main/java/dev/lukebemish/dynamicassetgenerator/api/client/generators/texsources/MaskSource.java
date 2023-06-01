@@ -19,15 +19,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-public final class Mask implements TexSource {
-    public static final Codec<Mask> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TexSource.CODEC.fieldOf("input").forGetter(Mask::getInput),
-            TexSource.CODEC.fieldOf("mask").forGetter(Mask::getMask)
-    ).apply(instance, Mask::new));
+public final class MaskSource implements TexSource {
+    public static final Codec<MaskSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            TexSource.CODEC.fieldOf("input").forGetter(MaskSource::getInput),
+            TexSource.CODEC.fieldOf("mask").forGetter(MaskSource::getMask)
+    ).apply(instance, MaskSource::new));
     private final TexSource input;
     private final TexSource mask;
 
-    private Mask(TexSource input, TexSource mask) {
+    private MaskSource(TexSource input, TexSource mask) {
         this.input = input;
         this.mask = mask;
     }
@@ -82,10 +82,10 @@ public final class Mask implements TexSource {
             return this;
         }
 
-        public Mask build() {
+        public MaskSource build() {
             Objects.requireNonNull(input);
             Objects.requireNonNull(mask);
-            return new Mask(input, mask);
+            return new MaskSource(input, mask);
         }
     }
 }

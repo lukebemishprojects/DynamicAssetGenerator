@@ -11,6 +11,7 @@ package dev.lukebemish.dynamicassetgenerator.api.colors.operations;
  * @param <T> the type of data that this operation generates
  */
 public interface PointwiseOperation<T> {
+
     /**
      * Applies this operation to the given colors and in-bounds flags.
      * @param colors the colors of the images to apply this operation to at the given point
@@ -109,16 +110,32 @@ public interface PointwiseOperation<T> {
             return -1;
         }
 
+        /**
+         * @return a new {@link Unary} operation that applies this operation to the image it is provided
+         */
         default Unary<T> unary() {
             return (color, isInBounds) -> apply(new int[] { color }, new boolean[] { isInBounds });
         }
 
+        /**
+         * @return a new {@link Binary} operation that applies this operation to the two images it is provided
+         */
         default Binary<T> binary() {
             return (firstColor, secondColor, isFirstInBounds, isSecondInBounds) -> apply(new int[] { firstColor, secondColor }, new boolean[] { isFirstInBounds, isSecondInBounds });
         }
 
+        /**
+         * @return a new {@link Ternary} operation that applies this operation to the three images it is provided
+         */
         default Ternary<T> ternary() {
             return (firstColor, secondColor, thirdColor, isFirstInBounds, isSecondInBounds, isThirdInBounds) -> apply(new int[] { firstColor, secondColor, thirdColor }, new boolean[] { isFirstInBounds, isSecondInBounds, isThirdInBounds });
+        }
+
+        /**
+         * @return a new any operation that always returns all values it is provided
+         */
+        static Any<int[]> identity() {
+            return (colors, inBounds) -> colors;
         }
     }
 }
