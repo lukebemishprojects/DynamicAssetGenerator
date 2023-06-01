@@ -15,10 +15,17 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
-public record InvertMask(TexSource source) implements TexSource {
+import java.util.Objects;
+
+public final class InvertMask implements TexSource {
     public static final Codec<InvertMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            TexSource.CODEC.fieldOf("source").forGetter(InvertMask::source)
+            TexSource.CODEC.fieldOf("source").forGetter(InvertMask::getSource)
     ).apply(i, InvertMask::new));
+    private final TexSource source;
+
+    private InvertMask(TexSource source) {
+        this.source = source;
+    }
 
     @Override
     public Codec<? extends TexSource> codec() {
@@ -29,7 +36,7 @@ public record InvertMask(TexSource source) implements TexSource {
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         IoSupplier<NativeImage> input = this.source.getSupplier(data, context);
         if (input == null) {
-            data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.source.stringify());
             return null;
         }
         return () -> {
@@ -46,5 +53,23 @@ public record InvertMask(TexSource source) implements TexSource {
                 return out;
             }
         };
+    }
+
+    public TexSource getSource() {
+        return source;
+    }
+
+    public static class Builder {
+        private TexSource source;
+
+        public Builder setSource(TexSource source) {
+            this.source = source;
+            return this;
+        }
+
+        public InvertMask build() {
+            Objects.requireNonNull(source);
+            return new InvertMask(source);
+        }
     }
 }

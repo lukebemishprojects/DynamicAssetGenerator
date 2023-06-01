@@ -5,14 +5,17 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators;
 
+import com.google.gson.JsonElement;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaCodec;
 import dev.lukebemish.dynamicassetgenerator.api.cache.DataConsumer;
+import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ClientRegisters;
 import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCachingWrapper;
 import net.minecraft.resources.ResourceLocation;
@@ -83,5 +86,16 @@ public interface TexSource {
     default TexSource cached() {
         if (this instanceof TexSourceCachingWrapper) return this;
         return new TexSourceCachingWrapper(this);
+    }
+
+    /**
+     * @return a string representation of this texture source, meant for logging and debugging purposes. Should
+     * <em>not</em> be used for serialization or caching. Can be safely overridden to provide whatever information
+     * is deemed useful.
+     */
+    default String stringify() {
+        JsonElement element = CODEC.encodeStart(JsonOps.INSTANCE, this).result().orElse(null);
+        if (element == null) return this.toString();
+        return DynamicAssetGenerator.GSON_FLAT.toJson(element);
     }
 }

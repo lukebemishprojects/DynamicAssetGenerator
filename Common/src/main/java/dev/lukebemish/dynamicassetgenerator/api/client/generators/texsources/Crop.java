@@ -17,16 +17,32 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
-public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, TexSource input) implements TexSource {
+public final class Crop implements TexSource {
     public static final Codec<Crop> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.fieldOf("total_size").forGetter(Crop::totalSize),
-            Codec.INT.fieldOf("start_x").forGetter(Crop::startX),
-            Codec.INT.fieldOf("size_x").forGetter(Crop::sizeX),
-            Codec.INT.fieldOf("start_y").forGetter(Crop::startY),
-            Codec.INT.fieldOf("size_y").forGetter(Crop::sizeY),
-            TexSource.CODEC.fieldOf("input").forGetter(Crop::input)
+            Codec.INT.fieldOf("total_size").forGetter(Crop::getTotalSize),
+            Codec.INT.fieldOf("start_x").forGetter(Crop::getStartX),
+            Codec.INT.fieldOf("size_x").forGetter(Crop::getSizeX),
+            Codec.INT.fieldOf("start_y").forGetter(Crop::getStartY),
+            Codec.INT.fieldOf("size_y").forGetter(Crop::getSizeY),
+            TexSource.CODEC.fieldOf("input").forGetter(Crop::getInput)
     ).apply(instance, Crop::new));
+    private final int totalSize;
+    private final int startX;
+    private final int sizeX;
+    private final int startY;
+    private final int sizeY;
+    private final TexSource input;
+
+    private Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, TexSource input) {
+        this.totalSize = totalSize;
+        this.startX = startX;
+        this.sizeX = sizeX;
+        this.startY = startY;
+        this.sizeY = sizeY;
+        this.input = input;
+    }
 
     public Codec<Crop> codec() {
         return CODEC;
@@ -34,45 +50,113 @@ public record Crop(int totalSize, int startX, int sizeX, int startY, int sizeY, 
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> suppliedInput = input().getSupplier(data, context);
+        IoSupplier<NativeImage> suppliedInput = getInput().getSupplier(data, context);
         if (suppliedInput == null) {
-            data.getLogger().error("Texture given was nonexistent...\n{}", input());
+            data.getLogger().error("Texture given was nonexistent...\n{}", getInput().stringify());
             return null;
         }
-        if (sizeX() < 0 || sizeY() < 0) {
-            data.getLogger().error("Bounds of image are negative...\n{}", this);
+        if (getSizeX() < 0 || getSizeY() < 0) {
+            data.getLogger().error("Bounds of image are negative...\n{}", this.stringify());
             return null;
         }
-        if (totalSize() <= 0) {
+        if (getTotalSize() <= 0) {
             data.getLogger().error("Total image width must be positive");
             return null;
         }
         return () -> {
             try (NativeImage inImg = suppliedInput.get()) {
-                int scale = inImg.getWidth() / totalSize();
+                int scale = inImg.getWidth() / getTotalSize();
 
                 if (scale == 0) {
                     data.getLogger().error("Image scale turned out to be 0! Image is {} wide, total width is {}",
-                            inImg.getWidth(), totalSize());
-                    throw new IOException("Image scale turned out to be 0! Image is " + inImg.getWidth() + " wide, total width is " + totalSize());
+                            inImg.getWidth(), getTotalSize());
+                    throw new IOException("Image scale turned out to be 0! Image is " + inImg.getWidth() + " wide, total width is " + getTotalSize());
                 }
 
-                int distX = sizeX() * scale;
-                int distY = sizeY() * scale;
+                int distX = getSizeX() * scale;
+                int distY = getSizeY() * scale;
                 if (distY < 1 || distX < 1) {
-                    data.getLogger().error("Bounds of image are non-positive! {}, {}", sizeX(), sizeY());
-                    throw new IOException("Bounds of image are non-positive! "+sizeX()+", "+sizeY());
+                    data.getLogger().error("Bounds of image are non-positive! {}, {}", getSizeX(), getSizeY());
+                    throw new IOException("Bounds of image are non-positive! " + getSizeX() + ", " + getSizeY());
                 }
 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, distX, distY, false);
                 for (int x = 0; x < distX; x++) {
                     for (int y = 0; y < distY; y++) {
-                        int c = ImageUtils.safeGetPixelABGR(inImg, (x + startX() * scale), (y + startY() * scale));
+                        int c = ImageUtils.safeGetPixelABGR(inImg, (x + getStartX() * scale), (y + getStartY() * scale));
                         out.setPixelRGBA(x, y, c);
                     }
                 }
                 return out;
             }
         };
+    }
+
+    public int getTotalSize() {
+        return totalSize;
+    }
+
+    public int getStartX() {
+        return startX;
+    }
+
+    public int getSizeX() {
+        return sizeX;
+    }
+
+    public int getStartY() {
+        return startY;
+    }
+
+    public int getSizeY() {
+        return sizeY;
+    }
+
+    public TexSource getInput() {
+        return input;
+    }
+
+    public static class Builder {
+        private int totalSize;
+        private int startX;
+        private int sizeX;
+        private int startY;
+        private int sizeY;
+        private TexSource input;
+
+        public Builder setTotalSize(int totalSize) {
+            this.totalSize = totalSize;
+            return this;
+        }
+
+        public Builder setStartX(int startX) {
+            this.startX = startX;
+            return this;
+        }
+
+        public Builder setSizeX(int sizeX) {
+            this.sizeX = sizeX;
+            return this;
+        }
+
+        public Builder setStartY(int startY) {
+            this.startY = startY;
+            return this;
+        }
+
+        public Builder setSizeY(int sizeY) {
+            this.sizeY = sizeY;
+            return this;
+        }
+
+        public Builder setInput(TexSource input) {
+            this.input = input;
+            return this;
+        }
+
+        public Crop build() {
+            Objects.requireNonNull(input);
+            return new Crop(totalSize, startX, sizeX, startY, sizeY, input);
+        }
     }
 }

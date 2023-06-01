@@ -13,13 +13,21 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
-public record ChannelMask(TexSource source, Channel channel) implements TexSource {
+public final class ChannelMask implements TexSource {
     public static final Codec<ChannelMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            TexSource.CODEC.fieldOf("source").forGetter(ChannelMask::source),
-            Channel.CODEC.fieldOf("channel").forGetter(ChannelMask::channel)
+            TexSource.CODEC.fieldOf("source").forGetter(ChannelMask::getSource),
+            Channel.CODEC.fieldOf("channel").forGetter(ChannelMask::getChannel)
     ).apply(i, ChannelMask::new));
+    private final TexSource source;
+    private final Channel channel;
+
+    private ChannelMask(TexSource source, Channel channel) {
+        this.source = source;
+        this.channel = channel;
+    }
 
     @Override
     public Codec<? extends TexSource> codec() {
@@ -30,7 +38,7 @@ public record ChannelMask(TexSource source, Channel channel) implements TexSourc
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         IoSupplier<NativeImage> input = this.source.getSupplier(data, context);
         if (input == null) {
-            data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.source.stringify());
             return null;
         }
         return () -> {
@@ -42,5 +50,34 @@ public record ChannelMask(TexSource source, Channel channel) implements TexSourc
                 return ImageUtils.generateScaledImage(operation, List.of(inImg));
             }
         };
+    }
+
+    public TexSource getSource() {
+        return source;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public static class Builder {
+        private TexSource source;
+        private Channel channel;
+
+        public Builder setSource(TexSource source) {
+            this.source = source;
+            return this;
+        }
+
+        public Builder setChannel(Channel channel) {
+            this.channel = channel;
+            return this;
+        }
+
+        public ChannelMask build() {
+            Objects.requireNonNull(source);
+            Objects.requireNonNull(channel);
+            return new ChannelMask(source, channel);
+        }
     }
 }

@@ -41,7 +41,7 @@ abstract public class AbstractManyOperationSource implements TexSource {
         for (TexSource o : this.getSources()) {
             var source = o.getSupplier(data, context);
             if (source == null) {
-                data.getLogger().error("Texture given was nonexistent...\n{}",o);
+                data.getLogger().error("Texture given was nonexistent...\n{}",o.stringify());
                 return null;
             }
             inputs.add(source);

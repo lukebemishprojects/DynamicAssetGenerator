@@ -12,11 +12,13 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperation
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AddMask extends AbstractManyOperationSource {
     public static final Codec<AddMask> CODEC = AbstractManyOperationSource.makeCodec(AddMask::new);
 
-    public AddMask(List<TexSource> sources) {
+
+    private AddMask(List<TexSource> sources) {
         super(sources);
     }
 
@@ -28,5 +30,19 @@ public class AddMask extends AbstractManyOperationSource {
     @Override
     public PointwiseOperation.Any<Integer> getOperation() {
         return ColorOperations.ADD;
+    }
+
+    public static class Builder {
+        private List<TexSource> sources;
+
+        public Builder setSources(List<TexSource> sources) {
+            this.sources = sources;
+            return this;
+        }
+
+        public AddMask build() {
+            Objects.requireNonNull(sources);
+            return new AddMask(sources);
+        }
     }
 }

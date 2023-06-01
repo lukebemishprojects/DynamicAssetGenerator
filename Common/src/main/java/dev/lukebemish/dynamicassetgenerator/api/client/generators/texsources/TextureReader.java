@@ -16,11 +16,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 
 import java.io.IOException;
+import java.util.Objects;
 
-public record TextureReader(ResourceLocation path) implements TexSource {
+public final class TextureReader implements TexSource {
     public static final Codec<TextureReader> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("path").forGetter(TextureReader::path)
+            ResourceLocation.CODEC.fieldOf("path").forGetter(TextureReader::getPath)
     ).apply(instance, TextureReader::new));
+    private final ResourceLocation path;
+
+    private TextureReader(ResourceLocation path) {
+        this.path = path;
+    }
 
     @Override
     public Codec<? extends TexSource> codec() {
@@ -29,14 +35,32 @@ public record TextureReader(ResourceLocation path) implements TexSource {
 
     @Override
     public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        ResourceLocation outRl = new ResourceLocation(this.path().getNamespace(), "textures/"+this.path().getPath()+".png");
+        ResourceLocation outRl = new ResourceLocation(this.getPath().getNamespace(), "textures/" + this.getPath().getPath() + ".png");
         return () -> {
             try {
                 return NativeImage.read(ClientPrePackRepository.getResource(outRl));
             } catch (IOException e) {
-                data.getLogger().error("Issue loading texture: {}", this.path());
+                data.getLogger().error("Issue loading texture: {}", this.getPath());
             }
-            throw new IOException("Issue loading texture: "+this.path());
+            throw new IOException("Issue loading texture: " + this.getPath());
         };
+    }
+
+    public ResourceLocation getPath() {
+        return path;
+    }
+
+    public static class Builder {
+        private ResourceLocation path;
+
+        public Builder setPath(ResourceLocation path) {
+            this.path = path;
+            return this;
+        }
+
+        public TextureReader build() {
+            Objects.requireNonNull(path);
+            return new TextureReader(path);
+        }
     }
 }

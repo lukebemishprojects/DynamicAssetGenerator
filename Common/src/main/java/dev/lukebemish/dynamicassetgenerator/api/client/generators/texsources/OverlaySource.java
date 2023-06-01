@@ -11,11 +11,12 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperation
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
 import java.util.List;
+import java.util.Objects;
 
 public class OverlaySource extends AbstractManyOperationSource {
     public static final Codec<OverlaySource> CODEC = AbstractManyOperationSource.makeCodec(OverlaySource::new);
 
-    public OverlaySource(List<TexSource> sources) {
+    private OverlaySource(List<TexSource> sources) {
         super(sources);
     }
 
@@ -27,5 +28,19 @@ public class OverlaySource extends AbstractManyOperationSource {
     @Override
     public PointwiseOperation.Any<Integer> getOperation() {
         return ColorOperations.OVERLAY;
+    }
+
+    public static class Builder {
+        private List<TexSource> sources;
+
+        public Builder setSources(List<TexSource> sources) {
+            this.sources = sources;
+            return this;
+        }
+
+        public OverlaySource build() {
+            Objects.requireNonNull(sources);
+            return new OverlaySource(sources);
+        }
     }
 }

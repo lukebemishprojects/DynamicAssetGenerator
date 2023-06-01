@@ -17,12 +17,20 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
-public record Mask(TexSource input, TexSource mask) implements TexSource {
+public final class Mask implements TexSource {
     public static final Codec<Mask> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TexSource.CODEC.fieldOf("input").forGetter(Mask::input),
-            TexSource.CODEC.fieldOf("mask").forGetter(Mask::mask)
+            TexSource.CODEC.fieldOf("input").forGetter(Mask::getInput),
+            TexSource.CODEC.fieldOf("mask").forGetter(Mask::getMask)
     ).apply(instance, Mask::new));
+    private final TexSource input;
+    private final TexSource mask;
+
+    private Mask(TexSource input, TexSource mask) {
+        this.input = input;
+        this.mask = mask;
+    }
 
     @Override
     public Codec<? extends TexSource> codec() {
@@ -31,15 +39,15 @@ public record Mask(TexSource input, TexSource mask) implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> input = this.input().getSupplier(data, context);
-        IoSupplier<NativeImage> mask = this.mask().getSupplier(data, context);
+        IoSupplier<NativeImage> input = this.getInput().getSupplier(data, context);
+        IoSupplier<NativeImage> mask = this.getMask().getSupplier(data, context);
 
         if (input == null) {
-            data.getLogger().error("Texture given was nonexistent...\n{}", this.mask());
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.getMask().stringify());
             return null;
         }
         if (mask == null) {
-            data.getLogger().error("Texture given was nonexistent...\n{}", this.input());
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.getInput().stringify());
             return null;
         }
 
@@ -50,5 +58,34 @@ public record Mask(TexSource input, TexSource mask) implements TexSource {
                 return ImageUtils.generateScaledImage(ColorOperations.MASK, List.of(inImg, maskImg));
             }
         };
+    }
+
+    public TexSource getInput() {
+        return input;
+    }
+
+    public TexSource getMask() {
+        return mask;
+    }
+
+    public static class Builder {
+        private TexSource input;
+        private TexSource mask;
+
+        public Builder setInput(TexSource input) {
+            this.input = input;
+            return this;
+        }
+
+        public Builder setMask(TexSource mask) {
+            this.mask = mask;
+            return this;
+        }
+
+        public Mask build() {
+            Objects.requireNonNull(input);
+            Objects.requireNonNull(mask);
+            return new Mask(input, mask);
+        }
     }
 }

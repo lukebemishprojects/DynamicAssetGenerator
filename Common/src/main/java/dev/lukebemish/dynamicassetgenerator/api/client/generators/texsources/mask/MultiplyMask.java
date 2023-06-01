@@ -12,11 +12,12 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperation
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MultiplyMask extends AbstractManyOperationSource {
     public static final Codec<MultiplyMask> CODEC = AbstractManyOperationSource.makeCodec(MultiplyMask::new);
 
-    public MultiplyMask(List<TexSource> sources) {
+    private MultiplyMask(List<TexSource> sources) {
         super(sources);
     }
 
@@ -28,5 +29,19 @@ public class MultiplyMask extends AbstractManyOperationSource {
     @Override
     public PointwiseOperation.Any<Integer> getOperation() {
         return ColorOperations.MULTIPLY;
+    }
+
+    public static class Builder {
+        private List<TexSource> sources;
+
+        public Builder setSources(List<TexSource> sources) {
+            this.sources = sources;
+            return this;
+        }
+
+        public MultiplyMask build() {
+            Objects.requireNonNull(sources);
+            return new MultiplyMask(sources);
+        }
     }
 }
