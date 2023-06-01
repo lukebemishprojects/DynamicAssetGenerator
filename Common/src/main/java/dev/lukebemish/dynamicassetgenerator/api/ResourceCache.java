@@ -5,6 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api;
 
+import dev.lukebemish.dynamicassetgenerator.impl.Benchmarking;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
@@ -84,7 +85,7 @@ public abstract class ResourceCache {
 
     private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, IoSupplier<InputStream> supplier) {
         if (supplier == null) return null;
-        return () -> {
+        IoSupplier<InputStream> output = () -> {
             try {
                 return supplier.get();
             } catch (Throwable e) {
@@ -92,6 +93,18 @@ public abstract class ResourceCache {
                 throw new IOException(e);
             }
         };
+        if (DynamicAssetGenerator.TIME_RESOURCES) {
+            return () -> {
+                long startTime = System.nanoTime();
+                var result = output.get();
+                long endTime = System.nanoTime();
+
+                long duration = (endTime - startTime)/1000;
+                Benchmarking.recordTime(this, rl, duration);
+                return result;
+            };
+        }
+        return output;
     }
 
     private Map<ResourceLocation, IoSupplier<InputStream>> wrapCachedData(Map<ResourceLocation, IoSupplier<InputStream>> map) {
