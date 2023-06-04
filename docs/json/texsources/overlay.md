@@ -7,7 +7,7 @@ Format:
 ```json
 {
     "type": "dynamic_asset_generator:overlay",
-    "inputs": [
+    "sources": [
         {   },
         {   }
     ]

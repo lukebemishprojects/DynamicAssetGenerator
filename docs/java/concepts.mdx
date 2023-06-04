@@ -16,15 +16,15 @@ public static final DataResourceCache DATA_CACHE =
 
 Resource generation is structured around several core concepts:
 * `ResourceGenerationContext`, an object which holds information about the current resource generation environment
-* `IInputStreamSource`, an object which can take a target file resource location and a generation context, and supplies an
+* `InputStreamSource`, an object which can take a target file resource location and a generation context, and supplies an
   `IoSupplier<InputStream>` which can be used to read the resource data, or `null`` if no resource should be supplied.
-* `IPathAwareInputStreamSource`, a `IInputStreamSource` which is aware of which locations it can provide data for.
+* `PathAwareInputStreamSource`, a `InputStreamSource` which is aware of which locations it can provide data for.
 * Reset listeners, callbacks which are invoked when a resource cache is reset. These should be used to invalidate any sort of
   caching
 
 `ResourceCache` contains a number of methods for adding input stream sources; these methods all
-internally delegate to the "lazy" method which accepts a `Supplier<? extends IPathAwareInputStreamSource>` and does not
-evaluate it until resources are requested from the cache. This means that a `IPathAwareInputStreamSource` can safely access
+internally delegate to the "lazy" method which accepts a `Supplier<? extends PathAwareInputStreamSource>` and does not
+evaluate it until resources are requested from the cache. This means that a `PathAwareInputStreamSource` can safely access
 existing resources or data both when generating resources and when determining which resources it can provide.
 
 Resources and data from other sources (the base game, resource packs, other mods, etc.) can be accessed through

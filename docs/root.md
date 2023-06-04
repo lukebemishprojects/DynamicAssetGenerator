@@ -13,3 +13,10 @@ Dynamic Asset Generator (or DynAssetGen) is a minecraft mod meant to help dynami
  - Data or assets which vary based on the other data and assets present
 
 This mod has both a Java API and a system for controlling the mod through JSON.
+
+:::caution
+
+This documentation is for the newest version of the mod; if you are using an older version, some of the information here may
+not apply, or names may look slightly different.
+
+:::

@@ -8,8 +8,8 @@ Format:
 {
     "type": "dynamic_asset_generator:transform",
     "input": {   },
-    "rotate": 0,
-    "flip": false
+    "rotate": 0, // optional, default 0
+    "flip": false // optional, default false
 }
 ```
 

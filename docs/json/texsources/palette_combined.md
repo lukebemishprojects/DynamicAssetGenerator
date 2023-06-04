@@ -1,18 +1,18 @@
-# Combined Paletted Image Source
+# Combined Paletted Source
 
-Source Type ID: `dynamic_asset_generator:combined_paletted_image`
+Source Type ID: `dynamic_asset_generator:palette_combined`
 
 Format:
 
 ```json
 {
-    "type": "dynamic_asset_generator:combined_paletted_image",
+    "type": "dynamic_asset_generator:palette_combined",
     "overlay": {   },
     "background": {   },
     "paletted": {   },
-    "include_background": true,
-    "stretch_paletted": false,
-    "extend_palette_size": 0
+    "include_background": true, // optional, defaults to true
+    "stretch_paletted": false, // optional, defaults to false
+    "extend_palette_size": 0 // optional, defaults to 6
 }
 ```
 
