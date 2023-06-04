@@ -6,7 +6,9 @@
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
@@ -23,7 +25,13 @@ public final class ColorSource implements TexSource {
     public static final ColorEncoding DEFAULT_COLOR_ENCODING = ColorEncoding.ARGB;
 
     public static final Codec<ColorSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.INT.listOf().fieldOf("color").forGetter(s -> s.color),
+            Codec.either(Codec.STRING, Codec.INT).flatXmap(e -> e.map(s -> {
+                try {
+                    return DataResult.success(Integer.parseInt(s));
+                } catch (NumberFormatException ex) {
+                    return DataResult.error(() -> "Not an integer: " + s);
+                }
+            }, DataResult::success), i -> DataResult.success(Either.right(i))).listOf().fieldOf("color").forGetter(s -> s.color),
             StringRepresentable.fromEnum(ColorEncoding::values).optionalFieldOf("encoding", DEFAULT_COLOR_ENCODING).forGetter(ColorSource::getColorEncoding)
     ).apply(instance, ColorSource::new));
     private final List<Integer> color;

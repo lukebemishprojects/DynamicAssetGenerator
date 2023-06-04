@@ -19,10 +19,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public final class TransformSource implements TexSource {
+    private static final int DEFAULT_ROTATE = 0;
+    private static final boolean DEFAULT_FLIP = false;
+
     public static final Codec<TransformSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             TexSource.CODEC.fieldOf("input").forGetter(TransformSource::getInput),
-            Codec.INT.fieldOf("rotate").forGetter(TransformSource::getRotate),
-            Codec.BOOL.fieldOf("flip").forGetter(TransformSource::isFlip)
+            Codec.INT.optionalFieldOf("rotate", DEFAULT_ROTATE).forGetter(TransformSource::getRotate),
+            Codec.BOOL.optionalFieldOf("flip", DEFAULT_FLIP).forGetter(TransformSource::isFlip)
     ).apply(instance, TransformSource::new));
     private final TexSource input;
     private final int rotate;
@@ -91,8 +94,8 @@ public final class TransformSource implements TexSource {
 
     public static class Builder {
         private TexSource input;
-        private int rotate;
-        private boolean flip;
+        private int rotate = DEFAULT_ROTATE;
+        private boolean flip = DEFAULT_FLIP;
 
         public Builder setInput(TexSource input) {
             this.input = input;

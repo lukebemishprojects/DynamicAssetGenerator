@@ -5,12 +5,11 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators;
 
-import com.google.gson.JsonSyntaxException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -33,14 +32,10 @@ public class TextureGenerator implements ResourceGenerator {
 
     private Function<ResourceGenerationContext, IoSupplier<NativeImage>> source;
 
-    public TextureGenerator(ResourceLocation outputLocation, TexSource source) {
+    public TextureGenerator(@NotNull ResourceLocation outputLocation, @NotNull TexSource source) {
         this.input = source;
         this.outputLocation = outputLocation;
-        if (input!=null && outputLocation!=null) {
-            this.source = context -> this.input.getSupplier(new TexSourceDataHolder(), context);
-        } else {
-            DynamicAssetGenerator.LOGGER.error("Could not set up DynamicTextureSource: {}", this);
-        }
+        this.source = context -> this.input.getSupplier(new TexSourceDataHolder(), context);
     }
 
     @Override
@@ -52,13 +47,10 @@ public class TextureGenerator implements ResourceGenerator {
             try (NativeImage image = imageGetter.get()) {
                 return new ByteArrayInputStream(image.asByteArray());
             } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Could not write image to stream: {}", outRl, e);
+                DynamicAssetGenerator.LOGGER.error("Could not write image to stream for source {}: {}", input.stringify(), outRl, e);
                 throw e;
-            } catch (JsonSyntaxException e) {
-                DynamicAssetGenerator.LOGGER.error("Issue loading texture source JSON for output: {}", outRl, e);
-                throw new IOException(e);
             } catch (Exception remainder) {
-                DynamicAssetGenerator.LOGGER.error("Issue creating texture from source JSON for output: {}",outRl, remainder);
+                DynamicAssetGenerator.LOGGER.error("Unknown issue creating texture for output {} with source {}", outRl, input.stringify(), remainder);
                 throw new IOException(remainder);
             }
         };
