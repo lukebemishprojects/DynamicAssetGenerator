@@ -22,9 +22,10 @@ import java.util.Objects;
 
 public final class CutoffMask implements TexSource {
     private static final int DEFAULT_CUTOFF = 128;
+    private static final Channel DEFAULT_CHANNEL = Channel.ALPHA;
 
     public static final Codec<CutoffMask> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Channel.CODEC.optionalFieldOf("channel", Channel.ALPHA).forGetter(CutoffMask::getChannel),
+            Channel.CODEC.optionalFieldOf("channel", DEFAULT_CHANNEL).forGetter(CutoffMask::getChannel),
             TexSource.CODEC.fieldOf("source").forGetter(CutoffMask::getSource),
             Codec.INT.optionalFieldOf("cutoff", DEFAULT_CUTOFF).forGetter(CutoffMask::getCutoff)
     ).apply(i, CutoffMask::new));
@@ -75,7 +76,7 @@ public final class CutoffMask implements TexSource {
     }
 
     public static class Builder {
-        private Channel channel;
+        private Channel channel = DEFAULT_CHANNEL;
         private TexSource source;
         private int cutoff = DEFAULT_CUTOFF;
 
@@ -95,7 +96,6 @@ public final class CutoffMask implements TexSource {
         }
 
         public CutoffMask build() {
-            Objects.requireNonNull(channel);
             Objects.requireNonNull(source);
             return new CutoffMask(channel, source, cutoff);
         }
