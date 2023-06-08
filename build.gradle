@@ -8,7 +8,7 @@ version = new Properties().tap {
     load(new FileInputStream(file('version.properties')))
 }.get('version')
 
-String lastTaggedVersion = version
+String lastTaggedVersion = ""
 def gitTagProcess = 'git describe --abbrev=0 --tags'.execute()
 gitTagProcess.waitFor()
 if (gitTagProcess.exitValue() == 0) {
@@ -66,27 +66,29 @@ println "Version: ${version}"
 
 tasks.register('tagRelease') {
     doLast {
-        def props = new Properties()
-        props.load(new FileInputStream(file('version.properties')))
-        props.setProperty('version', version)
-        props.store(new FileOutputStream(file('version.properties')), null)
+        if (version != lastTaggedVersion) {
+            def props = new Properties()
+            props.load(new FileInputStream(file('version.properties')))
+            props.setProperty('version', version)
+            props.store(new FileOutputStream(file('version.properties')), null)
 
-        def gitAddProcess = 'git add version.properties'.execute()
-        gitAddProcess.waitFor()
-        if (gitAddProcess.exitValue() != 0) {
-            throw new GradleException('Failed to add version.properties')
-        }
+            def gitAddProcess = 'git add version.properties'.execute()
+            gitAddProcess.waitFor()
+            if (gitAddProcess.exitValue() != 0) {
+                throw new GradleException('Failed to add version.properties')
+            }
 
-        def gitCommitProcess = "git commit -m \"Bump version to ${version}\"".execute()
-        gitCommitProcess.waitFor()
-        if (gitCommitProcess.exitValue() != 0) {
-            throw new GradleException('Failed to commit version bump')
-        }
+            def gitCommitProcess = "git commit -m \"Bump version to ${version}\"".execute()
+            gitCommitProcess.waitFor()
+            if (gitCommitProcess.exitValue() != 0) {
+                throw new GradleException('Failed to commit version bump')
+            }
 
-        def gitTagCreateProcess = "git tag -m \"${version}-${libs.versions.minecraft.get()}\"".execute()
-        gitTagCreateProcess.waitFor()
-        if (gitTagCreateProcess.exitValue() != 0) {
-            throw new GradleException('Failed to tag release')
+            def gitTagCreateProcess = "git tag \"${version}-${libs.versions.minecraft.get()}\"".execute()
+            gitTagCreateProcess.waitFor()
+            if (gitTagCreateProcess.exitValue() != 0) {
+                throw new GradleException('Failed to tag release')
+            }
         }
     }
 }
