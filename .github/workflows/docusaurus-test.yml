@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to GitHub Pages
+    name: Test website build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
