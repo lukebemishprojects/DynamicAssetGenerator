@@ -1,21 +1,21 @@
 pluginManagement {
 
     repositories {
-        
+
         maven {
-        
+
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
-        
+
         maven {
-        
+
             name = 'Quilt (Release)'
             url = 'https://maven.quiltmc.org/repository/release'
         }
-        
+
         maven {
-        
+
             name = 'Quilt (Snapshot)'
             url = 'https://maven.quiltmc.org/repository/snapshot'
         }
@@ -41,6 +41,10 @@ pluginManagement {
             }
         }
     }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.5.0'
 }
 
 rootProject.name = 'dynamicassetgenerator'

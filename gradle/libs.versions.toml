@@ -1,31 +1,31 @@
 [versions]
-minecraft = "1.19.4"
+minecraft = "1.20"
 parchment_minecraft = "1.19.3"
 parchment_mappings = "2023.03.12"
 
-forge = "1.19.4-45.0.9"
+forge = "1.20-46.0.2"
 mixin = "0.8.5"
 
 quilt_loader = "0.18.10"
-qsl = "5.0.0-beta.1+1.19.4"
+qsl = "6.0.1+1.20"
 
-mdg_plugin = "1.2.0"
-mdg_dsl = "1.3.0"
+mdg_plugin = "1.4.1"
+mdg_dsl = "1.5.0"
 autoservice = "1.1.0"
 
-quilt_loom = "1.1.23"
+quilt_loom = "1.2.3"
 quilt_licenser = "2.0.1"
 
-forgegradle = "5.1.74"
+forgegradle = "6.0.6"
 librarian = "1.2.0"
 mixingradle = "0.7.33"
 
 jetbrains_annotations = "24.0.1"
 
-minotaur = "2.7.5"
+minotaur = "2.8.0"
 cursegradle = "1.4.0"
 
-owolib = "0.10.3+1.19.3"
+owolib = "0.10.6+1.19.4"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -50,4 +50,3 @@ librarian = { id = "org.parchmentmc.librarian.forgegradle", version.ref = "libra
 mixingradle = { id = "org.spongepowered.mixin", version.ref = "mixingradle" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
 cursegradle = { id = "com.matthewprenger.cursegradle", version.ref = "cursegradle" }
-
