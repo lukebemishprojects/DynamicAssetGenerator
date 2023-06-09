@@ -7,8 +7,8 @@ package dev.lukebemish.dynamicassetgenerator.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.generators.DummyGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.SharedConstants;
@@ -47,6 +47,7 @@ public class DynamicAssetGenerator {
     public static final boolean TIME_RESOURCES = "true".equals(System.getProperty("dynamicassetgenerator.time_resources"));
 
     public static void init() {
+        ResourceGenerator.register(new ResourceLocation(MOD_ID,"dummy"), DummyGenerator.CODEC);
         if (TIME_RESOURCES) {
             LOGGER.info("dynamicassetgenerator.time_resources is true. Dynamic Asset Generator will time resource generation during this run!");
             try {
@@ -55,7 +56,7 @@ public class DynamicAssetGenerator {
                 LOGGER.error("Issue deleting times.log; you might be able to ignore this", e);
             }
         }
-        IResourceGenerator.register(new ResourceLocation(MOD_ID,"dummy"), DummyGenerator.CODEC);
+        ResourceGenerator.register(new ResourceLocation(MOD_ID,"dummy"), DummyGenerator.CODEC);
         ResourceCache.register(new BuiltinDataResourceCache(new ResourceLocation(MOD_ID, "builtin_data")), Pack.Position.TOP);
     }
 

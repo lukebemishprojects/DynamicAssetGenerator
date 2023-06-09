@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          persist-credentials: false
           repository: lukebemish/artifact-sync
           ref: refs/heads/main
       - run: mkdir repo

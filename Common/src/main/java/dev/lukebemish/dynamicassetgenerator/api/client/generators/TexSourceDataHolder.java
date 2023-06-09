@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TexSourceDataHolder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ITexSource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TexSource.class);
 
     public TexSourceDataHolder() {
         put(Logger.class, LOGGER);

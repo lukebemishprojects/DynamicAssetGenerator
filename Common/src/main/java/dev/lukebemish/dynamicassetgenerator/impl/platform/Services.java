@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 package dev.lukebemish.dynamicassetgenerator.impl.platform;
 
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.services.IPlatform;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.services.IResourceDegrouper;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.services.Platform;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.services.ResourceDegrouper;
 
 import java.util.ServiceLoader;
 
 public class Services {
-    public static final IPlatform PLATFORM = load(IPlatform.class);
-    public static final IResourceDegrouper DEGROUPER = load(IResourceDegrouper.class);
+    public static final Platform PLATFORM = load(Platform.class);
+    public static final ResourceDegrouper DEGROUPER = load(ResourceDegrouper.class);
 
     public static <T> T load(Class<T> clazz) {
 

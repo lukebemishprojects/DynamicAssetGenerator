@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -9,26 +9,39 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.ITexSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
-import dev.lukebemish.dynamicassetgenerator.impl.client.palette.ColorHolder;
+import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
+import dev.lukebemish.dynamicassetgenerator.api.colors.Channel;
+import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import net.minecraft.util.StringRepresentable;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
+import java.util.List;
+import java.util.Objects;
 
-public record CutoffMask(Channel channel, ITexSource source, float cutoff) implements ITexSource {
-    public static final Codec<CutoffMask> CODEC = RecordCodecBuilder.create(i->i.group(
-            StringRepresentable.fromEnum(Channel::values).optionalFieldOf("channel",Channel.ALPHA).forGetter(CutoffMask::channel),
-            ITexSource.CODEC.fieldOf("source").forGetter(CutoffMask::source),
-            Codec.FLOAT.optionalFieldOf("cutoff",0.5f).forGetter(CutoffMask::cutoff)
-    ).apply(i,CutoffMask::new));
+public final class CutoffMask implements TexSource {
+    private static final int DEFAULT_CUTOFF = 128;
+    private static final Channel DEFAULT_CHANNEL = Channel.ALPHA;
+
+    public static final Codec<CutoffMask> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Channel.CODEC.optionalFieldOf("channel", DEFAULT_CHANNEL).forGetter(CutoffMask::getChannel),
+            TexSource.CODEC.fieldOf("source").forGetter(CutoffMask::getSource),
+            Codec.INT.optionalFieldOf("cutoff", DEFAULT_CUTOFF).forGetter(CutoffMask::getCutoff)
+    ).apply(i, CutoffMask::new));
+    private final Channel channel;
+    private final TexSource source;
+    private final int cutoff;
+
+
+    private CutoffMask(Channel channel, TexSource source, int cutoff) {
+        this.channel = channel;
+        this.source = source;
+        this.cutoff = cutoff;
+    }
 
     @Override
-    public Codec<? extends ITexSource> codec() {
+    public Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -36,46 +49,55 @@ public record CutoffMask(Channel channel, ITexSource source, float cutoff) imple
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         IoSupplier<NativeImage> input = this.source.getSupplier(data, context);
         if (input == null) {
-            data.getLogger().error("Texture given was nonexistent...\n{}", this.source);
+            data.getLogger().error("Texture given was nonexistent...\n{}", this.source.stringify());
             return null;
         }
         return () -> {
+            PointwiseOperation.Unary<Integer> operation = PointwiseOperation.Unary.chain(
+                    channel.makeOperation(),
+                    (c, i) -> i ? (c >= cutoff ? 0xFFFFFFFF : 0) : 0
+            );
             try (NativeImage inImg = input.get()) {
-                int width = inImg.getWidth();
-                int height = inImg.getHeight();
-                NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);
-                for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < width; y++) {
-                        ColorHolder source = ColorHolder.fromColorInt(inImg.getPixelRGBA(x,y));
-                        float value = channel.getter.apply(source);
-                        out.setPixelRGBA(x,y,value>cutoff ? 0xffffffff : 0);
-                    }
-                }
-                return out;
+                return ImageUtils.generateScaledImage(operation, List.of(inImg));
             }
         };
     }
 
-    enum Channel implements StringRepresentable {
-        ALPHA("alpha", ColorHolder::getA),
-        RED("red", ColorHolder::getR),
-        GREEN("green", ColorHolder::getG),
-        BLUE("blue", ColorHolder::getG),
-        HUE("hue",c->c.toHLS().getH()),
-        SATURATION("saturation",c->c.toHLS().getS()),
-        LIGHTNESS("lightness",c->c.toHLS().getL());
+    public Channel getChannel() {
+        return channel;
+    }
 
-        public final String name;
-        public final Function<ColorHolder, Float> getter;
+    public TexSource getSource() {
+        return source;
+    }
 
-        Channel(String name, Function<ColorHolder, Float> getter) {
-            this.name = name;
-            this.getter = getter;
+    public int getCutoff() {
+        return cutoff;
+    }
+
+    public static class Builder {
+        private Channel channel = DEFAULT_CHANNEL;
+        private TexSource source;
+        private int cutoff = DEFAULT_CUTOFF;
+
+        public Builder setChannel(Channel channel) {
+            this.channel = channel;
+            return this;
         }
 
-        @Override
-        public @NotNull String getSerializedName() {
-            return name;
+        public Builder setSource(TexSource source) {
+            this.source = source;
+            return this;
+        }
+
+        public Builder setCutoff(int cutoff) {
+            this.cutoff = cutoff;
+            return this;
+        }
+
+        public CutoffMask build() {
+            Objects.requireNonNull(source);
+            return new CutoffMask(channel, source, cutoff);
         }
     }
 }

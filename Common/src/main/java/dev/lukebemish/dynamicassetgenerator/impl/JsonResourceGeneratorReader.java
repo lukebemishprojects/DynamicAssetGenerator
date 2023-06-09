@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -9,8 +9,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
-import dev.lukebemish.dynamicassetgenerator.api.IPathAwareInputStreamSource;
-import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
+import dev.lukebemish.dynamicassetgenerator.api.PathAwareInputStreamSource;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource {
-    private final Map<ResourceLocation, IResourceGenerator> map = new HashMap<>();
+public class JsonResourceGeneratorReader implements PathAwareInputStreamSource {
+    private final Map<ResourceLocation, ResourceGenerator> map = new HashMap<>();
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().create();
     public JsonResourceGeneratorReader(Map<ResourceLocation, String> map) {
         map.forEach((rl, str) -> {
             try {
-                IResourceGenerator json = fromJson(str);
+                ResourceGenerator json = fromJson(str);
                 if (json != null && json.getLocations().size() > 0) {
                     json.getLocations().forEach(localRl -> this.map.put(localRl, json));
                 }
@@ -39,14 +39,14 @@ public class JsonResourceGeneratorReader implements IPathAwareInputStreamSource 
     }
 
     @Nullable
-    static IResourceGenerator fromJson(String json) {
+    static ResourceGenerator fromJson(String json) {
         JsonObject jsonObject = GSON.fromJson(json, JsonObject.class);
-        return IResourceGenerator.CODEC.parse(JsonOps.INSTANCE, jsonObject).getOrThrow(false, s->{});
+        return ResourceGenerator.CODEC.parse(JsonOps.INSTANCE, jsonObject).getOrThrow(false, s->{});
     }
 
     @Override
     public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
-        IResourceGenerator json = map.get(outRl);
+        ResourceGenerator json = map.get(outRl);
         if (json!=null)
             return json.get(outRl, context);
         return null;

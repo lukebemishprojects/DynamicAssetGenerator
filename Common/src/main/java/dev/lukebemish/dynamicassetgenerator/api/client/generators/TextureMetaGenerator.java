@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -12,11 +12,11 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.lukebemish.dynamicassetgenerator.api.IResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AnimationSplittingSource;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
@@ -27,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
 
-public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements IResourceGenerator {
+public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements ResourceGenerator {
     public static final Codec<TextureMetaGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.listOf().fieldOf("sources").forGetter(TextureMetaGenerator::sources),
             AnimationData.CODEC.optionalFieldOf("animation").forGetter(TextureMetaGenerator::animation),
@@ -111,7 +111,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
 
             for (int i = 0; i < frameCount.size(); i++)
                 relFrameCount.add(frameCount.get(i) * scale.get(i));
-            int totalLength = AnimationSplittingSource.lcm(relFrameCount);
+            int totalLength = Maath.lcm(relFrameCount);
 
             if (!sources.contains(patternSourceRl)) {
                 DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSourceRl);
@@ -143,7 +143,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
     }
 
     @Override
-    public Codec<? extends IResourceGenerator> codec() {
+    public Codec<? extends ResourceGenerator> codec() {
         return CODEC;
     }
 
