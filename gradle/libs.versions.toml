@@ -22,7 +22,7 @@ mixingradle = "0.7.33"
 
 jetbrains_annotations = "24.0.1"
 
-minotaur = "2.7.5"
+minotaur = "2.8.0"
 cursegradle = "1.4.0"
 
 owolib = "0.10.3+1.19.3"
