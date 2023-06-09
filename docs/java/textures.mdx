@@ -1,8 +1,8 @@
 # Texture Generation
 
 All texture generators available through the JSON system are also available in code; they are located in
-`dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources`, and are subclasses of `ITexSource`. An `ITexSource`
-can be turned into an `IPathAwareInputStreamSource` by wrapping them in a `TextureGenerator`. For example:
+`dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources`, and are subclasses of `TexSource`. A `TexSource`
+can be turned into a `PathAwareInputStreamSource` by wrapping them in a `TextureGenerator`. For example:
 
 ```java
 public class ClientExample {
@@ -14,7 +14,7 @@ public class ClientExample {
         ASSET_CACHE.planSource(
             new TextureGenerator(
                 new ResourceLocation("my_mod","block/my_block"),
-                new TextureReader(new ResourceLocation("item/apple"))
+                new TextureReaderSource.Builder().setPath(new ResourceLocation("item/apple")).build()
             )
         );
     }
@@ -34,6 +34,6 @@ making your source's output depend on other data in this element requires implem
 API.
 
 `codec` returns a codec that can be used to serialize or deserialize the texture source. This codec must be registered with
-`ITexSource.register`, and is used when caching texture sources; a texture source's generated texture must be fully 
+`TexSource.register`, and is used when caching texture sources; a texture source's generated texture must be fully 
 describable by the information encoded by its codec, unless the experimental caching API is implemented for that texture 
 source.

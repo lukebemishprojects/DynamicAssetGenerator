@@ -10,11 +10,11 @@ Format:
     "background": {   },
     "full": {   },
     "new_background": {   },
-    "trim_trailing": true,
-    "force_neighbors": true,
-    "fill_holes": true,
-    "extend_palette_size": 0,
-    "close_cutoff": 0.2
+    "trim_trailing": true, // optional, default true
+    "force_neighbors": true, // optional, default true
+    "fill_holes": true, // optional, default true
+    "extend_palette_size": 0, // optional, default 6
+    "close_cutoff": 2 // optional, default 2
 }
 ```
 
@@ -23,4 +23,4 @@ Format:
 * `trim_trailing` removes transparent overlay pixels or palette change pixels not connected to a solid overlay pixel. Defaults to `false`.
 * `force_neighbors` records the palette state for any pixel next to a solid overlay pixel, regardless of whether it changes between the two textures. Defaults to `false`.
 * `fill_holes` attempts to fill holes in the texture, possibly with some success. Defaults to `false`.
-* `close_cutoff` determines where the line is drawn between pixels not in the palette and pixels that are formed by a semi-transparent overlay on a palette color.
+* `close_cutoff` determines where the line is drawn between pixels not in the palette and pixels that are formed by a semi-transparent overlay on a palette color. Increasing this value makes it more lenient. Defaults to `2`, which is usually a good value.
