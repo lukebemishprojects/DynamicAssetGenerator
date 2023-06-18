@@ -427,7 +427,13 @@ public class Palette implements Collection<Integer> {
      * palette, in the given color coordinates
      */
     public double distanceToPolyLine(int color, ColorCoordinates coordinates) {
-        return lines.stream().mapToDouble(line -> line.distanceTo(color, coordinates)).min().orElseThrow(() -> new IllegalStateException("Color palette is empty"));
+        return lines.stream()
+            .mapToDouble(line -> line.distanceTo(color, coordinates)).min()
+            .orElseGet(() -> {
+                if (colors.isEmpty())
+                    throw new IllegalStateException("Color palette is empty");
+                return coordinates.distance(color, colors.get(0));
+            });
     }
 
     private void updateList() {
