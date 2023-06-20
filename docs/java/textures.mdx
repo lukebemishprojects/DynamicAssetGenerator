@@ -25,7 +25,7 @@ This will register a new texture source that copies the `item/apple` texture to 
 
 ## Custom Texture Sources
 
-Custom texture sources can be created by implementing `ITexSource`, which requires implementing two methods:
+Custom texture sources can be created by implementing `TexSource`, which requires implementing two methods:
 
 `getSupplier` takes a `TexSourceDataHolder` and a `ResourceGenerationContext`, and returns a `IoSupplier<NativeImage>`, or 
 `null` if no texture can be constructed. The `TexSourceDataHolder` is used to hold data that should be passed to "child"
