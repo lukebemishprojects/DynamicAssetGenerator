@@ -24,6 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * This class should be considered internal, but to avoid breaking backwards compatibility, no breaking changes will be
+ * made until DynAssetGen 5.0.0 or later.
+ */
+@ApiStatus.Internal
 public class ClientPrePackRepository {
     //Allows resources to be found while packs are being loaded... not sure how bad of an idea this is.
     private static List<? extends PackResources> resources = new ArrayList<>();

@@ -18,7 +18,7 @@ public class EventHandler {
     public static void addResourcePack(AddPackFindersEvent event) {
         DynamicAssetGenerator.LOGGER.info("Attempting pack insertion...");
         PackType type = event.getPackType();
-        DynamicAssetGenerator.caches.forEach((location, info) -> {
+        DynamicAssetGenerator.CACHES.forEach((location, info) -> {
             if (info.cache().getPackType() == type) {
                 event.addRepositorySource(consumer -> {
                     var metadata = DynamicAssetGenerator.fromCache(info.cache());

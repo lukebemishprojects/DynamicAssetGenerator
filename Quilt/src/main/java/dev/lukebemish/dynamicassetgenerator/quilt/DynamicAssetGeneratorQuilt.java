@@ -27,7 +27,7 @@ public class DynamicAssetGeneratorQuilt implements ModInitializer {
     static void registerForType(PackType type) {
         // Can't use the "default" and "top" events as they compute namespaces too early
         ResourceLoader.get(type).registerResourcePackProfileProvider(consumer ->
-                DynamicAssetGenerator.caches.forEach(((location, info) -> {
+                DynamicAssetGenerator.CACHES.forEach(((location, info) -> {
                     if (info.cache().getPackType() == type) {
                         var metadata = DynamicAssetGenerator.fromCache(info.cache());
                         Pack pack = Pack.create(

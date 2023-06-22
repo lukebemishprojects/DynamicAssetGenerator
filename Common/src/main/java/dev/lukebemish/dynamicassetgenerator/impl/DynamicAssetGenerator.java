@@ -60,10 +60,10 @@ public class DynamicAssetGenerator {
         ResourceCache.register(new BuiltinDataResourceCache(new ResourceLocation(MOD_ID, "builtin_data")), Pack.Position.TOP);
     }
 
-    public static final Map<ResourceLocation, PackInfo> caches = new HashMap<>();
+    public static final Map<ResourceLocation, PackInfo> CACHES = new HashMap<>();
 
     public static void registerCache(ResourceLocation id, ResourceCache cache, Pack.Position position) {
-        caches.put(id, new PackInfo(cache, position));
+        CACHES.put(id, new PackInfo(cache, position));
     }
 
     public record PackInfo(ResourceCache cache, Pack.Position position) {
