@@ -36,7 +36,11 @@ public final class TexSourceCache {
             if (cacheKey == null) {
                 return supplier.get();
             }
-            var ref = cache.computeIfAbsent(cacheKey, key -> new CacheReference<>());
+            CacheReference<Either<NativeImage, IOException>> ref;
+            if (cache.containsKey(cacheKey))
+                ref = cache.get(cacheKey);
+            else
+                ref = new CacheReference<>();
             var result = ref.calcSync(cached -> {
                 if (cached == null) {
                     try {
@@ -58,6 +62,10 @@ public final class TexSourceCache {
                     return Either.right(cached.right().get());
                 }
             });
+
+            if (!cache.containsKey(cacheKey))
+                cache.put(cacheKey, ref);
+
             if (result.left().isPresent()) {
                 return result.left().get();
             } else {
