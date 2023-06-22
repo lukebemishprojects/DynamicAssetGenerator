@@ -28,7 +28,7 @@ public final class TexSourceCache {
     private static final Map<ResourceLocation, Map<String, CacheReference<Either<NativeImage, IOException>>>> MULTI_CACHE = new ConcurrentHashMap<>();
 
     @NotNull public static NativeImage fromCache(IoSupplier<NativeImage> supplier, TexSource source, ResourceGenerationContext context, TexSourceDataHolder data) throws IOException {
-        var cache = MULTI_CACHE.computeIfAbsent(context.cacheName(), k -> new ConcurrentHashMap<>());
+        var cache = MULTI_CACHE.computeIfAbsent(context.getCacheName(), k -> new ConcurrentHashMap<>());
         try {
             var dataOps = new CacheMetaJsonOps();
             dataOps.putData(TexSourceDataHolder.class, data);
@@ -72,13 +72,13 @@ public final class TexSourceCache {
     public static void reset(ResourceGenerationContext context) {
         synchronized (MULTI_CACHE) {
             Map<String, CacheReference<Either<NativeImage, IOException>>> cache;
-            if ((cache = MULTI_CACHE.get(context.cacheName())) != null) {
+            if ((cache = MULTI_CACHE.get(context.getCacheName())) != null) {
                 cache.forEach((s, e) -> {
                     if (e.getHeld().left().isPresent()) {
                         e.getHeld().left().get().close();
                     }
                 });
-                MULTI_CACHE.remove(context.cacheName());
+                MULTI_CACHE.remove(context.getCacheName());
             }
         }
     }

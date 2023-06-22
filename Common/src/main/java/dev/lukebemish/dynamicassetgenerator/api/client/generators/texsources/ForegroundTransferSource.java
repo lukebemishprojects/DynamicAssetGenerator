@@ -105,7 +105,7 @@ public final class ForegroundTransferSource implements TexSource {
                  NativeImage fImg = full.get()) {
 
                 Predicate<Palette> extend = p -> p.size() >= extendPaletteSize;
-                try (ForegroundExtractor extractor = new ForegroundExtractor(context.cacheName(), cacheKey, bImg, fImg, extend, this.isTrimTrailing(), this.isForceNeighbors(), this.getCloseCutoff()).fillHoles(this.isFillHoles())) {
+                try (ForegroundExtractor extractor = new ForegroundExtractor(context.getCacheName(), cacheKey, bImg, fImg, extend, this.isTrimTrailing(), this.isForceNeighbors(), this.getCloseCutoff()).fillHoles(this.isFillHoles())) {
                     var options = new PaletteCombinedSource.PaletteCombiningOptions(extend, false, true);
                     extractor.unCacheOrReCalc();
                     try (NativeImage pImg = extractor.getPalettedImg();

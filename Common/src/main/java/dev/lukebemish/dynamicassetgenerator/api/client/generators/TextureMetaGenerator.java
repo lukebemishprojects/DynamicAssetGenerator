@@ -14,13 +14,13 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
-import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -46,14 +46,20 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
             return null;
         }
         for (ResourceLocation source : sources()) {
-            try (InputStream stream = ClientPrePackRepository.getResource(new ResourceLocation(source.getNamespace(),
-                    "textures/"+source.getPath()+".png.mcmeta"))) {
-                JsonObject json = GSON.fromJson(new BufferedReader(new InputStreamReader(stream)), JsonObject.class);
-                MetaStructure structure = MetaStructure.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, e->{});
-                sourceStructure.put(source,structure);
-            } catch (IOException | RuntimeException e) {
-                //Not an error, it might just not have metadata
+            @Nullable var streamSupplier = context.getResource(new ResourceLocation(source.getNamespace(),
+                "textures/"+source.getPath()+".png.mcmeta"));
+            if (streamSupplier == null) {
                 sourceStructure.put(source,new MetaStructure(Optional.empty(),Optional.empty(),Optional.empty()));
+            } else {
+                try (InputStream stream = streamSupplier.get()) {
+                    JsonObject json = GSON.fromJson(new BufferedReader(new InputStreamReader(stream)), JsonObject.class);
+                    MetaStructure structure = MetaStructure.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(false, e -> {
+                    });
+                    sourceStructure.put(source, structure);
+                } catch (IOException | RuntimeException e) {
+                    //Not an error, it might just not have metadata
+                    sourceStructure.put(source, new MetaStructure(Optional.empty(), Optional.empty(), Optional.empty()));
+                }
             }
         }
 

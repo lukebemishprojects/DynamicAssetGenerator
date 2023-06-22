@@ -9,7 +9,6 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.ClientPrePackRepository;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.resources.ResourceLocation;
@@ -38,7 +37,11 @@ public final class TextureReaderSource implements TexSource {
         ResourceLocation outRl = new ResourceLocation(this.getPath().getNamespace(), "textures/" + this.getPath().getPath() + ".png");
         return () -> {
             try {
-                return NativeImage.read(ClientPrePackRepository.getResource(outRl));
+                var in = context.getResource(outRl);
+                if (in != null) {
+                    return NativeImage.read(in.get());
+                }
+                data.getLogger().error("Texture not available in context: {}", this.getPath());
             } catch (IOException e) {
                 data.getLogger().error("Issue loading texture: {}", this.getPath());
             }

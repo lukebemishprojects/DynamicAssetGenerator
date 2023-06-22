@@ -7,6 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api;
 
 import dev.lukebemish.dynamicassetgenerator.impl.Benchmarking;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.OldResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -70,7 +71,7 @@ public abstract class ResourceCache {
 
     @NotNull
     public ResourceGenerationContext getContext() {
-        return new ResourceGenerationContext(this.name);
+        return OldResourceGenerationContext.make(this.name, this.getPackType());
     }
 
     @SuppressWarnings("unused")

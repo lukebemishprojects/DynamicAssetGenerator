@@ -542,9 +542,9 @@ public class ForegroundExtractor implements Closeable {
     public static void reset(ResourceGenerationContext context) {
         synchronized (MULTI_CACHE) {
             Map<String, CacheReference<OutputHolder>> cache;
-            if ((cache = MULTI_CACHE.get(context.cacheName())) != null) {
+            if ((cache = MULTI_CACHE.get(context.getCacheName())) != null) {
                 cache.forEach((s, e) -> e.getHeld().close());
-                MULTI_CACHE.remove(context.cacheName());
+                MULTI_CACHE.remove(context.getCacheName());
             }
         }
     }
