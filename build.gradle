@@ -47,7 +47,7 @@ subprojects { p ->
             ])
         }
     }
-    
+
     repositories {
         mavenCentral()
 
@@ -102,4 +102,16 @@ subprojects { p ->
             }
         }
     }
+}
+
+javadoc {
+    source subprojects.collect { it.sourceSets.main.allJava }
+    classpath = files(subprojects.collect { it.sourceSets.main.compileClasspath })
+    include "**/api/**"
+}
+
+tasks.register('prepareJavadoc', Copy) {
+    dependsOn tasks.javadoc
+    from tasks.javadoc.outputs
+    into layout.buildDirectory.dir("prepareJavadoc/${project.group.replace('.','/')}/${project.version.split('\\.')[0]}")
 }

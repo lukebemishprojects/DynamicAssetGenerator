@@ -20,7 +20,7 @@ jobs:
           cache-read-only: ${{ !startsWith(github.ref, 'refs/heads/1.') }}
       - uses: gradle/gradle-build-action@v2
         with:
-          arguments: checkLicenses build
+          arguments: checkLicenses build prepareJavadoc
           cache-read-only: ${{ !startsWith(github.ref, 'refs/heads/1.') }}
       - uses: gradle/gradle-build-action@v2
         with:
@@ -32,6 +32,17 @@ jobs:
           CURSEFORGE_KEY: ${{ secrets.CURSEFORGE_KEY }}
           MODRINTH_KEY: ${{ secrets.MODRINTH_KEY }}
           MAVEN_URL: https://maven.lukebemish.dev/releases/
+      - uses: andreiio/rclone-action@v1.2.0
+        with:
+          args: copy build/prepareJavadoc r2:target
+        env:
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_REGION: auto
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ sectrets.JAVADOC_ENDPOINT }}
+          RCLONE_CONFIG_R2_ACL: private
       - run: |
           git push
           git push --tags
