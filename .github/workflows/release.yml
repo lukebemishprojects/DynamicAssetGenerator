@@ -31,7 +31,7 @@ jobs:
           RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
           RCLONE_CONFIG_R2_PROVIDER: Cloudflare
           RCLONE_CONFIG_R2_REGION: auto
-          RCLONE_CONFIG_R2_ENDPOINT: ${{ sectrets.JAVADOC_ENDPOINT }}
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.JAVADOC_ENDPOINT }}
           RCLONE_CONFIG_R2_ACL: private
       - uses: gradle/gradle-build-action@v2
         with:
