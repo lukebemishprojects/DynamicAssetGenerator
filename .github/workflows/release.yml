@@ -24,7 +24,7 @@ jobs:
           cache-read-only: ${{ !startsWith(github.ref, 'refs/heads/1.') }}
       - uses: andreiio/rclone-action@v1.2.0
         with:
-          args: copy build/prepareJavadoc r2:target
+          args: copy build/prepareJavadoc r2:javadoc-lukebemish-dev
         env:
           RCLONE_CONFIG_R2_TYPE: s3
           RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
