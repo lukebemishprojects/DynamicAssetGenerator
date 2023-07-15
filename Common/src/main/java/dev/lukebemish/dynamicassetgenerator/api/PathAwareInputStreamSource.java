@@ -10,9 +10,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
+/**
+ * An {@link InputStreamSource} that is aware of the locations it can provide input streams for.
+ */
 public interface PathAwareInputStreamSource extends InputStreamSource {
 
-
+    /**
+     * @return the locations that this {@link InputStreamSource} can provide resources at.
+     */
     @NotNull
     Set<ResourceLocation> getLocations();
 }

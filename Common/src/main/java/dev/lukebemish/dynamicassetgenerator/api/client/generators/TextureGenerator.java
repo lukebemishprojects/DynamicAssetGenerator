@@ -13,14 +13,19 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
-import java.util.function.Function;
 
+/**
+ * A resource generator that generates a PNG texture as specified by a {@link TexSource}. As {@link TexSource}s are
+ * cached in memory to avoid regenerating duplicate parts of a texture, this generator should only be used with a
+ * {@link dev.lukebemish.dynamicassetgenerator.api.client.AssetResourceCache}.
+ */
 public class TextureGenerator implements ResourceGenerator {
     public static final Codec<TextureGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("output_location").forGetter(dyn->dyn.outputLocation),
@@ -30,18 +35,18 @@ public class TextureGenerator implements ResourceGenerator {
     private final ResourceLocation outputLocation;
     private final TexSource input;
 
-    private Function<ResourceGenerationContext, IoSupplier<NativeImage>> source;
-
+    /**
+     * @param outputLocation the location to generate a texture at, excluding the "textures/" prefix or ".png" extension
+     * @param source the texture source to generate
+     */
     public TextureGenerator(@NotNull ResourceLocation outputLocation, @NotNull TexSource source) {
         this.input = source;
         this.outputLocation = outputLocation;
-        this.source = context -> this.input.getSupplier(new TexSourceDataHolder(), context);
     }
 
     @Override
     public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
-        if (this.source == null) return null;
-        IoSupplier<NativeImage> imageGetter = this.source.apply(context);
+        IoSupplier<NativeImage> imageGetter = this.input.getSupplier(new TexSourceDataHolder(), context);
         if (imageGetter == null) return null;
         return () -> {
             try (NativeImage image = imageGetter.get()) {
@@ -61,6 +66,11 @@ public class TextureGenerator implements ResourceGenerator {
         return Set.of(getOutputLocation());
     }
 
+    /**
+     * This method should be considered internal, but to avoid breaking backwards compatibility, no breaking changes
+     * will be made until DynAssetGen 5.0.0 or later.
+     */
+    @ApiStatus.Internal
     public ResourceLocation getOutputLocation() {
         return new ResourceLocation(this.outputLocation.getNamespace(), "textures/"+this.outputLocation.getPath()+".png");
     }

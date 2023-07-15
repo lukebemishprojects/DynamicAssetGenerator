@@ -15,6 +15,9 @@ import net.minecraft.util.ExtraCodecs;
 
 import java.util.function.Function;
 
+/**
+ * Represents a set of instructions to generate any number of resources, to be read from JSON.
+ */
 public interface ResourceGenerator extends PathAwareInputStreamSource {
     Codec<ResourceGenerator> CODEC = ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ResourceGenerator>>() {
         @Override
@@ -36,10 +39,17 @@ public interface ResourceGenerator extends PathAwareInputStreamSource {
         }
     }).dispatch(ResourceGenerator::codec, Function.identity());
 
+    /**
+     * Registers a new resource generator type.
+     * @param rl The resource location to register the generator under; becomes the {@code "type"} field in JSON.
+     * @param reader The codec used to deserialize the generator from JSON.
+     */
     static void register(ResourceLocation rl, Codec<? extends ResourceGenerator> reader) {
         CommonRegisters.RESOURCEGENERATORS.put(rl, reader);
     }
 
-
+    /**
+     * @return A codec that can serialize this resource generator.
+     */
     Codec<? extends ResourceGenerator> codec();
 }

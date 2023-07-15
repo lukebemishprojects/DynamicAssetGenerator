@@ -13,10 +13,17 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A {@link ResourceCache} meant to provide resources for resource packs. Texture sources should only be used within
+ * a class extending this, to ensure that caching is respected.
+ */
 public class AssetResourceCache extends ResourceCache {
     @SuppressWarnings("unused")
     public static final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "textures/empty.png");
 
+    /**
+     * @param name a unique identifier for this cache
+     */
     public AssetResourceCache(ResourceLocation name) {
         super(name);
         this.planResetListener(() -> TexSourceCache.reset(this.getContext()));

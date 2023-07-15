@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 
+/**
+ * An object that can provide an input stream supplier at a given location.
+ */
 @FunctionalInterface
 public interface InputStreamSource {
     /**

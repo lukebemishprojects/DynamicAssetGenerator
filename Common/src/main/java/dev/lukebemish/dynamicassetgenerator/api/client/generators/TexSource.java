@@ -27,6 +27,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
+/**
+ * Contains instructions for generating a single texture. Many implementations allow for nesting of further sources
+ * within this; thus, to avoid the generation of duplicate sources, texture sources are cached, if possible, with their
+ * key being their serialized form in JSON. If this information is not enough to uniquely identify the texture a source
+ * will produce (for instance, if it uses information passed in a context), then a source should implement the caching
+ * API as needed.
+ */
 public interface TexSource {
 
     String METADATA_CACHE_KEY = "__dynamic_asset_generator_metadata";
@@ -60,6 +67,12 @@ public interface TexSource {
         }
     }, METADATA_CACHE_KEY, TexSourceDataHolder.class);
 
+    /**
+     * Register a new type of texture source, alongside a codec to decode from JSON and encode to a cache key.
+     * @param rl the identifier of this texture source type
+     * @param codec can serialize and deserialize this texture source type
+     * @param <T> the texture source type
+     */
     static <T extends TexSource> void register(ResourceLocation rl, Codec<T> codec) {
         ClientRegisters.TEXSOURCES.put(rl, codec);
     }
@@ -77,11 +90,27 @@ public interface TexSource {
         return DataResult.success(ops.empty());
     }
 
+    /**
+     * @return a codec which can be used to serialize this source
+     */
     Codec<? extends TexSource> codec();
 
+    /**
+     *
+     * @param data context information passed by outer nesting texture sources; if you depend on this, you will want to
+     *             implement the caching API (see {@link #cacheMetadata})
+     * @param context context about the environment the texture is generating in
+     * @return a supplier able to produce the texture, or null if the texture could not be produced.
+     */
     @Nullable
     IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context);
 
+    /**
+     * If you are using texture sources directly through the java API, you will likely want to call this on sources you
+     * construct. In the future, this may become more redundant as tools are integrated to cache all sources in this way
+     * automatically.
+     * @return a version of this texture source that utilizes the cache.
+     */
     @ApiStatus.Experimental
     default TexSource cached() {
         if (this instanceof TexSourceCachingWrapper) return this;

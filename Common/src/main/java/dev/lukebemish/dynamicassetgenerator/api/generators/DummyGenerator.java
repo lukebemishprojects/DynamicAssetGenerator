@@ -15,6 +15,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.InputStream;
 import java.util.Set;
 
+/**
+ * A resource generator that generates no resources. Useful for overriding other resource generators in lower priority
+ * packs.
+ */
 public class DummyGenerator implements ResourceGenerator {
     public static final DummyGenerator INSTANCE = new DummyGenerator();
     public static final Codec<DummyGenerator> CODEC = Codec.unit(INSTANCE);

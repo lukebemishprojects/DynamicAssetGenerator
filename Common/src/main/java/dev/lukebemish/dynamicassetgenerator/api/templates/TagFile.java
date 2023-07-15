@@ -19,6 +19,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
+/**
+ * Represents a single vanilla tag file.
+ * @param values the values contained by this tag
+ * @param replace whether this tag replaces lower priority tags
+ */
 @SuppressWarnings("unused")
 public record TagFile(List<TagEntry> values, boolean replace) {
     public static final Codec<TagFile> CODEC = RecordCodecBuilder.create(p-> p.group(
@@ -26,6 +31,9 @@ public record TagFile(List<TagEntry> values, boolean replace) {
             Codec.BOOL.optionalFieldOf("replace", false).forGetter(TagFile::replace)
     ).apply(p, TagFile::new));
 
+    /**
+     * Loads a tag, if possible, from the provided input.
+     */
     static DataResult<TagFile> fromStream(InputStream stream) {
         try (var reader = new BufferedReader(new InputStreamReader(stream))) {
             JsonElement json = JsonParser.parseReader(reader);

@@ -8,6 +8,9 @@ package dev.lukebemish.dynamicassetgenerator.api.util;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceLocation;
 
+/**
+ * A series of utilities for modifying {@link ResourceLocation}s
+ */
 @SuppressWarnings("unused")
 public final class LocationUtils {
     private LocationUtils() {}
