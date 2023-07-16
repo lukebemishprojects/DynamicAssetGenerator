@@ -72,7 +72,7 @@ public final class TexSourceCache {
                 throw result.right().get();
             }
         } catch (RuntimeException e) {
-            DynamicAssetGenerator.LOGGER.warn("Could not cache texture source; something has gone wrong with encoding.", e);
+            DynamicAssetGenerator.LOGGER.warn("Could not cache texture source; something has gone wrong with encoding or texture creation.", e);
             return supplier.get();
         }
     }

@@ -280,15 +280,16 @@ public final class ColorTools {
          * @return the provided color after conversion. This operation is thread-safe.
          */
         public int convert(int color) {
-            if (cache.containsKey(color))
-                return cache.get(color);
             synchronized (cache) {
                 if (cache.containsKey(color))
                     return cache.get(color);
-                int result = converter.applyAsInt(color);
-                cache.put(color, result);
-                return result;
             }
+            int result = converter.applyAsInt(color);
+            synchronized (cache) {
+                if (!cache.containsKey(color))
+                    cache.put(color, result);
+            }
+            return result;
         }
     }
 

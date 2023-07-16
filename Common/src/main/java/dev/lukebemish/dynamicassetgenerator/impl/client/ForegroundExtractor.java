@@ -6,7 +6,6 @@
 package dev.lukebemish.dynamicassetgenerator.impl.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
@@ -17,13 +16,14 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.clustering.Clusterer;
 import dev.lukebemish.dynamicassetgenerator.api.colors.geometry.ColorCoordinates;
 import dev.lukebemish.dynamicassetgenerator.impl.CacheReference;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import it.unimi.dsi.fastutil.longs.Long2IntMap;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -346,24 +346,18 @@ public class ForegroundExtractor implements Closeable {
 
         if ((trimTrailingPaletteLookup || forceOverlayNeighbors) && fillHoles) {
             int s = pImg.getWidth();
-            List<Pair<Integer, Integer>> toSearch = List.of(
-                    new Pair<>(0, 1),
-                    new Pair<>(0, -1),
-                    new Pair<>(1, 0),
-                    new Pair<>(-1, 0)
-            );
-            Map<Pair<Integer, Integer>, Integer> alphaMap = new HashMap<>();
-            IntStream.range(0, s).parallel().forEach(x -> {
+            Long2IntMap alphaMap = new Long2IntOpenHashMap();
+            for (int x = 0; x < s; x++) {
                 for (int y = 0; y < s; y++) {
                     int overlay = ImageUtils.safeGetPixelABGR(oImg, x, y);
                     int alpha = FastColor.ABGR32.alpha(overlay);
-                    alphaMap.put(new Pair<>(x, y), alpha);
+                    alphaMap.put(pair(x, y), alpha);
                     int wOverlayColor = ImageUtils.safeGetPixelABGR(withOverlay, x / ws, y / ws);
                     if (alpha == 255 && wOverlayColor != overlay) {
                         ImageUtils.safeSetPixelABGR(oImg, x, y, wOverlayColor | 0xFF000000);
                     }
                 }
-            });
+            }
 
             outer:
             while (true) {
@@ -372,11 +366,13 @@ public class ForegroundExtractor implements Closeable {
                         int overlay = ImageUtils.safeGetPixelARGB(oImg, x, y);
                         int count = 0;
                         int partialCount = 0;
-                        for (Pair<Integer, Integer> is : toSearch) {
-                            int c = ImageUtils.safeGetPixelARGB(oImg, x + is.getFirst(), y + is.getSecond());
+                        for (int idx = 0; idx < TO_SEARCH_XS.length; idx++) {
+                            int xOff = TO_SEARCH_XS[idx];
+                            int yOff = TO_SEARCH_YS[idx];
+                            int c = ImageUtils.safeGetPixelARGB(oImg, x + xOff, y + yOff);
                             int alpha = FastColor.ARGB32.alpha(c);
                             if (alpha == 0xFF) count++;
-                            if (alpha > 0 && alphaMap.get(new Pair<>(x + is.getFirst(), y + is.getSecond())) < 255)
+                            if (alpha > 0 && alphaMap.get(pair(x + xOff, y + yOff)) < 255)
                                 partialCount++;
                         }
                         int origC = ImageUtils.safeGetPixelARGB(withOverlay, x / ws, y / ws);
@@ -399,6 +395,13 @@ public class ForegroundExtractor implements Closeable {
         }
 
         this.outputHolder = new OutputHolder(oImg, pImg);
+    }
+
+    private static final int[] TO_SEARCH_XS = new int[] {0, 1, 0, -1};
+    private static final int[] TO_SEARCH_YS = new int[] {1, 0, -1, 0};
+
+    private static long pair(int a, int b) {
+        return (((long)a) << 32) | (b & 0xffffffffL);
     }
 
     private double extractorDistance(int color1, int color2) {
