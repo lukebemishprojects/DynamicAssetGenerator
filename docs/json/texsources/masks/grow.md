@@ -13,4 +13,4 @@ Format:
 }
 ```
 
-Grows or shrinks a mask by the provided `growth` factor, while binning pixel values as either fully opaque or transparent based on whether they are more than or less than the provided `cutoff`.
+Grows a mask with the provided `growth` factor, out of the total image width, as the size of a filter, while binning pixel values as either fully opaque or transparent based on whether they are more than or less than the provided `cutoff`.
