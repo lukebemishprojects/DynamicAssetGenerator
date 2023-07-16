@@ -14,6 +14,9 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOpera
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * An {@link AbstractManyOperationSource} defined by {@link ColorOperations#MULTIPLY}.
+ */
 public class MultiplyMask extends AbstractManyOperationSource {
     public static final Codec<MultiplyMask> CODEC = AbstractManyOperationSource.makeCodec(MultiplyMask::new);
 
@@ -34,6 +37,9 @@ public class MultiplyMask extends AbstractManyOperationSource {
     public static class Builder {
         private List<TexSource> sources;
 
+        /**
+         * Sets the sources whose values to multiply
+         */
         public Builder setSources(List<TexSource> sources) {
             this.sources = sources;
             return this;

@@ -19,6 +19,9 @@ import org.slf4j.helpers.NOPLogger;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that attempts to provide one texture, but if it fails, will provide another.
+ */
 public final class FallbackSource implements TexSource {
     public static final Codec<FallbackSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             TexSource.CODEC.fieldOf("original").forGetter(FallbackSource::getOriginal),
@@ -74,11 +77,17 @@ public final class FallbackSource implements TexSource {
         private TexSource original;
         private TexSource fallback;
 
+        /**
+         * Sets the original texture to use.
+         */
         public Builder setOriginal(TexSource original) {
             this.original = original;
             return this;
         }
 
+        /**
+         * Sets the texture to use if the original cannot be constructed.
+         */
         public Builder setFallback(TexSource fallback) {
             this.fallback = fallback;
             return this;

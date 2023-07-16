@@ -21,6 +21,9 @@ import net.minecraft.util.StringRepresentable;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that generates the smallest power of 2 square containing the provided colors.
+ */
 public final class ColorSource implements TexSource {
     public static final ColorEncoding DEFAULT_COLOR_ENCODING = ColorEncoding.ARGB;
 
@@ -85,11 +88,17 @@ public final class ColorSource implements TexSource {
         private List<Integer> color;
         private ColorEncoding colorEncoding = DEFAULT_COLOR_ENCODING;
 
+        /**
+         * Set the colors the output should contain.
+         */
         public Builder setColor(List<Integer> color) {
             this.color = color;
             return this;
         }
 
+        /**
+         * Set the color encoding of the input colors. Defaults to ARGB.
+         */
         public Builder setColorEncoding(ColorEncoding colorEncoding) {
             this.colorEncoding = colorEncoding;
             return this;

@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that detects edges in the alpha channel of a source.
+ */
 public final class EdgeMask implements TexSource {
     private static final int DEFAULT_CUTOFF = 128;
     private static final boolean DEFAULT_COUNT_OUTSIDE_FRAME = false;
@@ -106,7 +109,10 @@ public final class EdgeMask implements TexSource {
         return cutoff;
     }
 
-    private enum Direction implements StringRepresentable {
+    /**
+     * Represents the direction of a neighboring pixel in 2D space.
+     */
+    public enum Direction implements StringRepresentable {
         NORTH(0, -1),
         NORTHEAST(1, -1),
         EAST(1, 0),
@@ -136,21 +142,33 @@ public final class EdgeMask implements TexSource {
         private List<Direction> edges = DEFAULT_EDGES;
         private int cutoff = DEFAULT_CUTOFF;
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setSource(TexSource source) {
             this.source = source;
             return this;
         }
 
+        /**
+         * Sets whether to count pixels outside the frame as opaque. Defaults to false.
+         */
         public Builder setCountOutsideFrame(boolean countOutsideFrame) {
             this.countOutsideFrame = countOutsideFrame;
             return this;
         }
 
+        /**
+         * Sets the directions to look, relative to opaque pixels, for edges. Defaults to all directions.
+         */
         public Builder setEdges(List<Direction> edges) {
             this.edges = edges;
             return this;
         }
 
+        /**
+         * Sets the cutoff for what is considered opaque. Defaults to 128.
+         */
         public Builder setCutoff(int cutoff) {
             this.cutoff = cutoff;
             return this;

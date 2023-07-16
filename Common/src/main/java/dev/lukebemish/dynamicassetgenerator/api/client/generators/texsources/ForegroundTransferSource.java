@@ -22,6 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+/**
+ * Extracts the foreground of a texture, given a know background, and moves it, including shading, to a new background.
+ */
 public final class ForegroundTransferSource implements TexSource {
     private static final int DEFAULT_EXTEND_PALETTE_SIZE = 6;
     private static final boolean DEFAULT_TRIM_TRAILING = true;
@@ -159,41 +162,70 @@ public final class ForegroundTransferSource implements TexSource {
         private boolean fillHoles = DEFAULT_FILL_HOLES;
         private double closeCutoff = DEFAULT_CLOSE_CUTOFF;
 
+        /**
+         * Sets the background texture. This texture is used to determine which pixels are background and which are
+         * foreground.
+         */
         public Builder setBackground(TexSource background) {
             this.background = background;
             return this;
         }
 
+        /**
+         * Sets the input texture, which contains the desired foreground overlayed over a background with the same
+         * palette as the image provided with {@link #setBackground}.
+         */
         public Builder setFull(TexSource full) {
             this.full = full;
             return this;
         }
 
+        /**
+         * Sets the new background texture which the foreground, including surrounding shading, will be moved onto.
+         */
         public Builder setNewBackground(TexSource newBackground) {
             this.newBackground = newBackground;
             return this;
         }
 
+        /**
+         * Sets the minimum size of the palette. If the palette is smaller than this size, it will be extended to this.
+         * Defaults to 8.
+         */
         public Builder setExtendPaletteSize(int extendPaletteSize) {
             this.extendPaletteSize = extendPaletteSize;
             return this;
         }
 
+        /**
+         * Sets whether shading pixels that are not connected to the foreground should be trimmed. Defaults to true.
+         */
         public Builder setTrimTrailing(boolean trimTrailing) {
             this.trimTrailing = trimTrailing;
             return this;
         }
 
+        /**
+         * Sets whether the shading of pixels next to foreground pixels should be kept regardless of whether it changes
+         * between the background and full images. Defaults to true.
+         */
         public Builder setForceNeighbors(boolean forceNeighbors) {
             this.forceNeighbors = forceNeighbors;
             return this;
         }
 
+        /**
+         * Sets whether small holes in the foreground should be filled in. Defaults to true.
+         */
         public Builder setFillHoles(boolean fillHoles) {
             this.fillHoles = fillHoles;
             return this;
         }
 
+        /**
+         * Sets how close a pixel has to be to the backgorund palette to be considered as potentially not a full-opacity
+         * foreground pixel. Defaults to 2.
+         */
         public Builder setCloseCutoff(double closeCutoff) {
             this.closeCutoff = closeCutoff;
             return this;

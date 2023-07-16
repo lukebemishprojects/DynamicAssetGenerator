@@ -14,6 +14,9 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOpera
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * An {@link AbstractManyOperationSource} defined by {@link ColorOperations#ADD}.
+ */
 public class AddMask extends AbstractManyOperationSource {
     public static final Codec<AddMask> CODEC = AbstractManyOperationSource.makeCodec(AddMask::new);
 
@@ -35,6 +38,9 @@ public class AddMask extends AbstractManyOperationSource {
     public static class Builder {
         private List<TexSource> sources;
 
+        /**
+         * Sets the sources whose values to add.
+         */
         public Builder setSources(List<TexSource> sources) {
             this.sources = sources;
             return this;

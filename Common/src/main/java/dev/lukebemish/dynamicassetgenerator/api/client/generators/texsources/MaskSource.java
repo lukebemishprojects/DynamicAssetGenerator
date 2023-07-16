@@ -19,6 +19,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that modifies the alpha channel of a provided texture source based on the alpha channel of the
+ * provided mask. The sources in {@link dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask} may
+ * be useful for creating masks.
+ */
 public final class MaskSource implements TexSource {
     public static final Codec<MaskSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             TexSource.CODEC.fieldOf("input").forGetter(MaskSource::getInput),
@@ -72,11 +77,17 @@ public final class MaskSource implements TexSource {
         private TexSource input;
         private TexSource mask;
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setInput(TexSource input) {
             this.input = input;
             return this;
         }
 
+        /**
+         * Sets the mask texture; the alpha of the input texture will be multiplied by the alpha of this texture.
+         */
         public Builder setMask(TexSource mask) {
             this.mask = mask;
             return this;

@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+/**
+ * A {@link TexSource} that performs a palette transfer, followed by an overlay.
+ */
 public final class PaletteCombinedSource implements TexSource {
     private static final boolean DEFAULT_INCLUDE_BACKGROUND = true;
     private static final boolean DEFAULT_STRETCH_PALETTED = false;
@@ -172,31 +175,53 @@ public final class PaletteCombinedSource implements TexSource {
         private boolean stretchPaletted = DEFAULT_STRETCH_PALETTED;
         private int extendPaletteSize = DEFAULT_EXTEND_PALETTE_SIZE;
 
+        /**
+         * Sets the image that will be overlayed on top of the final image.
+         */
         public Builder setOverlay(TexSource overlay) {
             this.overlay = overlay;
             return this;
         }
 
+        /**
+         * Sets the image that will provide a source of colors for the palette transfer.
+         */
         public Builder setBackground(TexSource background) {
             this.background = background;
             return this;
         }
 
+        /**
+         * Sets an image that will be treated as sample numbers of the palette. The colors of this image will be
+         * treated as samples into the palette, and will be converted into the colors of the palette in the final image.
+         */
         public Builder setPaletted(TexSource paletted) {
             this.paletted = paletted;
             return this;
         }
 
+        /**
+         * Sets whether the image specified by {@link #setBackground} should be included as the background of the final
+         * image. Defaults to true.
+         */
         public Builder setIncludeBackground(boolean includeBackground) {
             this.includeBackground = includeBackground;
             return this;
         }
 
+        /**
+         * Sets whether the image specified by {@link #setPaletted} should be stretched to the full range of the
+         * palette. Defaults to false.
+         */
         public Builder setStretchPaletted(boolean stretchPaletted) {
             this.stretchPaletted = stretchPaletted;
             return this;
         }
 
+        /**
+         * Sets the minimum size of the palette. If the palette is smaller than this size, it will be extended to this.
+         * Defaults to 8.
+         */
         public Builder setExtendPaletteSize(int extendPaletteSize) {
             this.extendPaletteSize = extendPaletteSize;
             return this;

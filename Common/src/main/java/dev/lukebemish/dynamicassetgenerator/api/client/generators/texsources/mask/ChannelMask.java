@@ -20,6 +20,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that extracts a single channel from a texture.
+ */
 @SuppressWarnings("unused")
 public final class ChannelMask implements TexSource {
     public static final Codec<ChannelMask> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -69,11 +72,17 @@ public final class ChannelMask implements TexSource {
         private TexSource source;
         private Channel channel;
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setSource(TexSource source) {
             this.source = source;
             return this;
         }
 
+        /**
+         * Sets the channel to extract.
+         */
         public Builder setChannel(Channel channel) {
             this.channel = channel;
             return this;

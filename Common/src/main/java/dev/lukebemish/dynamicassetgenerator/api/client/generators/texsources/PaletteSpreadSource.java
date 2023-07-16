@@ -26,6 +26,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * A {@link TexSource} that maps the colors of another {@link TexSource} to the location of those colors within a
+ * palette.
+ */
 @ApiStatus.Experimental
 public final class PaletteSpreadSource implements TexSource {
     private static final List<Range> DEFAULT_RANGE = List.of(new Range(0, 255));
@@ -53,16 +57,25 @@ public final class PaletteSpreadSource implements TexSource {
         this.range = range;
     }
 
+    /**
+     * Represents a range of integers between 0 and 255, bounded exclusively on the top.
+     * @param lowerBound the lower edge of the range; must be between 0 and 255, inclusive
+     * @param upperBound the upper edge of the range; must be between 0 and 255, inclusive, and must be larger than the
+     *                   lower edge.
+     */
     public record Range(int lowerBound, int upperBound) {
         public static final Codec<Range> CODEC = Codec.intRange(0, 255).listOf().flatXmap(list -> {
             if (list.size() != 2) {
                 return DataResult.error(() -> "Range must have exactly 2 elements");
             }
+            if (list.get(1) <= list.get(0)) {
+                return DataResult.error(() -> "Second element of range must be larger than the first");
+            }
             return DataResult.success(new Range(list.get(0), list.get(1)));
         }, range -> DataResult.success(List.of(range.lowerBound(), range.upperBound())));
     }
 
-    static boolean verifyDisjoint(List<Range> ranges) {
+    private static boolean verifyDisjoint(List<Range> ranges) {
         if (ranges.size() == 0) {
             return false;
         }
@@ -79,7 +92,7 @@ public final class PaletteSpreadSource implements TexSource {
         return true;
     }
 
-    static int mapToRange(float value, List<Range> ranges) {
+    private static int mapToRange(float value, List<Range> ranges) {
         int sum = 0;
         for (Range range : ranges) {
             sum += range.upperBound() - range.lowerBound();
@@ -153,16 +166,26 @@ public final class PaletteSpreadSource implements TexSource {
         private double paletteCutoff = Palette.DEFAULT_CUTOFF;
         private List<Range> range = DEFAULT_RANGE;
 
+        /**
+         * Sets the input texture to map the colors of.
+         */
         public Builder setSource(TexSource source) {
             this.source = source;
             return this;
         }
 
+        /**
+         * Sets the cutoff for the palette. Colors within this Euclidean distance to each other, in integer RGB space,
+         * will be considered identical. Defaults to 3.5.
+         */
         public Builder setPaletteCutoff(double paletteCutoff) {
             this.paletteCutoff = paletteCutoff;
             return this;
         }
 
+        /**
+         * Sets the ranges to map the colors to. Defaults to a single range from 0 to 255.
+         */
         public Builder setRange(List<Range> range) {
             this.range = range;
             return this;

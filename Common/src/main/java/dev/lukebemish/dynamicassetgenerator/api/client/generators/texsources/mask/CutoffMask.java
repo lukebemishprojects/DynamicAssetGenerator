@@ -20,6 +20,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that extracts the locations where a given channel is above or below a given cutoff.
+ */
 public final class CutoffMask implements TexSource {
     private static final int DEFAULT_CUTOFF = 128;
     private static final Channel DEFAULT_CHANNEL = Channel.ALPHA;
@@ -80,16 +83,25 @@ public final class CutoffMask implements TexSource {
         private TexSource source;
         private int cutoff = DEFAULT_CUTOFF;
 
+        /**
+         * Sets the channel to inspect.
+         */
         public Builder setChannel(Channel channel) {
             this.channel = channel;
             return this;
         }
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setSource(TexSource source) {
             this.source = source;
             return this;
         }
 
+        /**
+         * Sets the cutoff value for the channel. Should be between 0 and 255.
+         */
         public Builder setCutoff(int cutoff) {
             this.cutoff = cutoff;
             return this;

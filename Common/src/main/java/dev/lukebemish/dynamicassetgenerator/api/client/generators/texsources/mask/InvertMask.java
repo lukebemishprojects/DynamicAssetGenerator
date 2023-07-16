@@ -17,6 +17,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that inverts the color of a source.
+ */
 public final class InvertMask implements TexSource {
     public static final Codec<InvertMask> CODEC = RecordCodecBuilder.create(i -> i.group(
             TexSource.CODEC.fieldOf("source").forGetter(InvertMask::getSource)
@@ -62,6 +65,9 @@ public final class InvertMask implements TexSource {
     public static class Builder {
         private TexSource source;
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setSource(TexSource source) {
             this.source = source;
             return this;

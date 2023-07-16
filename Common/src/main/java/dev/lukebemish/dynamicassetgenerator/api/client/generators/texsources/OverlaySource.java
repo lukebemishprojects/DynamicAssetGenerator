@@ -13,6 +13,9 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOpera
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A {@link AbstractManyOperationSource} defined by {@link ColorOperations#OVERLAY}.
+ */
 public class OverlaySource extends AbstractManyOperationSource {
     public static final Codec<OverlaySource> CODEC = AbstractManyOperationSource.makeCodec(OverlaySource::new);
 
@@ -33,6 +36,9 @@ public class OverlaySource extends AbstractManyOperationSource {
     public static class Builder {
         private List<TexSource> sources;
 
+        /**
+         * Sets the sources to overlay, from highest to lowest.
+         */
         public Builder setSources(List<TexSource> sources) {
             this.sources = sources;
             return this;

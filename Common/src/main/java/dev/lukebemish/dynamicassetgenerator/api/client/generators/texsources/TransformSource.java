@@ -18,6 +18,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that transforms another {@link TexSource} by rotating and/or flipping it.
+ */
 public final class TransformSource implements TexSource {
     private static final int DEFAULT_ROTATE = 0;
     private static final boolean DEFAULT_FLIP = false;
@@ -97,16 +100,25 @@ public final class TransformSource implements TexSource {
         private int rotate = DEFAULT_ROTATE;
         private boolean flip = DEFAULT_FLIP;
 
+        /**
+         * Provides the input {@link TexSource} to transform.
+         */
         public Builder setInput(TexSource input) {
             this.input = input;
             return this;
         }
 
+        /**
+         * Sets the number of 90 degree clockwise rotations to apply to the input. Defaults to 0
+         */
         public Builder setRotate(int rotate) {
             this.rotate = rotate;
             return this;
         }
 
+        /**
+         * Sets whether to flip the input horizontally after rotations have been applied. Defaults to false
+         */
         public Builder setFlip(boolean flip) {
             this.flip = flip;
             return this;

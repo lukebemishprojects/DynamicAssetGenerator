@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that captures a frame from a source split up by an {@link AnimationSplittingSource}.
+ */
 public final class AnimationFrameCapture implements TexSource {
     public static final Codec<AnimationFrameCapture> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("capture").forGetter(AnimationFrameCapture::getCapture)
@@ -78,6 +81,9 @@ public final class AnimationFrameCapture implements TexSource {
     public static class Builder {
         private String capture;
 
+        /**
+         * Sets the key of the source to capture a frame of.
+         */
         public Builder setCapture(String capture) {
             this.capture = capture;
             return this;

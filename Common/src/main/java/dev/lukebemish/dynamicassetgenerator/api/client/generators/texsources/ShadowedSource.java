@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
+/**
+ * A {@link TexSource} that overlays one image on top of another, adding a directional shadow around the edges of the
+ * upper image, using the palette of the lower image.
+ */
 public class ShadowedSource implements TexSource {
     private static final int DEFAULT_EXTEND_PALETTE_SIZE = 6;
     private static final int DEFAULT_HIGHLIGHT_STRENGTH = 72;
@@ -169,31 +173,52 @@ public class ShadowedSource implements TexSource {
         private int shadowStrength = DEFAULT_SHADOW_STRENGTH;
         private float uniformity = DEFAULT_UNIFORMITY;
 
+        /**
+         * Sets the background image to be overlayed onto.
+         */
         public Builder setBackground(TexSource background) {
             this.background = background;
             return this;
         }
 
+        /**
+         * Sets the image to overlay onto the background image.
+         */
         public Builder setForeground(TexSource foreground) {
             this.foreground = foreground;
             return this;
         }
 
+        /**
+         * Sets a minimum size that the palette of the background image will be extended to if it is not already this
+         * size. Defaults to 6.
+         */
         public Builder setExtendPaletteSize(int extendPaletteSize) {
             this.extendPaletteSize = extendPaletteSize;
             return this;
         }
 
+        /**
+         * Sets how strong the generated highlight should be, on a relative scale. Defaults to 72.
+         */
         public Builder setHighlightStrength(int highlightStrength) {
             this.highlightStrength = highlightStrength;
             return this;
         }
 
+        /**
+         * Sets how strong the generated shadow should be, on a relative scale. Defaults to 72.
+         */
         public Builder setShadowStrength(int shadowStrength) {
             this.shadowStrength = shadowStrength;
             return this;
         }
 
+        /**
+         * Sets how uniform the generated highlight and shadow should be. 0 is as uniform as the original image, and
+         * the uniformity increases as this value increases, becoming completely uniform as this value becomes extremely
+         * large. Defaults to 1.0.
+         */
         public Builder setUniformity(float uniformity) {
             this.uniformity = uniformity;
             return this;

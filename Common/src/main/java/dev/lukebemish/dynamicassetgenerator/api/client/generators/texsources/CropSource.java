@@ -19,6 +19,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that crops a texture.
+ */
 public final class CropSource implements TexSource {
     public static final Codec<CropSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("total_size").forGetter(CropSource::getTotalSize),
@@ -124,31 +127,49 @@ public final class CropSource implements TexSource {
         private int sizeY;
         private TexSource input;
 
+        /**
+         * Sets a minimum width for the texture.
+         */
         public Builder setTotalSize(int totalSize) {
             this.totalSize = totalSize;
             return this;
         }
 
+        /**
+         * Sets the initial X position of the output image, assuming the width of the image is that provided by {@link #setTotalSize}.
+         */
         public Builder setStartX(int startX) {
             this.startX = startX;
             return this;
         }
 
+        /**
+         * Sets the width of the output image, assuming the width of the image is that provided by {@link #setTotalSize}.
+         */
         public Builder setSizeX(int sizeX) {
             this.sizeX = sizeX;
             return this;
         }
 
+        /**
+         * Sets the initial Y position of the output image, assuming the height of the image is that provided by {@link #setTotalSize}.
+         */
         public Builder setStartY(int startY) {
             this.startY = startY;
             return this;
         }
 
+        /**
+         * Sets the height of the output image, assuming the height of the image is that provided by {@link #setTotalSize}.
+         */
         public Builder setSizeY(int sizeY) {
             this.sizeY = sizeY;
             return this;
         }
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setInput(TexSource input) {
             this.input = input;
             return this;

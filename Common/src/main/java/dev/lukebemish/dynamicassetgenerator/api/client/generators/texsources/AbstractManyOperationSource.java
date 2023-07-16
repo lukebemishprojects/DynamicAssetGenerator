@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * An abstract {@link TexSource} that is described by a {@link PointwiseOperation.Any}.
+ */
 abstract public class AbstractManyOperationSource implements TexSource {
     private final List<TexSource> sources;
 
@@ -32,8 +35,14 @@ abstract public class AbstractManyOperationSource implements TexSource {
         return sources;
     }
 
+    /**
+     * @return the operation that describes this source
+     */
     public abstract PointwiseOperation.Any<Integer> getOperation();
 
+    /**
+     * Creates a {@link Codec} for a subtype of this class based on a function for constructing single instances.
+     */
     public static <T extends AbstractManyOperationSource> Codec<T> makeCodec(Function<List<TexSource>, T> ctor) {
         return RecordCodecBuilder.create(instance -> instance.group(
                 TexSource.CODEC.listOf().fieldOf("sources").forGetter(AbstractManyOperationSource::getSources)

@@ -20,7 +20,9 @@ public final class ColorOperations {
     public static final PointwiseOperation.Binary<Integer> MASK = (i, m, iInBounds, mInBounds) -> {
         if (!mInBounds || !iInBounds)
             return 0;
-        int newAlpha = m & 0xFF000000;
+        int maskAlpha = m & 0xFF000000;
+        int oldAlpha = i & 0xFF000000;
+        int newAlpha = maskAlpha * oldAlpha / 255;
         return (i & 0xFFFFFF) | newAlpha;
     };
 

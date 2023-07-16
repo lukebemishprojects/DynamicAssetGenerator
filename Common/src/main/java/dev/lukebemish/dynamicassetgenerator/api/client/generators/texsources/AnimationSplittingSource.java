@@ -26,6 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that splits any number of possibly animated textures into individual frames, and assembles an
+ * output texture by combining the patterns of frames of the various inputs, applying the same operation to each
+ * combination of frame textures as necessary. Individual frames can be captured within the generator using
+ * {@link AnimationFrameCapture}.
+ */
 public final class AnimationSplittingSource implements TexSource {
     public static final Codec<AnimationSplittingSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Codec.STRING, TimeAwareSource.CODEC).fieldOf("sources").forGetter(AnimationSplittingSource::getSources),
@@ -132,6 +138,11 @@ public final class AnimationSplittingSource implements TexSource {
     }
 
 
+    /**
+     * This class should be considered internal, but to avoid breaking backwards compatibility, no breaking changes will be
+     * made until DynAssetGen 5.0.0 or later.
+     */
+    @ApiStatus.Internal
     public static class ImageCollection implements Closeable {
         private final Map<String, NativeImage> map;
         private final Map<String, TimeAwareSource> original;
@@ -166,6 +177,11 @@ public final class AnimationSplittingSource implements TexSource {
         }
     }
 
+    /**
+     * A source for an image to be split into frames, aware of how scaled this animation is in time.
+     * @param source the source to split into frames
+     * @param scale the scale of this animation in time
+     */
     public record TimeAwareSource(TexSource source, int scale) {
         public static final Codec<TimeAwareSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 TexSource.CODEC.fieldOf("source").forGetter(TimeAwareSource::source),
@@ -177,11 +193,19 @@ public final class AnimationSplittingSource implements TexSource {
         private Map<String, TimeAwareSource> sources;
         private TexSource generator;
 
+        /**
+         * Sets a map to sources to split into frames, from keys used to get frames of specific sources from within the
+         * generator.
+         */
         public Builder setSources(Map<String, TimeAwareSource> sources) {
             this.sources = sources;
             return this;
         }
 
+        /**
+         * Sets the generator to use to generate each frame of the animation. {@link AnimationFrameCapture} should be
+         * used to capture frames of a specific source.
+         */
         public Builder setGenerator(TexSource generator) {
             this.generator = generator;
             return this;

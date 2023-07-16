@@ -27,6 +27,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Supplier;
 
+/**
+ * A {@link ResourceGenerator} that generates a {@code .mcmeta} file for a texture by combining those of other textures
+ * and/or setting properties manually.
+ * @param sources a list of textures, without their {@code "textures/"} prefix or file extension, to combine
+ * @param animation the animation data to use, if any
+ * @param villager the villager data to use, if any
+ * @param texture the texture data to use, if any
+ * @param outputLocation the location to output the generated {@code .mcmeta} file to, without the {@code "textures/"}
+ *                       prefix or file extension
+ */
 public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<AnimationData> animation, Optional<VillagerData> villager, Optional<TextureData> texture, ResourceLocation outputLocation) implements ResourceGenerator {
     public static final Codec<TextureMetaGenerator> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.listOf().fieldOf("sources").forGetter(TextureMetaGenerator::sources),
@@ -153,6 +163,13 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
         return CODEC;
     }
 
+    /**
+     * Represents the animation-related metadata of a texture
+     * @param frametime the time in ticks between each frame
+     * @param interpolate whether to interpolate between frames
+     * @param patternSource which of the provided textures determines the main order of frames in the animation.
+     * @param scales the scaling factor for each texture's animation
+     */
     public record AnimationData(Optional<Integer> frametime, Optional<Boolean> interpolate, Optional<ResourceLocation> patternSource, Optional<List<Integer>> scales) {
         public static final Codec<AnimationData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.INT.optionalFieldOf("frametime").forGetter(AnimationData::frametime),
@@ -162,11 +179,18 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
         ).apply(instance,AnimationData::new));
     }
 
+    /**
+     * Represents the villager-related metadata of a texture
+     * @param hat how much of the villager's hat is visible
+     */
     public record VillagerData(Optional<Hat> hat) {
         public static final Codec<VillagerData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Hat.CODEC.optionalFieldOf("frametime").forGetter(VillagerData::hat)
         ).apply(instance,VillagerData::new));
 
+        /**
+         * Represents the amount of a villager's hat that is visible
+         */
         public enum Hat implements StringRepresentable {
             NONE("none"),
             PARTIAL("partial"),
@@ -186,6 +210,11 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
         }
     }
 
+    /**
+     * Represents the texture-related metadata of a texture
+     * @param blur whether to blur the texture
+     * @param clamp whether to clamp the texture
+     */
     public record TextureData(Optional<Boolean> blur, Optional<Boolean> clamp) {
         public static final Codec<TextureData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.BOOL.optionalFieldOf("blur").forGetter(TextureData::blur),

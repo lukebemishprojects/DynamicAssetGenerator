@@ -16,6 +16,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that will always fail with a given message. Useful for debugging, or alongside
+ * {@link FallbackSource} to provide more informative error messages.
+ */
 public final class ErrorSource implements TexSource {
     public static final Codec<ErrorSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("message").forGetter(ErrorSource::getMessage)
@@ -44,6 +48,9 @@ public final class ErrorSource implements TexSource {
     public static class Builder {
         private String message;
 
+        /**
+         * Sets the message to be logged when this source attempts and fails to provide a texture.
+         */
         public Builder setMessage(String message) {
             this.message = message;
             return this;

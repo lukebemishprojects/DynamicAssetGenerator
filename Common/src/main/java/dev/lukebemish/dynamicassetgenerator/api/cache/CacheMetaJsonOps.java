@@ -12,6 +12,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A {@link CacheMetaDynamicOps} that uses {@link JsonElement} as its underlying type.
+ */
 public class CacheMetaJsonOps extends JsonOps implements CacheMetaDynamicOps<JsonElement> {
 
     private final Map<Class<?>,Object> map = new HashMap<>();

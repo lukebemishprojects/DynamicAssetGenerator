@@ -17,6 +17,9 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import java.io.IOException;
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that reads a texture from packs not provided by DynAssetGen.
+ */
 public final class TextureReaderSource implements TexSource {
     public static final Codec<TextureReaderSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("path").forGetter(TextureReaderSource::getPath)
@@ -56,6 +59,10 @@ public final class TextureReaderSource implements TexSource {
     public static class Builder {
         private ResourceLocation path;
 
+        /**
+         * Sets the path to the texture to read, excluding the {@code "textures/"} prefix and {@code ".png"} file
+         * extension.
+         */
         public Builder setPath(ResourceLocation path) {
             this.path = path;
             return this;

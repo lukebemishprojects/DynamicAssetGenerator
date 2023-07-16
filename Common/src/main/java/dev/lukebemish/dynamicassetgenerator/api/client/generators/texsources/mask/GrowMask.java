@@ -18,6 +18,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * A {@link TexSource} that grows the alpha channel of a source, and then applies a cutoff to
+ * the result.
+ */
 public final class GrowMask implements TexSource {
     private static final float DEFAULT_GROWTH = 1f / 16f;
     private static final int DEFAULT_CUTOFF = 128;
@@ -110,16 +114,25 @@ public final class GrowMask implements TexSource {
         private float growth = DEFAULT_GROWTH;
         private int cutoff = DEFAULT_CUTOFF;
 
+        /**
+         * Sets the input texture.
+         */
         public Builder setSource(TexSource source) {
             this.source = source;
             return this;
         }
 
+        /**
+         *How much opaque regions should grow by, out of the image width.
+         */
         public Builder setGrowth(float growth) {
             this.growth = growth;
             return this;
         }
 
+        /**
+         * The cutoff for which pixels are considered opaque.
+         */
         public Builder setCutoff(int cutoff) {
             this.cutoff = cutoff;
             return this;

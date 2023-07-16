@@ -7,6 +7,9 @@ package dev.lukebemish.dynamicassetgenerator.api.colors.operations;
 
 import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
 
+/**
+ * A {@link PointwiseOperation.Unary} that uses a {@link ColorTools.ConversionCache} to convert colors.
+ */
 public class CachedConversionOperation implements PointwiseOperation.Unary<Integer> {
     private final ColorTools.ConversionCache cache;
 
