@@ -36,21 +36,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, ResourceLocation location) implements SpriteSource {
+public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @Nullable ResourceLocation location) implements SpriteSource {
     public static final ResourceLocation LOCATION = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "tex_sources");
     public static Codec<TexSourceSpriteSource> CODEC = RecordCodecBuilder.create(i -> i.group(
         Codec.unboundedMap(ResourceLocation.CODEC, TexSource.CODEC).fieldOf("sources").forGetter(TexSourceSpriteSource::sources),
-        ResourceLocation.CODEC.fieldOf("location").forGetter(TexSourceSpriteSource::location)
-    ).apply(i, TexSourceSpriteSource::new));
+        ResourceLocation.CODEC.optionalFieldOf("location").forGetter(s -> Optional.ofNullable(s.location()))
+    ).apply(i, (sources, location) -> new TexSourceSpriteSource(sources, location.orElse(null))));
 
     @Override
     public void run(ResourceManager resourceManager, Output output) {
         ResourceGenerationContext context = new ResourceGenerationContext() {
             @Override
             public @NotNull ResourceLocation getCacheName() {
-                return location();
+                return new ResourceLocation(DynamicAssetGenerator.MOD_ID, "sprite_source");
             }
 
             @Override
@@ -70,20 +71,22 @@ public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, Re
             }
         };
 
-        resourceManager.listResources(location.getNamespace()+"/"+location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((rl, resource) -> {
-            try (var reader = resource.openAsReader()) {
-                JsonElement json = DynamicAssetGenerator.GSON.fromJson(reader, JsonElement.class);
-                var result = TexSource.CODEC.parse(JsonOps.INSTANCE, json);
-                result.result().ifPresent(texSource -> {
-                    ResourceLocation sourceLocation = new ResourceLocation(rl.getNamespace(), rl.getPath().substring(0, rl.getPath().length()-5));
-                    sources.put(sourceLocation, texSource);
-                });
-                result.error().ifPresent(partial ->
-                    DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for "+ location +": "+rl+": "+partial.message()));
-            } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for "+ location +": "+rl, e);
-            }
-        });
+        if (location != null) {
+            resourceManager.listResources(location.getNamespace() + "/" + location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((rl, resource) -> {
+                try (var reader = resource.openAsReader()) {
+                    JsonElement json = DynamicAssetGenerator.GSON.fromJson(reader, JsonElement.class);
+                    var result = TexSource.CODEC.parse(JsonOps.INSTANCE, json);
+                    result.result().ifPresent(texSource -> {
+                        ResourceLocation sourceLocation = new ResourceLocation(rl.getNamespace(), rl.getPath().substring(0, rl.getPath().length() - 5));
+                        sources.put(sourceLocation, texSource);
+                    });
+                    result.error().ifPresent(partial ->
+                        DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for " + location + ": " + rl + ": " + partial.message()));
+                } catch (IOException e) {
+                    DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for " + location + ": " + rl, e);
+                }
+            });
+        }
 
         sources.forEach((rl, texSource) -> {
             var dataHolder = new TexSourceDataHolder();

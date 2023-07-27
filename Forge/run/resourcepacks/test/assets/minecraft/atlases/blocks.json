@@ -7,8 +7,7 @@
           "type" : "dynamic_asset_generator:texture",
           "path" : "minecraft:block/iron_block"
         }
-      },
-      "location": "dynamic_asset_generator:sprite_source_test_atlas"
+      }
     }
   ]
 }
