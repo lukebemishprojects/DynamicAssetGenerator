@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -15,6 +15,7 @@ public class DynamicAssetGeneratorClientQuilt implements ClientModInitializer {
     @Override
     public void onInitializeClient(ModContainer container) {
         DynamicAssetGeneratorClient.init();
+        DynamicAssetGeneratorClient.setup();
         DynamicAssetGeneratorQuilt.registerForType(PackType.CLIENT_RESOURCES);
     }
 }

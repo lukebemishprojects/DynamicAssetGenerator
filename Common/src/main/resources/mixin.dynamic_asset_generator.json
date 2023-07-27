@@ -9,7 +9,8 @@
     "ReloadableResourceManagerMixin"
   ],
   "client": [
-    "MinecraftMixin"
+    "MinecraftMixin",
+    "SpriteSourcesAccessor"
   ],
   "server": [],
   "injectors": {

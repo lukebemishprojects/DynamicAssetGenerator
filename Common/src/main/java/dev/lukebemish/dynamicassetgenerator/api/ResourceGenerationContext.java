@@ -40,7 +40,7 @@ public abstract class ResourceGenerationContext {
 
     /**
      * Lists all resources within a given path, from highest to lowest priority.
-     * @param namespace the namespace to list resources from
+     * @param namespace the location to list resources from
      * @param path the path to list resources from
      * @param resourceOutput the output to write the resources to
      */

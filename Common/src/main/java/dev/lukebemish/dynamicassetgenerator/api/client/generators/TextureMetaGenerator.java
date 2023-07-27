@@ -19,6 +19,7 @@ import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +46,80 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
             TextureData.CODEC.optionalFieldOf("texture").forGetter(TextureMetaGenerator::texture),
             ResourceLocation.CODEC.fieldOf("output_location").forGetter(TextureMetaGenerator::outputLocation)
     ).apply(instance,TextureMetaGenerator::new));
+
+    /**
+     * This constructor should be considered internal, but to avoid breaking backwards compatibility, no breaking changes
+     * will be made until DynAssetGen 5.0.0 or later.
+     */
+    @ApiStatus.Internal
+    public TextureMetaGenerator {
+
+    }
+
+    public static class Builder {
+        private final List<ResourceLocation> sources = new ArrayList<>();
+        private @Nullable AnimationData animation;
+        private @Nullable VillagerData villager;
+        private @Nullable TextureData texture;
+        private ResourceLocation outputLocation;
+
+        /**
+         * @param location a texture, without its {@code "textures/"} prefix or file extension, to combine
+         */
+        public Builder withSource(ResourceLocation location) {
+            this.sources.add(location);
+            return this;
+        }
+
+        /**
+         * @param locations a list of textures, without their {@code "textures/"} prefix or file extension, to combine
+         */
+        public Builder withSources(List<ResourceLocation> locations) {
+            this.sources.addAll(locations);
+            return this;
+        }
+
+        /**
+         * @param animation the animation data to use
+         */
+        public Builder withAnimation(AnimationData animation) {
+            this.animation = animation;
+            return this;
+        }
+
+        /**
+         * @param villager the villager data to use
+         */
+        public Builder withVillager(VillagerData villager) {
+            this.villager = villager;
+            return this;
+        }
+
+        /**
+         * @param texture the texture data to use
+         */
+        public Builder withTexture(TextureData texture) {
+            this.texture = texture;
+            return this;
+        }
+
+        public TextureMetaGenerator build() {
+            Objects.requireNonNull(outputLocation);
+            if (sources.size() < 1) {
+                throw new IllegalStateException("At least one source must be provided");
+            }
+            return new TextureMetaGenerator(sources, Optional.ofNullable(animation), Optional.ofNullable(villager), Optional.ofNullable(texture), outputLocation);
+        }
+
+        /**
+         * @param outputLocation the location to output the generated {@code .mcmeta} file to, without the
+         *                       {@code "textures/"} prefix or file extension
+         */
+        public Builder withOutputLocation(ResourceLocation outputLocation) {
+            this.outputLocation = outputLocation;
+            return this;
+        }
+    }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
 

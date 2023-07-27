@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -16,7 +16,7 @@ public final class LocationUtils {
     private LocationUtils() {}
 
     /**
-     * Prefixes a location with a prefix within the same namespace.
+     * Prefixes a location with a prefix within the same location.
      * @param location The location to prefix.
      * @param prefix The prefix to add.
      * @return The prefixed location.
