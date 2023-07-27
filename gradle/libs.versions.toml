@@ -7,7 +7,7 @@ forge = "1.20.1-47.0.3"
 mixin = "0.8.5"
 
 quilt_loader = "0.19.2"
-qsl = "6.0.3+1.20.1"
+qsl = "6.0.4+1.20.1"
 
 mdg_plugin = "1.4.1"
 mdg_dsl = "1.5.0"
