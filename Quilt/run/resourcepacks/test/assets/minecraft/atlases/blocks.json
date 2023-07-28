@@ -5,7 +5,7 @@
       "sources": {
         "minecraft:block/clay": {
           "type" : "dynamic_asset_generator:texture",
-          "path" : "minecraft:block/iron_block"
+          "path" : "minecraft:block/magma"
         }
       }
     }

@@ -115,7 +115,11 @@ public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @N
                             }
                         }
                     }
-                    return new SpriteContents(rl, new FrameSize(image.getWidth(), image.getHeight()), image, section);
+                    FrameSize frameSize = new FrameSize(image.getWidth(), image.getHeight());
+                    if (section != AnimationMetadataSection.EMPTY) {
+                        frameSize = section.calculateFrameSize(image.getWidth(), image.getHeight());
+                    }
+                    return new SpriteContents(rl, frameSize, image, section);
                 } catch (IOException e) {
                     DynamicAssetGenerator.LOGGER.error("Failed to generate texture for sprite source "+location()+" at "+rl+": ", e);
                     return null;
