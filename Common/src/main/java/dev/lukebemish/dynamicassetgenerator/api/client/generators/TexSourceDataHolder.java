@@ -51,14 +51,10 @@ public class TexSourceDataHolder {
      * @return the data stored, or null if none is stored
      * @param <T> the type of the data
      */
+    @SuppressWarnings("unchecked")
     @Nullable
     public <T> T get(Class<? extends T> clazz) {
-        try {
-            //noinspection unchecked
-            return (T) dataMap.get(clazz.descriptorString());
-        } catch (ClassCastException ignored) {
-            return null;
-        }
+        return (T) dataMap.get(clazz.descriptorString());
     }
 
     /**
