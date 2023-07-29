@@ -15,7 +15,6 @@ public class DynamicAssetGeneratorClientQuilt implements ClientModInitializer {
     @Override
     public void onInitializeClient(ModContainer container) {
         DynamicAssetGeneratorClient.init();
-        DynamicAssetGeneratorClient.setup();
         DynamicAssetGeneratorQuilt.registerForType(PackType.CLIENT_RESOURCES);
     }
 }

@@ -10,7 +10,6 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.DynamicAssetGeneratorCli
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
@@ -22,13 +21,9 @@ public class DynamicAssetGeneratorForge {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             DynamicAssetGeneratorClient.init();
         }
-        modbus.addListener(this::constructModEvent);
-        modbus.addListener(EventHandler::addResourcePack);
-    }
-
-    private void constructModEvent(FMLConstructModEvent event) {
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            event.enqueueWork(DynamicAssetGeneratorClient::setup);
+            modbus.addListener(PlatformClientImpl::reloadListenerListener);
         }
+        modbus.addListener(EventHandler::addResourcePack);
     }
 }

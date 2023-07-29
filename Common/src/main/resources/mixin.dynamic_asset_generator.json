@@ -10,7 +10,9 @@
   ],
   "client": [
     "MinecraftMixin",
-    "SpriteSourcesAccessor"
+    "SpriteSourcesAccessor",
+    "SpriteResourceLoaderOutputMixin",
+    "SpriteResourceLoaderMixin"
   ],
   "server": [],
   "injectors": {

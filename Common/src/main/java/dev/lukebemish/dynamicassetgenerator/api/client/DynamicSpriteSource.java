@@ -1,23 +1,19 @@
-/*
- * Copyright (C) 2023 Luke Bemish and contributors
- * SPDX-License-Identifier: LGPL-3.0-or-later
- */
+package dev.lukebemish.dynamicassetgenerator.api.client;
 
-package dev.lukebemish.dynamicassetgenerator.impl.client;
-
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TouchedTextureTracker;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.client.ExposesName;
+import dev.lukebemish.dynamicassetgenerator.impl.client.ForegroundExtractor;
+import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCache;
+import dev.lukebemish.dynamicassetgenerator.impl.client.platform.ClientServices;
 import dev.lukebemish.dynamicassetgenerator.mixin.SpriteSourcesAccessor;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
@@ -36,22 +32,63 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
-public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @Nullable ResourceLocation location) implements SpriteSource {
-    public static final ResourceLocation LOCATION = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "tex_sources");
-    public static Codec<TexSourceSpriteSource> CODEC = RecordCodecBuilder.create(i -> i.group(
-        Codec.unboundedMap(ResourceLocation.CODEC, TexSource.CODEC).fieldOf("sources").forGetter(TexSourceSpriteSource::sources),
-        ResourceLocation.CODEC.optionalFieldOf("location").forGetter(s -> Optional.ofNullable(s.location()))
-    ).apply(i, (sources, location) -> new TexSourceSpriteSource(sources, location.orElse(null))));
+/**
+ * A sprite source which makes use of {@link TexSource}s to provide sprites at resource pack load. May be more reliable
+ * than a {@link AssetResourceCache} for generating sprites based off of textures added by other mods which use runtime
+ * resource generation techniques.
+ */
+public interface DynamicSpriteSource extends SpriteSource {
+    /**
+     * @return a map of texture location, not including the {@code "textures/"} prefix or file extension, to texture source
+     */
+    Map<ResourceLocation, TexSource> getSources(ResourceGenerationContext context, ResourceManager resourceManager);
+
+    /**
+     * @return a unique identifier for this sprite source type
+     */
+    ResourceLocation getLocation();
+
+    /**
+     * Registers a sprite source type.
+     * @param location the location which this sprite source type can be referenced from a texture atlas JSON file with
+     * @param codec a codec to provide instances of the type
+     */
+    static void register(ResourceLocation location, Codec<? extends DynamicSpriteSource> codec) {
+        ClientServices.PLATFORM_CLIENT.addSpriteSource(location, codec);
+    }
+
+    /**
+     * Registers a sprite source type
+     * @param location the location which this sprite source type can be referenced from a texture atlas JSON file with
+     * @param constructor supplies instances of this sprite source type
+     */
+    static void register(ResourceLocation location, Supplier<? extends DynamicSpriteSource> constructor) {
+        ClientServices.PLATFORM_CLIENT.addSpriteSource(location, Codec.unit(constructor));
+    }
+
+    /**
+     * Will be run before generation starts. Allows for clearing of anything that saves state (caches or the like).
+     * Implementations should call the super method to clear texture source and palette transfer caches.
+     * @param context context for the generation that will occur after this source is reset
+     */
+    default void reset(ResourceGenerationContext context) {
+        TexSourceCache.reset(context);
+        ForegroundExtractor.reset(context);
+    }
 
     @Override
-    public void run(ResourceManager resourceManager, Output output) {
+    default void run(ResourceManager resourceManager, SpriteSource.Output output) {
         ResourceGenerationContext context = new ResourceGenerationContext() {
             @Override
             public @NotNull ResourceLocation getCacheName() {
-                return new ResourceLocation(DynamicAssetGenerator.MOD_ID, "sprite_source");
+                if (output instanceof ExposesName exposesName) {
+                    var atlasName = exposesName.dynamicassetgenerator$getName();
+                    return getLocation().withPath(getLocation().getPath()+"__"+atlasName.getNamespace()+"__"+atlasName.getPath());
+                }
+                return getLocation();
             }
 
             @Override
@@ -71,22 +108,9 @@ public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @N
             }
         };
 
-        if (location != null) {
-            resourceManager.listResources(location.getNamespace() + "/" + location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((rl, resource) -> {
-                try (var reader = resource.openAsReader()) {
-                    JsonElement json = DynamicAssetGenerator.GSON.fromJson(reader, JsonElement.class);
-                    var result = TexSource.CODEC.parse(JsonOps.INSTANCE, json);
-                    result.result().ifPresent(texSource -> {
-                        ResourceLocation sourceLocation = new ResourceLocation(rl.getNamespace(), rl.getPath().substring(0, rl.getPath().length() - 5));
-                        sources.put(sourceLocation, texSource);
-                    });
-                    result.error().ifPresent(partial ->
-                        DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for " + location + ": " + rl + ": " + partial.message()));
-                } catch (IOException e) {
-                    DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for " + location + ": " + rl, e);
-                }
-            });
-        }
+        this.reset(context);
+
+        Map<ResourceLocation, TexSource> sources = getSources(context, resourceManager);
 
         sources.forEach((rl, texSource) -> {
             var dataHolder = new TexSourceDataHolder();
@@ -111,7 +135,7 @@ public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @N
                                     section = AnimationMetadataSection.SERIALIZER.fromJson(animation);
                                 }
                             } catch (IOException | JsonParseException e) {
-                                DynamicAssetGenerator.LOGGER.warn("Failed to generate texture meta for sprite source "+location()+" at "+rl+": ", e);
+                                DynamicAssetGenerator.LOGGER.warn("Failed to generate texture meta for sprite source type "+getLocation()+" at "+rl+": ", e);
                             }
                         }
                     }
@@ -121,7 +145,7 @@ public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @N
                     }
                     return new SpriteContents(rl, frameSize, image, section);
                 } catch (IOException e) {
-                    DynamicAssetGenerator.LOGGER.error("Failed to generate texture for sprite source "+location()+" at "+rl+": ", e);
+                    DynamicAssetGenerator.LOGGER.error("Failed to generate texture for sprite source type "+getLocation()+" at "+rl+": ", e);
                     return null;
                 }
             });
@@ -130,7 +154,7 @@ public record TexSourceSpriteSource(Map<ResourceLocation, TexSource> sources, @N
 
     @Override
     @NotNull
-    public SpriteSourceType type() {
-        return SpriteSourcesAccessor.getTypes().get(LOCATION);
+    default SpriteSourceType type() {
+        return SpriteSourcesAccessor.getTypes().get(getLocation());
     }
 }

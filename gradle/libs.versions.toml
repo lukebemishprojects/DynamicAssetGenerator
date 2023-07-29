@@ -18,7 +18,7 @@ quilt_licenser = "2.0.1"
 
 forgegradle = "6.0.6"
 librarian = "1.2.0"
-mixingradle = "0.7.33"
+mixingradle = "0.7.36"
 
 jetbrains_annotations = "24.0.1"
 

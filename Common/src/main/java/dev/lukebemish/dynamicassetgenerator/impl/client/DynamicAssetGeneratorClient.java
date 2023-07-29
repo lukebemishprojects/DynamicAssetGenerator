@@ -8,13 +8,13 @@ package dev.lukebemish.dynamicassetgenerator.impl.client;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.AssetResourceCache;
+import dev.lukebemish.dynamicassetgenerator.api.client.DynamicSpriteSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.*;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask.*;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.mixin.SpriteSourcesAccessor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.repository.Pack;
 
@@ -54,11 +54,9 @@ public class DynamicAssetGeneratorClient {
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/multiply"), MultiplyMask.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/channel"), ChannelMask.CODEC);
 
-        testing();
-    }
+        DynamicSpriteSource.register(BuiltinDynamicSpriteSource.LOCATION, BuiltinDynamicSpriteSource.CODEC);
 
-    public static void setup() {
-        SpriteSourcesAccessor.invokeRegister(TexSourceSpriteSource.LOCATION.toString(), TexSourceSpriteSource.CODEC);
+        testing();
     }
 
     private static void testing() {
