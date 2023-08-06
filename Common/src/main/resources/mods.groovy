@@ -35,8 +35,8 @@ ModsDotGroovy.make {
         }
 
         entrypoints {
-            client_init = ['dev.lukebemish.dynamicassetgenerator.quilt.DynamicAssetGeneratorClientQuilt']
-            init = ['dev.lukebemish.dynamicassetgenerator.quilt.DynamicAssetGeneratorQuilt']
+            client_init = ['dev.lukebemish.dynamicassetgenerator.impl.quilt.DynamicAssetGeneratorClientQuilt']
+            init = ['dev.lukebemish.dynamicassetgenerator.impl.quilt.DynamicAssetGeneratorQuilt']
         }
     }
     onQuilt {

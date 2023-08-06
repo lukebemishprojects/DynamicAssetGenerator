@@ -91,13 +91,13 @@ public class TagBakery implements PathAwareInputStreamSource, Resettable {
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations() {
+    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         checkTags();
         return bakedTags.keySet();
     }
 
     @Override
-    public void reset() {
+    public void reset(ResourceGenerationContext context) {
         bakedTags = null;
     }
 

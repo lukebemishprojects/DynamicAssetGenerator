@@ -7,14 +7,13 @@ package dev.lukebemish.dynamicassetgenerator.api;
 
 import dev.lukebemish.dynamicassetgenerator.impl.Benchmarking;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.OldResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -29,7 +28,7 @@ import java.util.function.Supplier;
  * Caches instructions for producing resources, and generates them as packs are loaded.
  */
 public abstract class ResourceCache {
-    protected static final String SOURCE_JSON_DIR = DynamicAssetGenerator.MOD_ID;
+    protected static final String SOURCE_JSON_DIR = DynamicAssetGenerator.MOD_ID+"/generators";
     protected List<Supplier<? extends PathAwareInputStreamSource>> cache = new ArrayList<>();
     private final List<Resettable> resetListeners = new ArrayList<>();
 
@@ -43,6 +42,28 @@ public abstract class ResourceCache {
     public static <T extends ResourceCache> T register(T cache, Pack.Position position) {
         DynamicAssetGenerator.registerCache(cache.getName(), cache, position);
         return cache;
+    }
+
+    /**
+     * @return names of other {@link ResourceCache}s that this cache is allowed to use during generation
+     */
+    public Set<ResourceLocation> getDependencies() {
+        return Set.of();
+    }
+
+    /**
+     * Determines whether this cache can access the provided resources during resource generation
+     * @param packId the name of the pack to check whether access is allowed
+     * @return true if access is allowed; false otherwise
+     */
+    public final boolean allowAccess(String packId) {
+        String prefix = DynamicAssetGenerator.MOD_ID + "/";
+        if (!packId.startsWith(prefix)) {
+            return true;
+        }
+        String remainder = packId.substring(prefix.length());
+        @Nullable ResourceLocation targetName = ResourceLocation.read(remainder).result().orElse(null);
+        return targetName == null || getDependencies().contains(targetName);
     }
 
     /**
@@ -80,8 +101,8 @@ public abstract class ResourceCache {
         this.cache.forEach(p-> {
             try {
                 PathAwareInputStreamSource source = p.get();
-                Set<ResourceLocation> rls = source.getLocations();
-                rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl, getContext()))));
+                Set<ResourceLocation> rls = source.getLocations(makeContext(false));
+                rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl, makeContext(false)))));
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue setting up PathAwareInputStreamSource:",e);
             }
@@ -95,12 +116,30 @@ public abstract class ResourceCache {
         return outputs;
     }
 
+    private ResourceGenerationContext.ResourceSource filteredSource = null;
+
     /**
+     * Creates a context for generating resources within this cache.
+     * @param blind if true, the context should not be able to read resources. Must be true if the available resources
+     *              are not guaranteed to be set up yet
      * @return a context for generating resources within this cache
      */
     @NotNull
-    public ResourceGenerationContext getContext() {
-        return OldResourceGenerationContext.make(this.name, this.getPackType());
+    public ResourceGenerationContext makeContext(boolean blind) {
+        return new ResourceGenerationContext() {
+            @Override
+            public @NotNull ResourceLocation getCacheName() {
+                return getName();
+            }
+
+            @Override
+            public ResourceSource getResourceSource() {
+                if (blind) {
+                    return ResourceSource.blind();
+                }
+                return filteredSource;
+            }
+        };
     }
 
     /**
@@ -116,8 +155,9 @@ public abstract class ResourceCache {
      * Resets all listeners associated with this cache.
      */
     @SuppressWarnings("unused")
-    public void reset() {
-        this.resetListeners.forEach(Resettable::reset);
+    public void reset(ResourceGenerationContext context) {
+        this.resetListeners.forEach(r -> r.reset(context));
+        this.filteredSource = ResourceGenerationContext.ResourceSource.filtered(this::allowAccess, getPackType());
     }
 
     private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, IoSupplier<InputStream> supplier) {
@@ -233,15 +273,11 @@ public abstract class ResourceCache {
     @NotNull
     public abstract PackType getPackType();
 
-    /**
-     * This method should be considered internal, but to avoid breaking backwards compatibility, no breaking changes
-     * will be made until DynAssetGen 5.0.0 or later.
-     */
-    @ApiStatus.Internal
-    public static Supplier<PathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, InputStreamSource source) {
+
+    private static Supplier<PathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, InputStreamSource source) {
         return () -> new PathAwareInputStreamSource() {
             @Override
-            public @NotNull Set<ResourceLocation> getLocations() {
+            public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
                 return rls.get();
             }
 

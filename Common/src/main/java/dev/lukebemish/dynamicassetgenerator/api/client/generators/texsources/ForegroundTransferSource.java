@@ -71,9 +71,9 @@ public final class ForegroundTransferSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> background = this.getBackground().getSupplier(data, context);
-        IoSupplier<NativeImage> newBackground = this.getNewBackground().getSupplier(data, context);
-        IoSupplier<NativeImage> full = this.getFull().getSupplier(data, context);
+        IoSupplier<NativeImage> background = this.getBackground().getCachedSupplier(data, context);
+        IoSupplier<NativeImage> newBackground = this.getNewBackground().getCachedSupplier(data, context);
+        IoSupplier<NativeImage> full = this.getFull().getCachedSupplier(data, context);
 
         if (background == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.getBackground().stringify());

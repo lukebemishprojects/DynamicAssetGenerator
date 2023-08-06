@@ -26,8 +26,8 @@ public class AssetResourceCache extends ResourceCache {
      */
     public AssetResourceCache(ResourceLocation name) {
         super(name);
-        this.planResetListener(() -> TexSourceCache.reset(this.getContext()));
-        this.planResetListener(() -> ForegroundExtractor.reset(this.getContext()));
+        this.planResetListener(TexSourceCache::reset);
+        this.planResetListener(ForegroundExtractor::reset);
     }
 
     @Override

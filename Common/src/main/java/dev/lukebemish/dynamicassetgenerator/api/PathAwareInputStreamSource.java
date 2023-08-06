@@ -19,5 +19,5 @@ public interface PathAwareInputStreamSource extends InputStreamSource {
      * @return the locations that this {@link InputStreamSource} can provide resources at.
      */
     @NotNull
-    Set<ResourceLocation> getLocations();
+    Set<ResourceLocation> getLocations(ResourceGenerationContext context);
 }

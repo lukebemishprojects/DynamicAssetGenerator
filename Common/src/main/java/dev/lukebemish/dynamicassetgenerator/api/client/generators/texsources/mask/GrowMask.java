@@ -48,7 +48,7 @@ public final class GrowMask implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> input = this.source.getSupplier(data, context);
+        IoSupplier<NativeImage> input = this.source.getCachedSupplier(data, context);
         if (input == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.source.stringify());
             return null;

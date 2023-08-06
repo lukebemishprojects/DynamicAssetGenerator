@@ -44,8 +44,8 @@ public final class MaskSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> input = this.getInput().getSupplier(data, context);
-        IoSupplier<NativeImage> mask = this.getMask().getSupplier(data, context);
+        IoSupplier<NativeImage> input = this.getInput().getCachedSupplier(data, context);
+        IoSupplier<NativeImage> mask = this.getMask().getCachedSupplier(data, context);
 
         if (input == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.getMask().stringify());

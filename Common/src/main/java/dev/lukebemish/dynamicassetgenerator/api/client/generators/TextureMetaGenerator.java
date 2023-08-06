@@ -131,7 +131,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
             return null;
         }
         for (ResourceLocation source : sources()) {
-            @Nullable var streamSupplier = context.getResource(new ResourceLocation(source.getNamespace(),
+            @Nullable var streamSupplier = context.getResourceSource().getResource(new ResourceLocation(source.getNamespace(),
                 "textures/"+source.getPath()+".png.mcmeta"));
             if (streamSupplier == null) {
                 sourceStructure.put(source,new MetaStructure(Optional.empty(),Optional.empty(),Optional.empty()));
@@ -229,7 +229,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations() {
+    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of(new ResourceLocation(outputLocation().getNamespace(),"textures/"+outputLocation().getPath()+".png.mcmeta"));
     }
 

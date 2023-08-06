@@ -116,7 +116,7 @@ public final class PaletteSpreadSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> source = getSource().getSupplier(data, context);
+        IoSupplier<NativeImage> source = getSource().getCachedSupplier(data, context);
         if (source == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.getSource().stringify());
             return null;

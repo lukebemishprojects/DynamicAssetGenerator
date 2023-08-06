@@ -47,7 +47,7 @@ public final class TransformSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> input = this.getInput().getSupplier(data, context);
+        IoSupplier<NativeImage> input = this.getInput().getCachedSupplier(data, context);
         if (input == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.getInput());
             return null;

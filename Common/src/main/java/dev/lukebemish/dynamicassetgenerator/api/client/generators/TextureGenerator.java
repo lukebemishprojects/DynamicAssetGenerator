@@ -13,7 +13,6 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -46,7 +45,7 @@ public class TextureGenerator implements ResourceGenerator {
 
     @Override
     public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> imageGetter = this.input.getSupplier(new TexSourceDataHolder(), context);
+        IoSupplier<NativeImage> imageGetter = this.input.getCachedSupplier(new TexSourceDataHolder(), context);
         if (imageGetter == null) return null;
         return () -> {
             try (NativeImage image = imageGetter.get()) {
@@ -62,16 +61,11 @@ public class TextureGenerator implements ResourceGenerator {
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations() {
+    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of(getOutputLocation());
     }
 
-    /**
-     * This method should be considered internal, but to avoid breaking backwards compatibility, no breaking changes
-     * will be made until DynAssetGen 5.0.0 or later.
-     */
-    @ApiStatus.Internal
-    public ResourceLocation getOutputLocation() {
+    private ResourceLocation getOutputLocation() {
         return new ResourceLocation(this.outputLocation.getNamespace(), "textures/"+this.outputLocation.getPath()+".png");
     }
 

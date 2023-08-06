@@ -70,8 +70,8 @@ public class ShadowedSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> background = this.getBackground().getSupplier(data, context);
-        IoSupplier<NativeImage> foreground = this.getForeground().getSupplier(data, context);
+        IoSupplier<NativeImage> background = this.getBackground().getCachedSupplier(data, context);
+        IoSupplier<NativeImage> foreground = this.getForeground().getCachedSupplier(data, context);
 
         if (background == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", this.getBackground().stringify());

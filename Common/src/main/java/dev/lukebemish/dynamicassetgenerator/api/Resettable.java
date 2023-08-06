@@ -13,5 +13,5 @@ public interface Resettable {
     /**
      * Resets some state associated with sources registered to the resource cache.
      */
-    void reset();
+    void reset(ResourceGenerationContext context);
 }

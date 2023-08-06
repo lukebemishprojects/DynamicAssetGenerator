@@ -17,7 +17,7 @@ import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaCodec;
 import dev.lukebemish.dynamicassetgenerator.api.cache.DataConsumer;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ClientRegisters;
-import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCachingWrapper;
+import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.ExtraCodecs;
@@ -54,12 +54,7 @@ public interface TexSource {
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);
         }
-    }).dispatch(TexSource::codec, Function.identity()).xmap(TexSource::cached, wrapped -> {
-        while (wrapped instanceof TexSourceCachingWrapper cachingWrapper) {
-            wrapped = cachingWrapper.wrapped();
-        }
-        return wrapped;
-    }), new DataConsumer<>() {
+    }).dispatch(TexSource::codec, Function.identity()), new DataConsumer<>() {
         @Override
         @NotNull
         public <T1> DataResult<T1> encode(DynamicOps<T1> ops, TexSourceDataHolder data, TexSource object) {
@@ -96,25 +91,26 @@ public interface TexSource {
     Codec<? extends TexSource> codec();
 
     /**
-     *
+     * Provides a supplier for the texture this source will generate, or null if a texture cannot be provided. Should
+     * be overridden, but not called; call {@link #getCachedSupplier} instead to support caching.
      * @param data context information passed by outer nesting texture sources; if you depend on this, you will want to
      *             implement the caching API (see {@link #cacheMetadata})
      * @param context context about the environment the texture is generating in
      * @return a supplier able to produce the texture, or null if the texture could not be produced.
      */
+    @ApiStatus.OverrideOnly
     @Nullable
     IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context);
 
     /**
-     * If you are using texture sources directly through the java API, you will likely want to call this on sources you
-     * construct. In the future, this may become more redundant as tools are integrated to cache all sources in this way
-     * automatically.
-     * @return a version of this texture source that utilizes the cache.
+     * Delegates to {@link #getSupplier}, but caches the result if possible. Should be used instead of the non-cached
+     * version, but not extended.
      */
-    @ApiStatus.Experimental
-    default TexSource cached() {
-        if (this instanceof TexSourceCachingWrapper) return this;
-        return new TexSourceCachingWrapper(this);
+    @ApiStatus.NonExtendable
+    default @Nullable IoSupplier<NativeImage> getCachedSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
+        IoSupplier<NativeImage> wrapperImage = this.getSupplier(data, context);
+        if (wrapperImage == null) return null;
+        return () -> TexSourceCache.fromCache(wrapperImage, this, context, data);
     }
 
     /**

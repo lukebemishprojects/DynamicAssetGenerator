@@ -5,51 +5,183 @@
 
 package dev.lukebemish.dynamicassetgenerator.api;
 
+import com.google.common.base.Suppliers;
+import dev.lukebemish.dynamicassetgenerator.impl.EmptyResourceSource;
+import dev.lukebemish.dynamicassetgenerator.impl.ResourceFinder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Information available during resource generation, passed to {@link InputStreamSource} as they are generated.
  */
-public abstract class ResourceGenerationContext {
-    /**
-     * @deprecated Use {@link #getCacheName()} instead.
-     */
-    @Deprecated(forRemoval = true, since = "4.1.0")
-    @NotNull public ResourceLocation cacheName() {
-        return getCacheName();
-    }
+public interface ResourceGenerationContext {
 
     /**
      * @return a resource location unique to the {@link ResourceCache} this context is linked to
      */
-    @NotNull public abstract ResourceLocation getCacheName();
+    @NotNull ResourceLocation getCacheName();
 
     /**
-     * Attempts to get a resource at a given location, from the highest priority pack not provided by another {@link ResourceCache}.
-     * @param location the location to get the resource at
-     * @return a supplier for an input stream for the resource, or null if the resource does not exist
+     * @return a tool to access resources during generation
      */
-    @Nullable public abstract IoSupplier<InputStream> getResource(@NotNull ResourceLocation location);
+    default ResourceSource getResourceSource() {
+        return EmptyResourceSource.INSTANCE;
+    }
 
-    /**
-     * Lists all resources within a given path, from highest to lowest priority.
-     * @param namespace the location to list resources from
-     * @param path the path to list resources from
-     * @param resourceOutput the output to write the resources to
-     */
-    @SuppressWarnings("unused")
-    public abstract void listResources(@NotNull String namespace, @NotNull String path, @NotNull PackResources.ResourceOutput resourceOutput);
+    interface ResourceSource {
+        /**
+         * @return a resource source which can read no resources
+         */
+        static ResourceSource blind() {
+            return EmptyResourceSource.INSTANCE;
+        }
 
-    /**
-     * @return a set of all namespaces that have resources in this context
-     */
-    @SuppressWarnings("unused")
-    @NotNull public abstract Set<String> getNamespaces();
+        /**
+         * Attempts to get a resource at a given location, from the highest priority pack not provided by a {@link ResourceCache}.
+         *
+         * @param location the location to get the resource at
+         * @return a supplier for an input stream for the resource, or null if the resource does not exist
+         */
+        @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location);
+
+        /**
+         * Lists all resources within a given path, from highest to lowest priority.
+         *
+         * @param location the location to list resources from
+         * @return a list of suppliers for input streams for the resources
+         */
+        List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location);
+
+        /**
+         * Lists all resources in a namespace that match a given filter, from the highest priority pack not provided by a {@link ResourceCache}.
+         *
+         * @param path the path to list resources in
+         * @param filter a filter to apply to the resource locations
+         * @return a map of resource locations to suppliers for input streams for the resources
+         */
+        Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter);
+
+        /**
+         * Lists all resources within a given path, from highest to lowest priority.
+         * @param path the path to list resources in
+         * @param filter a filter to apply to the resource locations
+         * @return a map of resource locations to suppliers for input streams for the resources
+         */
+        Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter);
+
+        /**
+         * @return a set of all namespaces that have resources in this context
+         */
+        @SuppressWarnings("unused")
+        @NotNull Set<String> getNamespaces();
+
+        /**
+         * A default implementation which exposes resources captured during pack load. Should <em>not</em> be accessed
+         * before packs are available, and must be reset every pack reload by reconstructing the listener.
+         * @param allowedPacks which packs to select from the captured packs; useful to avoid recursive generation
+         * @param type the type of captured pack to target
+         * @return a resource source based on the captured packs available when first invoked
+         */
+        static ResourceGenerationContext.ResourceSource filtered(Predicate<String> allowedPacks, PackType type) {
+            int ordinal = type.ordinal();
+            Supplier<List<PackResources>> packs = () -> ResourceFinder.INSTANCES[ordinal].getPacks().stream().filter(pack -> allowedPacks.test(pack.packId())).toList();
+            return of(type, packs);
+        }
+
+        /**
+         * A default implementation which uses a lazy-loaded list of packs. Should be discarded and re-created when the
+         * underlying list would change.
+         * @param allowedPacks which packs to select from the captured packs; useful to avoid recursive generation
+         * @param type the type of pack to target
+         * @param packResources supplies a list of packs to provide resources from
+         * @return a resource based on the supplied packs available when first invoked
+         */
+        static ResourceGenerationContext.ResourceSource filtered(Predicate<String> allowedPacks, PackType type, Supplier<List<PackResources>> packResources) {
+            Supplier<List<PackResources>> packs = () -> packResources.get().stream().filter(pack -> allowedPacks.test(pack.packId())).toList();
+            return of(type, packs);
+        }
+
+        /**
+         * A default implementation which uses a lazy-loaded list of packs. Should be discarded and re-created when the
+         * underlying list would change.
+         * @param type the type of pack to target
+         * @param resources supplies a list of packs to provide resources from
+         * @return a resource based on the supplied packs available when first invoked
+         */
+        static ResourceGenerationContext.ResourceSource of(PackType type, Supplier<List<PackResources>> resources) {
+            Supplier<List<PackResources>> packs = Suppliers.memoize(resources::get);
+            return new ResourceGenerationContext.ResourceSource() {
+
+                @Override
+                public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+                    for (PackResources pack : packs.get()) {
+                        IoSupplier<InputStream> resource = pack.getResource(type, location);
+                        if (resource != null) {
+                            return resource;
+                        }
+                    }
+                    return null;
+                }
+
+                @Override
+                public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+                    List<IoSupplier<InputStream>> out = new ArrayList<>();
+                    for (PackResources pack : packs.get()) {
+                        IoSupplier<InputStream> resource = pack.getResource(type, location);
+                        if (resource != null) {
+                            out.add(resource);
+                        }
+                    }
+                    return out;
+                }
+
+                @Override
+                public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                    Map<ResourceLocation, IoSupplier<InputStream>> resources = new HashMap<>();
+                    for (PackResources pack : packs.get()) {
+                        for (String namespace : pack.getNamespaces(type)) {
+                            pack.listResources(type, namespace, path, (rl, s) -> {
+                                if (!resources.containsKey(rl)) {
+                                    resources.put(rl, s);
+                                }
+                            });
+                        }
+                    }
+                    return resources;
+                }
+
+                @Override
+                public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                    Map<ResourceLocation, List<IoSupplier<InputStream>>> resources = new HashMap<>();
+                    for (PackResources pack : packs.get()) {
+                        for (String namespace : pack.getNamespaces(type)) {
+                            pack.listResources(type, namespace, path, (rl, s) -> {
+                                List<IoSupplier<InputStream>> list = resources.computeIfAbsent(rl, location -> new ArrayList<>());
+                                list.add(s);
+                            });
+                        }
+                    }
+                    return resources;
+                }
+
+                @Override
+                public @NotNull Set<String> getNamespaces() {
+                    Set<String> namespaces = new HashSet<>();
+                    for (PackResources pack : packs.get()) {
+                        namespaces.addAll(pack.getNamespaces(type));
+                    }
+                    return namespaces;
+                }
+            };
+        }
+    }
 }

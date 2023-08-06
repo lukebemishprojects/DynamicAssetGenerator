@@ -64,10 +64,9 @@ public final class PaletteCombinedSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        //PalettePlanner planner = PalettePlanner.of(this, data, context);
-        var backgroundSupplier = this.background.getSupplier(data, context);
-        var overlaySupplier = this.overlay.getSupplier(data, context);
-        var palettedSupplier = this.paletted.getSupplier(data, context);
+        var backgroundSupplier = this.background.getCachedSupplier(data, context);
+        var overlaySupplier = this.overlay.getCachedSupplier(data, context);
+        var palettedSupplier = this.paletted.getCachedSupplier(data, context);
         if (backgroundSupplier == null) {
             data.getLogger().error("Background image was none... \n{}", background.stringify());
             return null;

@@ -45,7 +45,7 @@ public final class TextureReaderSource implements TexSource {
         ResourceLocation outRl = new ResourceLocation(this.getPath().getNamespace(), "textures/" + this.getPath().getPath() + ".png");
         return () -> {
             try {
-                var in = context.getResource(outRl);
+                var in = context.getResourceSource().getResource(outRl);
                 if (in != null) {
                     return NativeImage.read(in.get());
                 }

@@ -26,7 +26,7 @@ public class GeneratedPackResources implements PackResources {
 
     public GeneratedPackResources(ResourceCache cache) {
         this.cache = cache;
-        cache.reset();
+        cache.reset(cache.makeContext(true));
     }
 
     @Override
@@ -92,7 +92,7 @@ public class GeneratedPackResources implements PackResources {
 
     @Override
     public @NotNull String packId() {
-        return DynamicAssetGenerator.MOD_ID+':'+cache.getName().toString();
+        return DynamicAssetGenerator.MOD_ID+'/'+cache.getName().toString();
     }
 
     @Override

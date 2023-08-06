@@ -53,7 +53,7 @@ public final class CropSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        IoSupplier<NativeImage> suppliedInput = getInput().getSupplier(data, context);
+        IoSupplier<NativeImage> suppliedInput = getInput().getCachedSupplier(data, context);
         if (suppliedInput == null) {
             data.getLogger().error("Texture given was nonexistent...\n{}", getInput().stringify());
             return null;

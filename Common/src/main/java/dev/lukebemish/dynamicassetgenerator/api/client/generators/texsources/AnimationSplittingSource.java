@@ -55,7 +55,7 @@ public final class AnimationSplittingSource implements TexSource {
         Map<String, IoSupplier<NativeImage>> sources = new HashMap<>();
         Map<String, Integer> times = new HashMap<>();
         this.getSources().forEach((key, source) -> {
-            sources.put(key, source.source().getSupplier(data, context));
+            sources.put(key, source.source().getCachedSupplier(data, context));
             times.put(key, source.scale());
         });
         if (sources.isEmpty()) {
@@ -87,7 +87,7 @@ public final class AnimationSplittingSource implements TexSource {
                     try (ImageCollection collection = new ImageCollection(map, this.getSources(), i)) {
                         TexSourceDataHolder newData = new TexSourceDataHolder(data);
                         newData.put(ImageCollection.class, collection);
-                        IoSupplier<NativeImage> supplier = generator.getSupplier(newData, context);
+                        IoSupplier<NativeImage> supplier = generator.getCachedSupplier(newData, context);
                         if (supplier == null) {
                             data.getLogger().error("Generator created no image...");
                             throw new IOException("Generator created no image...");
@@ -138,18 +138,14 @@ public final class AnimationSplittingSource implements TexSource {
     }
 
 
-    /**
-     * This class should be considered internal, but to avoid breaking backwards compatibility, no breaking changes will be
-     * made until DynAssetGen 5.0.0 or later.
-     */
     @ApiStatus.Internal
-    public static class ImageCollection implements Closeable {
+    static class ImageCollection implements Closeable {
         private final Map<String, NativeImage> map;
         private final Map<String, TimeAwareSource> original;
         private final int frame;
 
         @ApiStatus.Internal
-        public ImageCollection(Map<String, NativeImage> map, Map<String, TimeAwareSource> original, int frame) {
+        private ImageCollection(Map<String, NativeImage> map, Map<String, TimeAwareSource> original, int frame) {
             this.map = new HashMap<>(map);
             this.original = original;
             this.frame = frame;

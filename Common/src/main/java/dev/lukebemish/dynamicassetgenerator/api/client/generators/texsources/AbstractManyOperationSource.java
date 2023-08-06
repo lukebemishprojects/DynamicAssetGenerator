@@ -53,7 +53,7 @@ abstract public class AbstractManyOperationSource implements TexSource {
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         List<IoSupplier<NativeImage>> inputs = new ArrayList<>();
         for (TexSource o : this.getSources()) {
-            var source = o.getSupplier(data, context);
+            var source = o.getCachedSupplier(data, context);
             if (source == null) {
                 data.getLogger().error("Texture given was nonexistent...\n{}",o.stringify());
                 return null;

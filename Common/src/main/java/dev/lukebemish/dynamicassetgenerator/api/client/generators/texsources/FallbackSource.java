@@ -43,8 +43,8 @@ public final class FallbackSource implements TexSource {
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         TexSourceDataHolder newData = new TexSourceDataHolder(data);
         newData.put(Logger.class, NOPLogger.NOP_LOGGER);
-        IoSupplier<NativeImage> original = this.getOriginal().getSupplier(newData, context);
-        IoSupplier<NativeImage> fallback = this.getFallback().getSupplier(data, context);
+        IoSupplier<NativeImage> original = this.getOriginal().getCachedSupplier(newData, context);
+        IoSupplier<NativeImage> fallback = this.getFallback().getCachedSupplier(data, context);
 
         if (original == null && fallback == null) {
             data.getLogger().error("Both textures given were nonexistent...");

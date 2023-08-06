@@ -31,7 +31,7 @@ public class DummyGenerator implements ResourceGenerator {
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations() {
+    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of();
     }
 

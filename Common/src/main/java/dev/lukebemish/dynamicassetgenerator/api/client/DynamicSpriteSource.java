@@ -19,25 +19,21 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.ExposesName;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ForegroundExtractor;
 import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCache;
 import dev.lukebemish.dynamicassetgenerator.impl.client.platform.ClientServices;
-import dev.lukebemish.dynamicassetgenerator.mixin.SpriteSourcesAccessor;
+import dev.lukebemish.dynamicassetgenerator.impl.mixin.SpriteSourcesAccessor;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSourceType;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.PackResources;
-import net.minecraft.server.packs.resources.IoSupplier;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -87,6 +83,8 @@ public interface DynamicSpriteSource extends SpriteSource {
     @Override
     default void run(ResourceManager resourceManager, SpriteSource.Output output) {
         ResourceGenerationContext context = new ResourceGenerationContext() {
+            private final ResourceSource source = ResourceGenerationContext.ResourceSource.filtered(pack -> true, PackType.CLIENT_RESOURCES);
+
             @Override
             public @NotNull ResourceLocation getCacheName() {
                 if (output instanceof ExposesName exposesName) {
@@ -97,19 +95,8 @@ public interface DynamicSpriteSource extends SpriteSource {
             }
 
             @Override
-            public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
-                return resourceManager.getResource(location).<IoSupplier<InputStream>>map(resource -> resource::open).orElse(null);
-            }
-
-            @Override
-            public void listResources(@NotNull String namespace, @NotNull String path, PackResources.@NotNull ResourceOutput resourceOutput) {
-                resourceManager.listResourceStacks(path, rl -> rl.getNamespace().equals(namespace)).forEach((rl, resources) ->
-                    resources.forEach(resource -> resourceOutput.accept(rl, resource::open)));
-            }
-
-            @Override
-            public @NotNull Set<String> getNamespaces() {
-                return resourceManager.getNamespaces();
+            public ResourceSource getResourceSource() {
+                return source;
             }
         };
 
@@ -120,7 +107,7 @@ public interface DynamicSpriteSource extends SpriteSource {
         sources.forEach((rl, texSource) -> {
             var dataHolder = new TexSourceDataHolder();
             dataHolder.put(TouchedTextureTracker.class, new TouchedTextureTracker());
-            var imageSupplier = texSource.getSupplier(dataHolder, context);
+            var imageSupplier = texSource.getCachedSupplier(dataHolder, context);
             output.add(rl, () -> {
                 try {
                     if (imageSupplier == null) {
@@ -129,7 +116,7 @@ public interface DynamicSpriteSource extends SpriteSource {
                     NativeImage image = imageSupplier.get();
                     TouchedTextureTracker tracker = dataHolder.get(TouchedTextureTracker.class);
                     AnimationMetadataSection section = AnimationMetadataSection.EMPTY;
-                    if (tracker != null && tracker.getTouchedTextures().size() >= 1) {
+                    if (tracker != null && !tracker.getTouchedTextures().isEmpty()) {
                         TextureMetaGenerator generator = new TextureMetaGenerator.Builder().withSources(tracker.getTouchedTextures()).withOutputLocation(rl).build();
                         var supplier = generator.get(new ResourceLocation(rl.getNamespace(), "textures/"+rl.getPath()+".png.mcmeta"), context);
                         if (supplier != null) {
