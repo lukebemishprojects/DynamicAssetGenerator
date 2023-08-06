@@ -76,7 +76,7 @@ public final class PaletteSpreadSource implements TexSource {
     }
 
     private static boolean verifyDisjoint(List<Range> ranges) {
-        if (ranges.size() == 0) {
+        if (ranges.isEmpty()) {
             return false;
         }
         for (int i = 0; i < ranges.size(); i++) {

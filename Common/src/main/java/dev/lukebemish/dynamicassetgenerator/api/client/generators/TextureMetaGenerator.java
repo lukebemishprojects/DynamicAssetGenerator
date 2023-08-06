@@ -105,7 +105,7 @@ public record TextureMetaGenerator(List<ResourceLocation> sources, Optional<Anim
 
         public TextureMetaGenerator build() {
             Objects.requireNonNull(outputLocation);
-            if (sources.size() < 1) {
+            if (sources.isEmpty()) {
                 throw new IllegalStateException("At least one source must be provided");
             }
             return new TextureMetaGenerator(sources, Optional.ofNullable(animation), Optional.ofNullable(villager), Optional.ofNullable(texture), outputLocation);

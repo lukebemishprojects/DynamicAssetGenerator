@@ -81,7 +81,7 @@ public class TagBakery implements PathAwareInputStreamSource, Resettable {
             toAdd.addAll(p.get());
         }
         toAdd.forEach(rl -> {
-            if (internal.length() >= 1) {
+            if (!internal.isEmpty()) {
                 internal.append(",\n");
             }
             internal.append("    \"").append(rl.getNamespace()).append(":").append(rl.getPath()).append("\"");
