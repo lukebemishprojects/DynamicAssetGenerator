@@ -13,7 +13,7 @@ mdg_plugin = "1.4.1"
 mdg_dsl = "1.5.0"
 autoservice = "1.1.1"
 
-quilt_loom = "1.2.3"
+quilt_loom = "1.3.3"
 quilt_licenser = "2.0.1"
 
 forgegradle = "6.0.6"
