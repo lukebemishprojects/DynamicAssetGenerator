@@ -6,13 +6,13 @@
 package dev.lukebemish.dynamicassetgenerator.api.client;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.mojang.blaze3d.platform.NativeImage;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TouchedTextureTracker;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ExposesName;
@@ -31,8 +31,11 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -117,17 +120,27 @@ public interface DynamicSpriteSource extends SpriteSource {
                     TouchedTextureTracker tracker = dataHolder.get(TouchedTextureTracker.class);
                     AnimationMetadataSection section = AnimationMetadataSection.EMPTY;
                     if (tracker != null && !tracker.getTouchedTextures().isEmpty()) {
-                        TextureMetaGenerator generator = new TextureMetaGenerator.Builder().withSources(tracker.getTouchedTextures()).withOutputLocation(rl).build();
-                        var supplier = generator.get(new ResourceLocation(rl.getNamespace(), "textures/"+rl.getPath()+".png.mcmeta"), context);
-                        if (supplier != null) {
-                            try (var reader = new InputStreamReader(supplier.get())) {
+                        TextureMetaGenerator.AnimationGenerator generator = new TextureMetaGenerator.AnimationGenerator.Builder().build();
+                        List<Pair<ResourceLocation, JsonObject>> animations = new ArrayList<>();
+                        for (ResourceLocation touchedTexture : tracker.getTouchedTextures()) {
+                            var resource = context.getResourceSource().getResource(new ResourceLocation(touchedTexture.getNamespace(), "textures/"+touchedTexture.getPath()+".png.mcmeta"));
+                            if (resource == null) {
+                                animations.add(new Pair<>(touchedTexture, null));
+                                continue;
+                            }
+                            try (var reader = new BufferedReader(new InputStreamReader(resource.get()))) {
                                 JsonObject json = DynamicAssetGenerator.GSON.fromJson(reader, JsonObject.class);
-                                if (json.has(AnimationMetadataSection.SECTION_NAME)) {
-                                    JsonObject animation = GsonHelper.getAsJsonObject(json, AnimationMetadataSection.SECTION_NAME);
-                                    section = AnimationMetadataSection.SERIALIZER.fromJson(animation);
-                                }
-                            } catch (IOException | JsonParseException e) {
-                                DynamicAssetGenerator.LOGGER.warn("Failed to generate texture meta for sprite source type "+getLocation()+" at "+rl+": ", e);
+                                JsonObject animation = GsonHelper.getAsJsonObject(json, AnimationMetadataSection.SECTION_NAME);
+                                animations.add(new Pair<>(touchedTexture, animation));
+                            } catch (Exception ignored) {
+                                animations.add(new Pair<>(touchedTexture, null));
+                            }
+                        }
+                        JsonObject built = generator.apply(animations);
+                        if (built != null) {
+                            try {
+                                section = AnimationMetadataSection.SERIALIZER.fromJson(built);
+                            } catch (Exception ignored) {
                             }
                         }
                     }

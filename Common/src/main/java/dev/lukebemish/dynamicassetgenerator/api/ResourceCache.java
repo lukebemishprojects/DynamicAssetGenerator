@@ -28,7 +28,6 @@ import java.util.function.Supplier;
  * Caches instructions for producing resources, and generates them as packs are loaded.
  */
 public abstract class ResourceCache {
-    protected static final String SOURCE_JSON_DIR = DynamicAssetGenerator.MOD_ID+"/generators";
     protected List<Supplier<? extends PathAwareInputStreamSource>> cache = new ArrayList<>();
     private final List<Resettable> resetListeners = new ArrayList<>();
 

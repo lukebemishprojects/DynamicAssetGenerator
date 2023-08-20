@@ -28,6 +28,7 @@ public class DynamicAssetGenerator {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().setLenient().create();
     public static final Gson GSON_FLAT = new GsonBuilder().setLenient().create();
     public static final String MOD_ID = "dynamic_asset_generator";
+    public static final String SOURCE_JSON_DIR = MOD_ID +"/generators";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static PackMetadataSection fromCache(ResourceCache cache) {

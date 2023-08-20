@@ -9,9 +9,9 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.AssetResourceCache;
 import dev.lukebemish.dynamicassetgenerator.api.client.DynamicSpriteSource;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureGenerator;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.*;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.mask.*;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
@@ -20,7 +20,6 @@ import net.minecraft.server.packs.repository.Pack;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class DynamicAssetGeneratorClient {
     private DynamicAssetGeneratorClient() {}
@@ -84,12 +83,15 @@ public class DynamicAssetGeneratorClient {
                             new AnimationSplittingSource.TimeAwareSource(new TextureReaderSource.Builder().setPath(new ResourceLocation("block/magma")).build(), 1),
                             "prismarine",
                             new AnimationSplittingSource.TimeAwareSource(new TextureReaderSource.Builder().setPath(new ResourceLocation("block/prismarine")).build(), 4))).setGenerator(new PaletteCombinedSource.Builder().setOverlay(new TextureReaderSource.Builder().setPath(new ResourceLocation("dynamic_asset_generator", "empty")).build()).setBackground(new AnimationFrameCapture.Builder().setCapture("prismarine").build()).setPaletted(new AnimationFrameCapture.Builder().setCapture("magma").build()).setIncludeBackground(false).setStretchPaletted(true).setExtendPaletteSize(paletteExtend).build()).build()));
-            ASSET_CACHE.planSource(new TextureMetaGenerator(List.of(new ResourceLocation("block/magma"),new ResourceLocation("block/prismarine")),
-                    Optional.of(new TextureMetaGenerator.AnimationData(Optional.empty(), Optional.empty(),Optional.of(new ResourceLocation("block/prismarine")),
-                            Optional.of(List.of(1,4)))),
-                    Optional.empty(),
-                    Optional.empty(),
-                    new ResourceLocation("block/moss_block")));
+            ASSET_CACHE.planSource(new TextureMetaGenerator.Builder()
+                .withSources(List.of(new ResourceLocation("block/magma"), new ResourceLocation("block/prismarine")))
+                .withOutputLocation(new ResourceLocation("block/moss_block"))
+                .withAnimation(new TextureMetaGenerator.AnimationGenerator.Builder()
+                    .withPatternSource(new ResourceLocation("block/prismarine"))
+                    .withScales(List.of(1,4))
+                    .build())
+                .build()
+            );
         }
     }
 }
