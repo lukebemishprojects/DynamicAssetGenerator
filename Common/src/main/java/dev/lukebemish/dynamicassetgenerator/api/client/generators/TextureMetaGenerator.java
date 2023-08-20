@@ -293,6 +293,8 @@ public class TextureMetaGenerator implements ResourceGenerator {
 
         @Override
         public @Nullable JsonObject apply(List<Pair<ResourceLocation, JsonObject>> originals) {
+            // TODO: Figure out the weird frame objects that have a "index" and "time" field.
+
             if (areAllMissing(originals) &&
                 frametime.isEmpty() &&
                 width.isEmpty() &&
