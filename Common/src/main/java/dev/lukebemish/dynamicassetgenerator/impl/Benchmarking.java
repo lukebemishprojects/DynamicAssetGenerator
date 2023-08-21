@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.impl;
 
-import dev.lukebemish.dynamicassetgenerator.api.ResourceCache;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 
@@ -18,7 +17,7 @@ import java.nio.file.StandardOpenOption;
 public class Benchmarking {
     private static final boolean[] LOGGED = new boolean[2];
 
-    public static void recordTime(ResourceCache cache, ResourceLocation location, long time) {
+    public synchronized static void recordTime(String cache, ResourceLocation location, long time) {
         if (!Files.exists(Services.PLATFORM.getModDataFolder())) {
             try {
                 Files.createDirectories(Services.PLATFORM.getModDataFolder());
@@ -43,7 +42,7 @@ public class Benchmarking {
             }
         }
         try (var writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.APPEND)) {
-            writer.write(cache.getName() + " " + location + " " + time + "\n");
+            writer.write(cache + " " + location + " " + time + "\n");
         } catch (IOException e) {
             if (!LOGGED[1]) {
                 DynamicAssetGenerator.LOGGER.error("Issue writing to times.log", e);

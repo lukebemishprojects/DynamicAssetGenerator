@@ -16,7 +16,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.metadata.animation.VillagerMetaDataSection;
 import net.minecraft.resources.ResourceLocation;
@@ -30,6 +29,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -209,8 +209,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
             Codec.INT.optionalFieldOf("frametime").forGetter(AnimationGenerator::getFrametime),
             Codec.INT.optionalFieldOf("width").forGetter(AnimationGenerator::getWidth),
             Codec.INT.optionalFieldOf("height").forGetter(AnimationGenerator::getHeight),
-            Codec.BOOL.optionalFieldOf("interpolate").forGetter(AnimationGenerator::getInterpolate),
-            ResourceLocation.CODEC.optionalFieldOf("pattern").forGetter(AnimationGenerator::getPatternSource)
+            Codec.BOOL.optionalFieldOf("interpolate").forGetter(AnimationGenerator::getInterpolate)
         ).apply(i, AnimationGenerator::new));
 
         private final Optional<List<Integer>> scales;
@@ -218,15 +217,13 @@ public class TextureMetaGenerator implements ResourceGenerator {
         private final Optional<Integer> width;
         private final Optional<Integer> height;
         private final Optional<Boolean> interpolate;
-        private final Optional<ResourceLocation> patternSource;
 
-        private AnimationGenerator(Optional<List<Integer>> scales, Optional<Integer> frametime, Optional<Integer> width, Optional<Integer> height, Optional<Boolean> interpolate, Optional<ResourceLocation> patternSource) {
+        private AnimationGenerator(Optional<List<Integer>> scales, Optional<Integer> frametime, Optional<Integer> width, Optional<Integer> height, Optional<Boolean> interpolate) {
             this.scales = scales;
             this.frametime = frametime;
             this.width = width;
             this.height = height;
             this.interpolate = interpolate;
-            this.patternSource = patternSource;
         }
 
         public Optional<List<Integer>> getScales() {
@@ -249,17 +246,12 @@ public class TextureMetaGenerator implements ResourceGenerator {
             return interpolate;
         }
 
-        public Optional<ResourceLocation> getPatternSource() {
-            return patternSource;
-        }
-
         public static class Builder {
             private Optional<List<Integer>> scales = Optional.empty();
             private Optional<Integer> frametime = Optional.empty();
             private Optional<Integer> width = Optional.empty();
             private Optional<Integer> height = Optional.empty();
             private Optional<Boolean> interpolate = Optional.empty();
-            private Optional<ResourceLocation> patternSource = Optional.empty();
 
             public Builder withScales(List<Integer> scales) {
                 this.scales = Optional.of(scales);
@@ -286,20 +278,13 @@ public class TextureMetaGenerator implements ResourceGenerator {
                 return this;
             }
 
-            public Builder withPatternSource(ResourceLocation patternSource) {
-                this.patternSource = Optional.of(patternSource);
-                return this;
-            }
-
             public AnimationGenerator build() {
-                return new AnimationGenerator(scales, frametime, width, height, interpolate, patternSource);
+                return new AnimationGenerator(scales, frametime, width, height, interpolate);
             }
         }
 
         @Override
         public @Nullable JsonObject apply(List<Pair<ResourceLocation, JsonObject>> originals) {
-            // TODO: Figure out the weird frame objects that have a "index" and "time" field.
-
             if (areAllMissing(originals) &&
                 frametime.isEmpty() &&
                 width.isEmpty() &&
@@ -307,8 +292,17 @@ public class TextureMetaGenerator implements ResourceGenerator {
                 interpolate.isEmpty()
             ) return null;
 
-            var originalsMap = originals.stream().collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
             var originalsLocations = originals.stream().map(Pair::getFirst).toList();
+
+            var parsed = originals.stream().map(p -> {
+                var object = p.getSecond();
+                if (object == null) return null;
+                try {
+                    return new Pair<>(p.getFirst(), AnimationMetadataSection.SERIALIZER.fromJson(object));
+                } catch (Exception ignored) {
+                    return null;
+                }
+            }).filter(Objects::nonNull).collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
             var out = new JsonObject();
 
             this.frametime.ifPresentOrElse(i -> out.addProperty("frametime", i), () ->
@@ -349,73 +343,61 @@ public class TextureMetaGenerator implements ResourceGenerator {
                     return false;
                 }));
 
-            ResourceLocation patternSource = this.patternSource.orElseGet(() -> originals.stream().filter(pair -> {
-                var frametimes = pair.getSecond().get("frames");
-                return frametimes != null && frametimes.isJsonArray();
-            }).map(Pair::getFirst).findFirst().orElse(originals.get(0).getFirst()));
+            List<Frame> frames = new ArrayList<>();
+            int frametime;
+            try {
+                frametime = out.getAsJsonPrimitive("frametime").getAsInt();
+            } catch (Exception ignored) {
+                frametime = 1;
+            }
+            frames.add(new Frame(0, frametime));
 
             List<Integer> scale = new ArrayList<>(scales.orElse(List.of()));
             while (scale.size() < originals.size())
                 scale.add(1);
 
-            List<Integer> frameCount = originals.stream().map(m-> {
-                var frames = m.getSecond().get("frames");
-                if (frames != null && frames.isJsonArray()) {
-                    var maximum = 0;
-                    for (JsonElement frame : frames.getAsJsonArray()) {
-                        try {
-                            var index = frame.getAsInt();
-                            if (index > maximum) {
-                                maximum = index;
-                            }
-                        } catch (UnsupportedOperationException | NumberFormatException ignored) {
-                        }
+            for (int i = 0; i < originalsLocations.size(); i++) {
+                ResourceLocation location = originalsLocations.get(i);
+                var section = parsed.get(location);
+                if (section == null) continue;
+                int maxFrames = getMaxFrames(section);
+                int thisScale = scale.get(i);
+                frames = mutateList(frames, section, maxFrames, thisScale);
+            }
+
+            if (frames.size() > 1) {
+                JsonArray framesOut = new JsonArray();
+                out.add("frames", framesOut);
+                for (Frame frame : frames) {
+                    JsonObject frameOut = new JsonObject();
+                    frameOut.addProperty("index", frame.index());
+                    frameOut.addProperty("time", frame.time());
+                    framesOut.add(frameOut);
+                }
+            }
+
+            return out;
+        }
+
+        private record Frame(int index, int time) {}
+
+        private static int getMaxFrames(AnimationMetadataSection section) {
+            AtomicInteger maxFrames = new AtomicInteger(0);
+            section.forEachFrame((index, time) -> maxFrames.set(Math.max(maxFrames.get(), index)));
+            return maxFrames.get() + 1;
+        }
+
+        private static List<Frame> mutateList(List<Frame> pattern, AnimationMetadataSection section, int maxFrames, int scale) {
+            var out = new ArrayList<Frame>();
+            for (Frame frame : pattern) {
+                section.forEachFrame((index, time) -> {
+                    int frameTime = time * frame.time / section.getDefaultFrameTime();
+                    for (int i = 0; i < scale; i++) {
+                        Frame newFrame = new Frame(frame.index * maxFrames * scale + index * scale + i, frameTime);
+                        out.add(newFrame);
                     }
-                    return maximum + 1;
-                }
-                return 1;
-            }).toList();
-
-            List<Integer> relFrameCount = new ArrayList<>();
-
-            for (int i = 0; i < frameCount.size(); i++)
-                relFrameCount.add(frameCount.get(i) * scale.get(i));
-            int totalLength = Maath.lcm(relFrameCount);
-
-            if (!originalsMap.containsKey(patternSource)) {
-                DynamicAssetGenerator.LOGGER.error("Source specified was not the name of a texture source: {}",patternSource);
-                return null;
+                });
             }
-
-            List<Integer> framesSource;
-            var member = originalsMap.get(patternSource).get("frames");
-            if (member != null && member.isJsonArray()) {
-                var tempFramesSource = new ArrayList<Integer>();
-                for (JsonElement frame : member.getAsJsonArray()) {
-                    try {
-                        tempFramesSource.add(frame.getAsInt());
-                    } catch (UnsupportedOperationException | NumberFormatException ignored) {
-                        framesSource = List.of(0);
-                        break;
-                    }
-                }
-                framesSource = tempFramesSource;
-            } else {
-                framesSource = List.of(0);
-            }
-
-            int patternSourceIdx = originalsLocations.indexOf(patternSource);
-
-            JsonArray framesOut = new JsonArray();
-            int scalingFactor = totalLength / frameCount.get(patternSourceIdx);
-            for (int f : framesSource) {
-                for (int i = 0; i < scalingFactor; i++) {
-                    framesOut.add(f*scalingFactor+i);
-                }
-            }
-
-            out.add("frames", framesOut);
-
             return out;
         }
     }
@@ -565,8 +547,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
 
     private static boolean areAllMissing(List<Pair<ResourceLocation, JsonObject>> originals) {
         for (Pair<ResourceLocation, JsonObject> original : originals) {
-            if (original.getSecond() == null) continue;
-            return true;
+            if (original.getSecond() != null) return false;
         }
         return true;
     }

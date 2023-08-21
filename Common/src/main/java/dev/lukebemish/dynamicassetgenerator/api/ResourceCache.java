@@ -176,7 +176,7 @@ public abstract class ResourceCache {
                 long endTime = System.nanoTime();
 
                 long duration = (endTime - startTime)/1000;
-                Benchmarking.recordTime(this, rl, duration);
+                Benchmarking.recordTime(this.getName().toString(), rl, duration);
                 return result;
             };
         }

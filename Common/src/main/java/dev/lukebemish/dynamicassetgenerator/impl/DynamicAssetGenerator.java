@@ -45,12 +45,12 @@ public class DynamicAssetGenerator {
         return configs;
     }
 
-    public static final boolean TIME_RESOURCES = "true".equals(System.getProperty("dynamicassetgenerator.time_resources"));
+    public static final boolean TIME_RESOURCES = "true".equals(System.getProperty("dynamicassetgenerator.time_resources"))  || getConfig().timeResources();
 
     public static void init() {
         ResourceGenerator.register(new ResourceLocation(MOD_ID,"dummy"), DummyGenerator.CODEC);
         if (TIME_RESOURCES) {
-            LOGGER.info("dynamicassetgenerator.time_resources is true. Dynamic Asset Generator will time resource generation during this run!");
+            LOGGER.info("Dynamic Asset Generator will time resource generation during this run!");
             try {
                 Files.deleteIfExists(Services.PLATFORM.getModDataFolder().resolve("times.log"));
             } catch (IOException e) {

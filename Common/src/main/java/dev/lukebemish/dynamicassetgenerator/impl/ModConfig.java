@@ -19,11 +19,12 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForceClusteringCutoff) {
+public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForceClusteringCutoff, boolean timeResources) {
     public static final Codec<ModConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.BOOL.fieldOf("cache_assets").forGetter(ModConfig::cacheAssets),
-            Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData),
-            Codec.INT.fieldOf("palette_extraction_force_clustering_cutoff").forGetter(ModConfig::paletteForceClusteringCutoff)
+        Codec.BOOL.fieldOf("cache_assets").forGetter(ModConfig::cacheAssets),
+        Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData),
+        Codec.INT.fieldOf("palette_extraction_force_clustering_cutoff").forGetter(ModConfig::paletteForceClusteringCutoff),
+        Codec.BOOL.fieldOf("time_resources").forGetter(ModConfig::timeResources)
     ).apply(instance, ModConfig::new));
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
     public static final Path FULL_PATH = Services.PLATFORM.getConfigFolder().resolve(DynamicAssetGenerator.MOD_ID+".json");
@@ -41,7 +42,12 @@ public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForce
                 DynamicAssetGenerator.LOGGER.error("Config is in the wrong format! An attempt to load with this config would crash. Using default config instead...");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            DynamicAssetGenerator.LOGGER.error("Issue loading config", e);
+        }
+        try {
+            config.save();
+        } catch (IOException e) {
+            DynamicAssetGenerator.LOGGER.error("Issue saving config", e);
         }
         return config;
     }
@@ -50,24 +56,27 @@ public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForce
         return load();
     }
 
+    private void save() throws IOException {
+        if (!Files.exists(FULL_PATH.getParent())) Files.createDirectories(FULL_PATH.getParent());
+        if (Files.exists(FULL_PATH)) {
+            Files.delete(FULL_PATH);
+        }
+        Files.createFile(FULL_PATH);
+        try (Writer writer = Files.newBufferedWriter(FULL_PATH)) {
+            JsonElement json = CODEC.encodeStart(JsonOps.INSTANCE, this).getOrThrow(false, e -> {});
+            GSON.toJson(json, writer);
+            writer.flush();
+        }
+    }
+
     private static void checkExistence() throws IOException {
         if (!Files.exists(FULL_PATH.getParent())) Files.createDirectories(FULL_PATH.getParent());
         if (!Files.exists(FULL_PATH)) {
-            Files.createFile(FULL_PATH);
-            try {
-                ModConfig config = getDefault();
-                Writer writer = Files.newBufferedWriter(FULL_PATH);
-                JsonElement json = CODEC.encodeStart(JsonOps.INSTANCE, config).getOrThrow(false, e -> {});
-                GSON.toJson(json, writer);
-                writer.flush();
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            getDefault().save();
         }
     }
 
     private static ModConfig getDefault() {
-        return new ModConfig(false, false, 1_000_000);
+        return new ModConfig(false, false, 1_000_000, false);
     }
 }
