@@ -111,6 +111,56 @@ public interface ResourceGenerationContext {
         }
 
         /**
+         * Creates a source which checks the provided fallback source if a resource is not found in this source.
+         * @param fallback the source to check if a resource is not found in this source
+         * @return a resource source that falls back to the provided source
+         */
+        default ResourceGenerationContext.ResourceSource fallback(ResourceGenerationContext.ResourceSource fallback) {
+            var outer = this;
+            return new ResourceSource() {
+                @Override
+                public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+                    IoSupplier<InputStream> supplier = outer.getResource(location);
+                    return supplier != null ? supplier : fallback.getResource(location);
+                }
+
+                @Override
+                public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+                    var list = outer.getResourceStack(location);
+                    if (list.isEmpty()) {
+                        return fallback.getResourceStack(location);
+                    }
+                    return list;
+                }
+
+                @Override
+                public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                    var map = new HashMap<>(fallback.listResources(path, filter));
+                    map.putAll(outer.listResources(path, filter));
+                    return map;
+                }
+
+                @Override
+                public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                    var map = new HashMap<>(fallback.listResourceStacks(path, filter));
+                    outer.listResourceStacks(path, filter).forEach((rl, list) -> {
+                        if (!list.isEmpty()) {
+                            map.put(rl, list);
+                        }
+                    });
+                    return map;
+                }
+
+                @Override
+                public @NotNull Set<String> getNamespaces() {
+                    var set = new HashSet<>(fallback.getNamespaces());
+                    set.addAll(outer.getNamespaces());
+                    return set;
+                }
+            };
+        }
+
+        /**
          * A default implementation which uses a lazy-loaded list of packs. Should be discarded and re-created when the
          * underlying list would change.
          * @param type the type of pack to target

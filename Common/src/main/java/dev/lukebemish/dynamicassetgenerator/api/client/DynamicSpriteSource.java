@@ -10,9 +10,9 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
+import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TouchedTextureTracker;
 import dev.lukebemish.dynamicassetgenerator.impl.Benchmarking;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
@@ -28,16 +28,18 @@ import net.minecraft.client.resources.metadata.animation.AnimationMetadataSectio
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -87,7 +89,37 @@ public interface DynamicSpriteSource extends SpriteSource {
     @Override
     default void run(ResourceManager resourceManager, SpriteSource.Output output) {
         ResourceGenerationContext context = new ResourceGenerationContext() {
-            private final ResourceSource source = ResourceGenerationContext.ResourceSource.filtered(pack -> true, PackType.CLIENT_RESOURCES);
+            private final ResourceSource source = ResourceGenerationContext.ResourceSource.filtered(pack -> true, PackType.CLIENT_RESOURCES)
+                .fallback(new ResourceSource() {
+                    @Override
+                    public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+                        return resourceManager.getResource(location).<IoSupplier<InputStream>>map(r -> r::open).orElse(null);
+                    }
+
+                    @Override
+                    public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+                        return resourceManager.getResourceStack(location).stream().<IoSupplier<InputStream>>map(r -> r::open).toList();
+                    }
+
+                    @Override
+                    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                        Map<ResourceLocation, IoSupplier<InputStream>> map = new HashMap<>();
+                        resourceManager.listResources(path, filter).forEach((rl, r) -> map.put(rl, r::open));
+                        return map;
+                    }
+
+                    @Override
+                    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                        Map<ResourceLocation, List<IoSupplier<InputStream>>> map = new HashMap<>();
+                        resourceManager.listResourceStacks(path, filter).forEach((rl, r) -> map.put(rl, r.stream().<IoSupplier<InputStream>>map(i -> i::open).toList()));
+                        return map;
+                    }
+
+                    @Override
+                    public @NotNull Set<String> getNamespaces() {
+                        return resourceManager.getNamespaces();
+                    }
+                });
 
             @Override
             public @NotNull ResourceLocation getCacheName() {
