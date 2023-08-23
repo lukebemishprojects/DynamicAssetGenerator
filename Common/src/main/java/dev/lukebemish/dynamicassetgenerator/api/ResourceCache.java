@@ -185,8 +185,9 @@ public abstract class ResourceCache {
                 DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
             }
         } else if (DynamicAssetGenerator.getConfig().keyedCache()) {
-            String cacheKey = source.createCacheKey(rl, context);
-            if (cacheKey != null) {
+            String partialCacheKey = source.createCacheKey(rl, context);
+            if (partialCacheKey != null) {
+                String cacheKey = Services.PLATFORM.getModVersion()+":"+partialCacheKey;
                 Path keyPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath() + ".dynassetgen");
                 Path contentPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath());
                 try {

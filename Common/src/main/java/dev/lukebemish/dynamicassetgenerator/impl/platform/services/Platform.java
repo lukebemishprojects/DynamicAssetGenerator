@@ -10,4 +10,5 @@ import java.nio.file.Path;
 public interface Platform {
     Path getConfigFolder();
     Path getModDataFolder();
+    String getModVersion();
 }

@@ -14,6 +14,8 @@ import java.nio.file.Path;
 
 @AutoService(Platform.class)
 public class PlatformImpl implements Platform {
+    private static final String MOD_VERSION = QuiltLoader.getModContainer(DynamicAssetGenerator.MOD_ID).orElseThrow().metadata().version().raw();
+
     public Path getConfigFolder() {
         return QuiltLoader.getConfigDir();
     }
@@ -21,6 +23,11 @@ public class PlatformImpl implements Platform {
     @Override
     public Path getModDataFolder() {
         return QuiltLoader.getGameDir().resolve("mod_data/"+ DynamicAssetGenerator.MOD_ID);
+    }
+
+    @Override
+    public String getModVersion() {
+        return MOD_VERSION;
     }
 
 }
