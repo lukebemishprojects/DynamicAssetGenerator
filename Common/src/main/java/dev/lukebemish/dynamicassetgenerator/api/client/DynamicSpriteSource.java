@@ -14,7 +14,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TouchedTextureTracker;
-import dev.lukebemish.dynamicassetgenerator.impl.Benchmarking;
+import dev.lukebemish.dynamicassetgenerator.impl.Timing;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ExposesName;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ForegroundExtractor;
@@ -156,7 +156,7 @@ public interface DynamicSpriteSource extends SpriteSource {
                         long endTime = System.nanoTime();
 
                         long duration = (endTime - startTime)/1000;
-                        Benchmarking.recordTime(SpriteSourcesAccessor.getTypes().inverse().get(this.type()).toString()+"@"+context.getCacheName().toString(), rl, duration);
+                        Timing.recordTime(SpriteSourcesAccessor.getTypes().inverse().get(this.type()).toString()+"@"+context.getCacheName().toString(), rl, duration);
                     } else {
                         image = imageSupplier.get();
                     }

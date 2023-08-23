@@ -13,11 +13,26 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Map;
 
-public class Benchmarking {
+public class Timing {
     private static final boolean[] LOGGED = new boolean[2];
 
+    private static final Map<String, Map<ResourceLocation, Long>> partialTimes = new HashMap<>();
+
+    public synchronized static void recordPartialTime(String cache, ResourceLocation location, long time) {
+        if (!partialTimes.containsKey(cache)) {
+            partialTimes.put(cache, new HashMap<>());
+        }
+        partialTimes.get(cache).put(location, time);
+    }
+
     public synchronized static void recordTime(String cache, ResourceLocation location, long time) {
+        var map = partialTimes.get(cache);
+        if (map != null) {
+            time = time + map.get(location);
+        }
         if (!Files.exists(Services.PLATFORM.getModDataFolder())) {
             try {
                 Files.createDirectories(Services.PLATFORM.getModDataFolder());

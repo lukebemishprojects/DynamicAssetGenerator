@@ -5,7 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api;
 
-import dev.lukebemish.dynamicassetgenerator.impl.Benchmarking;
+import dev.lukebemish.dynamicassetgenerator.impl.Timing;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
@@ -102,7 +102,18 @@ public abstract class ResourceCache {
             try {
                 PathAwareInputStreamSource source = p.get();
                 Set<ResourceLocation> rls = source.getLocations(makeContext(false));
-                rls.forEach(rl -> outputs.put(rl, wrapSafeData(rl, source)));
+                if (DynamicAssetGenerator.TIME_RESOURCES) {
+                    rls.forEach(rl -> {
+                        long startTime = System.nanoTime();
+                        outputs.put(rl, wrapSafeData(rl, source));
+                        long endTime = System.nanoTime();
+
+                        long duration = (endTime - startTime)/1000;
+                        Timing.recordPartialTime(this.getName().toString(), rl, duration);
+                    });
+                } else {
+                    rls.forEach(rl -> outputs.put(rl, wrapSafeData(rl, source)));
+                }
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue setting up PathAwareInputStreamSource:",e);
             }
@@ -234,7 +245,7 @@ public abstract class ResourceCache {
                 long endTime = System.nanoTime();
 
                 long duration = (endTime - startTime)/1000;
-                Benchmarking.recordTime(this.getName().toString(), rl, duration);
+                Timing.recordTime(this.getName().toString(), rl, duration);
                 return result;
             };
         }
