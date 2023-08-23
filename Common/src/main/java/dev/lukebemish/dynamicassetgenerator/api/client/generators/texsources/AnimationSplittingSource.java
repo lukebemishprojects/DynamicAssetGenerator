@@ -31,13 +31,13 @@ import java.util.*;
  */
 public final class AnimationSplittingSource implements TexSource {
     public static final Codec<AnimationSplittingSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(Codec.STRING, TimeAwareSource.CODEC).fieldOf("sources").forGetter(AnimationSplittingSource::getSources),
+            Codec.unboundedMap(Codec.STRING, TexSource.CODEC).fieldOf("sources").forGetter(AnimationSplittingSource::getSources),
             TexSource.CODEC.fieldOf("generator").forGetter(AnimationSplittingSource::getGenerator)
     ).apply(instance, AnimationSplittingSource::new));
-    private final Map<String, TimeAwareSource> sources;
+    private final Map<String, TexSource> sources;
     private final TexSource generator;
 
-    private AnimationSplittingSource(Map<String, TimeAwareSource> sources, TexSource generator) {
+    private AnimationSplittingSource(Map<String, TexSource> sources, TexSource generator) {
         this.sources = sources;
         this.generator = generator;
     }
@@ -49,25 +49,22 @@ public final class AnimationSplittingSource implements TexSource {
 
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
-        Map<String, IoSupplier<NativeImage>> sources = new HashMap<>();
-        Map<String, Integer> times = new HashMap<>();
-        this.getSources().forEach((key, source) -> {
-            sources.put(key, source.source().getCachedSupplier(data, context));
-            times.put(key, source.scale());
-        });
-        if (sources.isEmpty()) {
+        Map<String, IoSupplier<NativeImage>> sourcesMap = new HashMap<>();
+        this.getSources().forEach((key, source) ->
+            sourcesMap.put(key, source.getCachedSupplier(data, context)));
+        if (sourcesMap.isEmpty()) {
             data.getLogger().error("No sources given...");
             return null;
         }
         return () -> {
             Map<String, NativeImage> images = new HashMap<>();
-            for (Map.Entry<String, IoSupplier<NativeImage>> e : sources.entrySet()) {
+            for (Map.Entry<String, IoSupplier<NativeImage>> e : sourcesMap.entrySet()) {
                 String key = e.getKey();
                 images.put(key, e.getValue().get());
             }
             try (MultiCloser ignored = new MultiCloser(images.values())) {
                 List<NativeImage> imageList = images.values().stream().toList();
-                List<Integer> counts = images.entrySet().stream().map(entry -> times.get(entry.getKey()) * getFrameCount(entry.getValue())).toList();
+                List<Integer> counts = images.values().stream().map(AnimationSplittingSource::getFrameCount).toList();
                 for (int i : counts) {
                     if (i == 0) {
                         data.getLogger().error("Source not shaped correctly for an animation...");
@@ -80,7 +77,7 @@ public final class AnimationSplittingSource implements TexSource {
                 for (int i = 0; i < lcm; i++) {
                     Map<String, NativeImage> map = new HashMap<>();
                     int finalI = i;
-                    images.forEach((str, old) -> map.put(str, getPartialImage(old, finalI, times.get(str))));
+                    images.forEach((str, old) -> map.put(str, getPartialImage(old, finalI)));
                     try (ImageCollection collection = new ImageCollection(map, this.getSources(), i)) {
                         TexSourceDataHolder newData = new TexSourceDataHolder(data);
                         newData.put(ImageCollection.class, collection);
@@ -114,19 +111,19 @@ public final class AnimationSplittingSource implements TexSource {
     }
 
 
-    private static NativeImage getPartialImage(NativeImage input, int part, int scale) {
+    private static NativeImage getPartialImage(NativeImage input, int part) {
         int numFull = input.getHeight() / input.getWidth();
         int size = input.getWidth();
         NativeImage output = NativeImageHelper.of(input.format(), size, size, false);
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
-                output.setPixelRGBA(x, y, ImageUtils.safeGetPixelABGR(input, x, ((part / scale) % numFull) * size + y));
+                output.setPixelRGBA(x, y, ImageUtils.safeGetPixelABGR(input, x, (part % numFull) * size + y));
             }
         }
         return output;
     }
 
-    public Map<String, TimeAwareSource> getSources() {
+    public Map<String, TexSource> getSources() {
         return sources;
     }
 
@@ -138,11 +135,11 @@ public final class AnimationSplittingSource implements TexSource {
     @ApiStatus.Internal
     static class ImageCollection implements Closeable {
         private final Map<String, NativeImage> map;
-        private final Map<String, TimeAwareSource> original;
+        private final Map<String, TexSource> original;
         private final int frame;
 
         @ApiStatus.Internal
-        private ImageCollection(Map<String, NativeImage> map, Map<String, TimeAwareSource> original, int frame) {
+        private ImageCollection(Map<String, NativeImage> map, Map<String, TexSource> original, int frame) {
             this.map = new HashMap<>(map);
             this.original = original;
             this.frame = frame;
@@ -165,32 +162,20 @@ public final class AnimationSplittingSource implements TexSource {
             return frame;
         }
 
-        public TimeAwareSource getFull(String key) {
+        public TexSource getFull(String key) {
             return original.get(key);
         }
     }
 
-    /**
-     * A source for an image to be split into frames, aware of how scaled this animation is in time.
-     * @param source the source to split into frames
-     * @param scale the scale of this animation in time
-     */
-    public record TimeAwareSource(TexSource source, int scale) {
-        public static final Codec<TimeAwareSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                TexSource.CODEC.fieldOf("source").forGetter(TimeAwareSource::source),
-                Codec.INT.optionalFieldOf("scale", 1).forGetter(TimeAwareSource::scale)
-        ).apply(instance, TimeAwareSource::new));
-    }
-
     public static class Builder {
-        private Map<String, TimeAwareSource> sources;
+        private Map<String, TexSource> sources;
         private TexSource generator;
 
         /**
          * Sets a map to sources to split into frames, from keys used to get frames of specific sources from within the
          * generator.
          */
-        public Builder setSources(Map<String, TimeAwareSource> sources) {
+        public Builder setSources(Map<String, TexSource> sources) {
             this.sources = sources;
             return this;
         }

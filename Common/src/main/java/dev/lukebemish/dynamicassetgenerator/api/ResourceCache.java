@@ -105,14 +105,14 @@ public abstract class ResourceCache {
                 if (DynamicAssetGenerator.TIME_RESOURCES) {
                     rls.forEach(rl -> {
                         long startTime = System.nanoTime();
-                        outputs.put(rl, wrapSafeData(rl, source));
+                        outputs.put(rl, wrapSafeData(rl, source, makeContext(false)));
                         long endTime = System.nanoTime();
 
                         long duration = (endTime - startTime)/1000;
                         Timing.recordPartialTime(this.getName().toString(), rl, duration);
                     });
                 } else {
-                    rls.forEach(rl -> outputs.put(rl, wrapSafeData(rl, source)));
+                    rls.forEach(rl -> outputs.put(rl, wrapSafeData(rl, source, makeContext(false))));
                 }
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue setting up PathAwareInputStreamSource:",e);
@@ -166,7 +166,7 @@ public abstract class ResourceCache {
         this.filteredSource = ResourceGenerationContext.ResourceSource.filtered(this::allowAccess, getPackType());
     }
 
-    private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, PathAwareInputStreamSource source) {
+    private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, PathAwareInputStreamSource source, ResourceGenerationContext context) {
         IoSupplier<InputStream> supplier = null;
         StreamTransformer transformer = is -> is;
         if (shouldCache()) {
@@ -185,20 +185,7 @@ public abstract class ResourceCache {
                 DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
             }
         } else if (DynamicAssetGenerator.getConfig().keyedCache()) {
-            ResourceGenerationContext context = makeContext(false);
-            ResourceGenerationContext.ResourceSource cached = CachingResourceSource.of(context.getResourceSource());
-            ResourceGenerationContext wrappedContext = new ResourceGenerationContext() {
-                @Override
-                public @NotNull ResourceLocation getCacheName() {
-                    return context.getCacheName();
-                }
-
-                @Override
-                public ResourceSource getResourceSource() {
-                    return cached;
-                }
-            };
-            String cacheKey = source.createCacheKey(rl, wrappedContext);
+            String cacheKey = source.createCacheKey(rl, context);
             if (cacheKey != null) {
                 Path keyPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath() + ".dynassetgen");
                 Path contentPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath());
@@ -211,7 +198,7 @@ public abstract class ResourceCache {
                     if (existingKey != null && existingKey.equals(cacheKey)) {
                         supplier = () -> new BufferedInputStream(Files.newInputStream(contentPath));
                     } else {
-                        supplier = source.get(rl, wrappedContext);
+                        supplier = source.get(rl, context);
                         transformer = transformer.andThen(is -> {
                             Files.copy(is, contentPath, StandardCopyOption.REPLACE_EXISTING);
                             Files.writeString(keyPath, cacheKey, StandardCharsets.UTF_8);
@@ -220,12 +207,12 @@ public abstract class ResourceCache {
                     }
                 } catch (IOException e) {
                     DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
-                    supplier = source.get(rl, wrappedContext);
+                    supplier = source.get(rl, context);
                 }
             }
         }
         if (supplier == null) {
-            supplier = source.get(rl, makeContext(false));
+            supplier = source.get(rl, context);
         }
         if (supplier == null) return null;
         IoSupplier<InputStream> finalSupplier = supplier;

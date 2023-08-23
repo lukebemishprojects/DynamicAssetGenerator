@@ -61,11 +61,10 @@ public final class AnimationFrameCapture implements TexSource {
         if (collection != null) {
             var builder = ops.mapBuilder();
             builder.add("frame", ops.createInt(collection.getFrame()));
-            AnimationSplittingSource.TimeAwareSource source = collection.getFull(getCapture());
+            TexSource source = collection.getFull(getCapture());
             if (source == null)
                 return DataResult.error(() -> "In uncacheable state, no parent animation source to capture...");
-            DataResult<T> parentElementTyped = TexSource.CODEC.encodeStart(ops, source.source());
-            builder.add("scale", ops.createInt(source.scale()));
+            DataResult<T> parentElementTyped = TexSource.CODEC.encodeStart(ops, source);
             if (parentElementTyped.result().isEmpty())
                 return DataResult.error(() -> "Could not encode parent animation source: " + parentElementTyped.error().get().message());
             builder.add("parent", parentElementTyped);
