@@ -65,6 +65,15 @@ public class JsonResourceGeneratorReader implements PathAwareInputStreamSource, 
         return null;
     }
 
+    @Override
+    public @Nullable String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
+        setupMap(context);
+        ResourceGenerator json = map.get(outRl);
+        if (json!=null)
+            return json.createCacheKey(outRl, context);
+        return null;
+    }
+
     private void setupMap(ResourceGenerationContext context) {
         if (map == null) {
             synchronized (this) {

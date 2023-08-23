@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +60,10 @@ public class DynamicAssetGenerator {
         }
         ResourceGenerator.register(new ResourceLocation(MOD_ID,"dummy"), DummyGenerator.CODEC);
         ResourceCache.register(new BuiltinDataResourceCache(new ResourceLocation(MOD_ID, "builtin_data")), Pack.Position.TOP);
+    }
+
+    public static Path keyedCache(ResourceLocation cacheKey) {
+        return Services.PLATFORM.getModDataFolder().resolve("keyed_cache").resolve(cacheKey.getNamespace()).resolve(cacheKey.getPath());
     }
 
     public static final Map<ResourceLocation, PackInfo> CACHES = new HashMap<>();

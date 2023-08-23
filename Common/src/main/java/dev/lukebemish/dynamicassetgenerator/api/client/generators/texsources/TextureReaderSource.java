@@ -7,6 +7,8 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
@@ -14,8 +16,10 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TouchedTextureTracker;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Objects;
 
 /**
@@ -55,6 +59,22 @@ public final class TextureReaderSource implements TexSource {
             }
             throw new IOException("Issue loading texture: " + this.getPath());
         };
+    }
+
+    @Override
+    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceGenerationContext context) {
+        ResourceLocation outRl = new ResourceLocation(this.getPath().getNamespace(), "textures/" + this.getPath().getPath() + ".png");
+        var supplier = context.getResourceSource().getResource(outRl);
+        if (supplier != null) {
+            try (var is = supplier.get()) {
+                byte[] bytes = is.readAllBytes();
+                String string = Base64.getEncoder().encodeToString(bytes);
+                return DataResult.success(ops.createString(string));
+            } catch (IOException ignored) {
+                return DataResult.error(() -> "Cannot cache potentially erroring source");
+            }
+        }
+        return TexSource.super.persistentCacheData(ops, context);
     }
 
     public ResourceLocation getPath() {

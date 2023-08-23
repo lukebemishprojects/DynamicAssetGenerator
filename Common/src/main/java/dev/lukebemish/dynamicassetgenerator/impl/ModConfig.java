@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Luke Bemish and contributors
+ * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
@@ -19,12 +19,13 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForceClusteringCutoff, boolean timeResources) {
+public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForceClusteringCutoff, boolean timeResources, boolean keyedCache) {
     public static final Codec<ModConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
         Codec.BOOL.fieldOf("cache_assets").forGetter(ModConfig::cacheAssets),
         Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData),
         Codec.INT.fieldOf("palette_extraction_force_clustering_cutoff").forGetter(ModConfig::paletteForceClusteringCutoff),
-        Codec.BOOL.fieldOf("time_resources").forGetter(ModConfig::timeResources)
+        Codec.BOOL.fieldOf("time_resources").forGetter(ModConfig::timeResources),
+        Codec.BOOL.fieldOf("keyed_cache").forGetter(ModConfig::keyedCache)
     ).apply(instance, ModConfig::new));
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().excludeFieldsWithoutExposeAnnotation().create();
     public static final Path FULL_PATH = Services.PLATFORM.getConfigFolder().resolve(DynamicAssetGenerator.MOD_ID+".json");
@@ -77,6 +78,6 @@ public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForce
     }
 
     private static ModConfig getDefault() {
-        return new ModConfig(false, false, 1_000_000, false);
+        return new ModConfig(false, false, 1_000_000, false, true);
     }
 }

@@ -71,7 +71,8 @@ public final class AnimationFrameCapture implements TexSource {
             builder.add("parent", parentElementTyped);
             return builder.build(ops.empty());
         }
-        return DataResult.error(() -> "In uncacheable state, no parent animation source to capture...");
+        // we're looking from the outside in, so there is no metadata to cache or this is an error state anyway.
+        return TexSource.super.cacheMetadata(ops, data);
     }
 
     public String getCapture() {

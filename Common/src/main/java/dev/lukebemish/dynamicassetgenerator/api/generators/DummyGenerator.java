@@ -6,6 +6,8 @@
 package dev.lukebemish.dynamicassetgenerator.api.generators;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
@@ -33,6 +35,11 @@ public class DummyGenerator implements ResourceGenerator {
     @Override
     public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of();
+    }
+
+    @Override
+    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
+        return DataResult.success(ops.empty());
     }
 
     @Override

@@ -12,6 +12,7 @@ import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
@@ -23,10 +24,7 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -87,6 +85,27 @@ public class TextureMetaGenerator implements ResourceGenerator {
         .put(VillagerMetaDataSection.SECTION_NAME, TextureMetaGenerator::getVillager)
         .put("texture", TextureMetaGenerator::getTexture)
         .build();
+
+    @Override
+    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
+        var builder = ops.listBuilder();
+        for (var s : sources) {
+            ResourceLocation metaLocation = new ResourceLocation(s.getNamespace(), "textures/" + s.getPath() + ".png.mcmeta");
+            var supplier = context.getResourceSource().getResource(metaLocation);
+            if (supplier == null) {
+                builder.add(ops.empty());
+                continue;
+            }
+            try (var is = supplier.get()) {
+                byte[] bytes = is.readAllBytes();
+                String string = Base64.getEncoder().encodeToString(bytes);
+                builder.add(ops.createString(string));
+            } catch (IOException ignored) {
+                return DataResult.error(() -> "Cannot cache potentially erroring source");
+            }
+        }
+        return builder.build(ops.empty());
+    }
 
     @Override
     public @Nullable IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {

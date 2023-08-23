@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -96,21 +97,16 @@ public abstract class ResourceCache {
      * @return a map of all resources this pack can generate; calling this may resolve any given source cached to it
      */
     public Map<ResourceLocation, IoSupplier<InputStream>> getResources() {
-        Map<ResourceLocation, IoSupplier<InputStream>> outputsSetup = new HashMap<>();
+        Map<ResourceLocation, IoSupplier<InputStream>> outputs = new HashMap<>();
         this.cache.forEach(p-> {
             try {
                 PathAwareInputStreamSource source = p.get();
                 Set<ResourceLocation> rls = source.getLocations(makeContext(false));
-                rls.forEach(rl -> outputsSetup.put(rl, wrapSafeData(rl, source.get(rl, makeContext(false)))));
+                rls.forEach(rl -> outputs.put(rl, wrapSafeData(rl, source)));
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue setting up PathAwareInputStreamSource:",e);
             }
         });
-
-        var outputs = outputsSetup;
-
-        if (shouldCache())
-            outputs = wrapCachedData(outputs);
 
         return outputs;
     }
@@ -133,7 +129,7 @@ public abstract class ResourceCache {
 
             @Override
             public ResourceSource getResourceSource() {
-                if (blind) {
+                if (blind || filteredSource == null) {
                     return ResourceSource.blind();
                 }
                 return filteredSource;
@@ -159,11 +155,73 @@ public abstract class ResourceCache {
         this.filteredSource = ResourceGenerationContext.ResourceSource.filtered(this::allowAccess, getPackType());
     }
 
-    private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, IoSupplier<InputStream> supplier) {
+    private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, PathAwareInputStreamSource source) {
+        IoSupplier<InputStream> supplier = null;
+        StreamTransformer transformer = is -> is;
+        if (shouldCache()) {
+            try {
+                Path path = this.cachePath().resolve(rl.getNamespace()).resolve(rl.getPath());
+                if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
+                if (Files.exists(path)) {
+                    supplier = () -> new BufferedInputStream(Files.newInputStream(path));
+                } else {
+                    transformer = transformer.andThen(is -> {
+                        Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
+                        return new BufferedInputStream(Files.newInputStream(path));
+                    });
+                }
+            } catch (IOException e) {
+                DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
+            }
+        } else if (DynamicAssetGenerator.getConfig().keyedCache()) {
+            ResourceGenerationContext context = makeContext(false);
+            ResourceGenerationContext.ResourceSource cached = CachingResourceSource.of(context.getResourceSource());
+            ResourceGenerationContext wrappedContext = new ResourceGenerationContext() {
+                @Override
+                public @NotNull ResourceLocation getCacheName() {
+                    return context.getCacheName();
+                }
+
+                @Override
+                public ResourceSource getResourceSource() {
+                    return cached;
+                }
+            };
+            String cacheKey = source.createCacheKey(rl, wrappedContext);
+            if (cacheKey != null) {
+                Path keyPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath() + ".dynassetgen");
+                Path contentPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath());
+                try {
+                    if (!Files.exists(keyPath.getParent())) Files.createDirectories(keyPath.getParent());
+                    String existingKey = null;
+                    if (Files.exists(keyPath)) {
+                        existingKey = Files.readString(keyPath, StandardCharsets.UTF_8);
+                    }
+                    if (existingKey != null && existingKey.equals(cacheKey)) {
+                        supplier = () -> new BufferedInputStream(Files.newInputStream(contentPath));
+                    } else {
+                        supplier = source.get(rl, wrappedContext);
+                        transformer = transformer.andThen(is -> {
+                            Files.copy(is, contentPath, StandardCopyOption.REPLACE_EXISTING);
+                            Files.writeString(keyPath, cacheKey, StandardCharsets.UTF_8);
+                            return new BufferedInputStream(Files.newInputStream(contentPath));
+                        });
+                    }
+                } catch (IOException e) {
+                    DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
+                    supplier = source.get(rl, wrappedContext);
+                }
+            }
+        }
+        if (supplier == null) {
+            supplier = source.get(rl, makeContext(false));
+        }
         if (supplier == null) return null;
+        IoSupplier<InputStream> finalSupplier = supplier;
+        StreamTransformer finalTransformer = transformer;
         IoSupplier<InputStream> output = () -> {
             try {
-                return supplier.get();
+                return finalTransformer.transform(finalSupplier.get());
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue reading supplying resource {}:", rl, e);
                 throw new IOException(e);
@@ -183,27 +241,12 @@ public abstract class ResourceCache {
         return output;
     }
 
-    private Map<ResourceLocation, IoSupplier<InputStream>> wrapCachedData(Map<ResourceLocation, IoSupplier<InputStream>> map) {
-        HashMap<ResourceLocation, IoSupplier<InputStream>> output = new HashMap<>();
-        map.forEach((rl, supplier) -> {
-            if (supplier == null) return;
-            IoSupplier<InputStream> wrapped = () -> {
-                try {
-                    Path path = this.cachePath().resolve(rl.getNamespace()).resolve(rl.getPath());
-                    if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
-                    if (!Files.exists(path)) {
-                        InputStream stream = supplier.get();
-                        Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                    return new BufferedInputStream(Files.newInputStream(path));
-                } catch (IOException e) {
-                    DynamicAssetGenerator.LOGGER.error("Could not cache resource...", e);
-                    throw new IOException(e);
-                }
-            };
-            output.put(rl, wrapped);
-        });
-        return output;
+    private interface StreamTransformer {
+        InputStream transform(InputStream stream) throws IOException;
+
+        default StreamTransformer andThen(StreamTransformer after) {
+            return stream -> after.transform(transform(stream));
+        }
     }
 
     /**
@@ -283,6 +326,11 @@ public abstract class ResourceCache {
             @Override
             public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
                 return source.get(outRl, context);
+            }
+
+            @Override
+            public @Nullable String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
+                return source.createCacheKey(outRl, context);
             }
         };
     }

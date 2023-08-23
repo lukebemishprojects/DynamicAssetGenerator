@@ -7,6 +7,8 @@ package dev.lukebemish.dynamicassetgenerator.api.client.generators;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
@@ -58,6 +60,11 @@ public class TextureGenerator implements ResourceGenerator {
                 throw new IOException(remainder);
             }
         };
+    }
+
+    @Override
+    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
+        return TexSource.CODEC.encodeStart(ops, this.input);
     }
 
     @Override
