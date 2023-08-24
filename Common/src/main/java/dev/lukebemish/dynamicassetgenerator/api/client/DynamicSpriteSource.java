@@ -140,7 +140,7 @@ public interface DynamicSpriteSource extends SpriteSource {
         Map<ResourceLocation, TexSource> sources = getSources(context, resourceManager);
 
         sources.forEach((rl, texSource) -> {
-            var trackingSource = TrackingResourceSource.of(context.getResourceSource(), "textures/", ".png");
+            var trackingSource = TrackingResourceSource.of(context.getResourceSource(), "textures", ".png");
             ResourceGenerationContext trackingContext = context.withResourceSource(trackingSource);
             var dataHolder = new TexSourceDataHolder();
             IoSupplier<NativeImage> imageSupplier = ResourceUtils.wrapSafeData(

@@ -18,6 +18,9 @@ import org.jetbrains.annotations.NotNull;
  * a class extending this, to ensure that caching is respected.
  */
 public class AssetResourceCache extends ResourceCache {
+    /**
+     * The location of an empty texture, which consists of a single transparent pixel.
+     */
     @SuppressWarnings("unused")
     public static final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "textures/empty.png");
 

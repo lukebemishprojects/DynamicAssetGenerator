@@ -1,7 +1,13 @@
+/*
+ * Copyright (C) 2023 Luke Bemish and contributors
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
 package dev.lukebemish.dynamicassetgenerator.api;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,6 +15,9 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.Predicate;
 
+/**
+ * A resource source that tracks the resources that have been accessed.
+ */
 public class TrackingResourceSource implements ResourceGenerationContext.ResourceSource {
 
     private final ResourceGenerationContext.ResourceSource delegate;
@@ -28,10 +37,17 @@ public class TrackingResourceSource implements ResourceGenerationContext.Resourc
 
     private TrackingResourceSource(ResourceGenerationContext.ResourceSource delegate, String prefix, String suffix) {
         this.delegate = delegate;
-        this.prefix = prefix;
+        this.prefix = prefix.endsWith("/")? prefix : prefix+"/";
         this.suffix = suffix;
     }
 
+    /**
+     * Creates a new tracking resource source.
+     * @param delegate the delegate resource source
+     * @param prefix the prefix to track resources within, such as {@code "textures}
+     * @param suffix the suffix to track resources ending with, such as {@code ".png"}
+     */
+    @Contract("_, _, _ -> new")
     public static TrackingResourceSource of(ResourceGenerationContext.ResourceSource delegate, String prefix, String suffix) {
         return new TrackingResourceSource(delegate, prefix, suffix);
     }
