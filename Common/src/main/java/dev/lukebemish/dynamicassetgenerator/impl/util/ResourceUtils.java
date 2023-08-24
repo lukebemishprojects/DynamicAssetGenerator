@@ -13,7 +13,6 @@ import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -51,12 +50,12 @@ public final class ResourceUtils {
                 Path path = DynamicAssetGenerator.cache(context.getCacheName(), false).resolve(rl.getNamespace()).resolve(rl.getPath());
                 if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
                 if (Files.exists(path)) {
-                    supplier = () -> opener.apply(new BufferedInputStream(Files.newInputStream(path)));
+                    supplier = () -> opener.apply(Files.newInputStream(path));
                 } else {
                     transformer = transformer.andThen(is -> {
                         try (var stream = is) {
                             Files.copy(writer.apply(stream), path, StandardCopyOption.REPLACE_EXISTING);
-                            return opener.apply(new BufferedInputStream(Files.newInputStream(path)));
+                            return opener.apply(Files.newInputStream(path));
                         } catch (IOException e) {
                             throw e;
                         } catch (Exception e) {
