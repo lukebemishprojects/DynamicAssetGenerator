@@ -80,14 +80,14 @@ public final class ResourceUtils {
                         existingKey = Files.readString(keyPath, StandardCharsets.UTF_8);
                     }
                     if (existingKey != null && existingKey.equals(cacheKey)) {
-                        supplier = () -> opener.apply(new BufferedInputStream(Files.newInputStream(contentPath)));
+                        supplier = () -> opener.apply(Files.newInputStream(contentPath));
                     } else {
                         supplier = source.apply(rl, context);
                         transformer = transformer.andThen(is -> {
                             try (var stream = is) {
                                 Files.copy(writer.apply(stream), contentPath, StandardCopyOption.REPLACE_EXISTING);
                                 Files.writeString(keyPath, cacheKey, StandardCharsets.UTF_8);
-                                return opener.apply(new BufferedInputStream(Files.newInputStream(contentPath)));
+                                return opener.apply(Files.newInputStream(contentPath));
                             } catch (IOException e) {
                                 throw e;
                             } catch (Exception e) {
