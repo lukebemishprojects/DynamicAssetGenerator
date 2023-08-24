@@ -5,9 +5,9 @@
 
 package dev.lukebemish.dynamicassetgenerator.api;
 
-import dev.lukebemish.dynamicassetgenerator.impl.Timing;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
+import dev.lukebemish.dynamicassetgenerator.impl.Timing;
+import dev.lukebemish.dynamicassetgenerator.impl.util.ResourceUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
@@ -15,13 +15,7 @@ import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -105,14 +99,14 @@ public abstract class ResourceCache {
                 if (DynamicAssetGenerator.TIME_RESOURCES) {
                     rls.forEach(rl -> {
                         long startTime = System.nanoTime();
-                        outputs.put(rl, wrapSafeData(rl, source, makeContext(false)));
+                        outputs.put(rl, ResourceUtils.wrapSafeData(rl, source, makeContext(false)));
                         long endTime = System.nanoTime();
 
                         long duration = (endTime - startTime)/1000;
                         Timing.recordPartialTime(this.getName().toString(), rl, duration);
                     });
                 } else {
-                    rls.forEach(rl -> outputs.put(rl, wrapSafeData(rl, source, makeContext(false))));
+                    rls.forEach(rl -> outputs.put(rl, ResourceUtils.wrapSafeData(rl, source, makeContext(false))));
                 }
             } catch (Throwable e) {
                 DynamicAssetGenerator.LOGGER.error("Issue setting up PathAwareInputStreamSource:",e);
@@ -164,100 +158,6 @@ public abstract class ResourceCache {
     public void reset(ResourceGenerationContext context) {
         this.resetListeners.forEach(r -> r.reset(context));
         this.filteredSource = ResourceGenerationContext.ResourceSource.filtered(this::allowAccess, getPackType());
-    }
-
-    private IoSupplier<InputStream> wrapSafeData(ResourceLocation rl, PathAwareInputStreamSource source, ResourceGenerationContext context) {
-        IoSupplier<InputStream> supplier = null;
-        StreamTransformer transformer = is -> is;
-        if (shouldCache()) {
-            try {
-                Path path = this.cachePath().resolve(rl.getNamespace()).resolve(rl.getPath());
-                if (!Files.exists(path.getParent())) Files.createDirectories(path.getParent());
-                if (Files.exists(path)) {
-                    supplier = () -> new BufferedInputStream(Files.newInputStream(path));
-                } else {
-                    transformer = transformer.andThen(is -> {
-                        Files.copy(is, path, StandardCopyOption.REPLACE_EXISTING);
-                        return new BufferedInputStream(Files.newInputStream(path));
-                    });
-                }
-            } catch (IOException e) {
-                DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
-            }
-        } else if (DynamicAssetGenerator.getConfig().keyedCache()) {
-            String partialCacheKey = source.createCacheKey(rl, context);
-            if (partialCacheKey != null) {
-                String cacheKey = Services.PLATFORM.getModVersion()+":"+partialCacheKey;
-                Path keyPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath() + ".dynassetgen");
-                Path contentPath = DynamicAssetGenerator.keyedCache(this.name).resolve(rl.getNamespace()).resolve(rl.getPath());
-                try {
-                    if (!Files.exists(keyPath.getParent())) Files.createDirectories(keyPath.getParent());
-                    String existingKey = null;
-                    if (Files.exists(keyPath)) {
-                        existingKey = Files.readString(keyPath, StandardCharsets.UTF_8);
-                    }
-                    if (existingKey != null && existingKey.equals(cacheKey)) {
-                        supplier = () -> new BufferedInputStream(Files.newInputStream(contentPath));
-                    } else {
-                        supplier = source.get(rl, context);
-                        transformer = transformer.andThen(is -> {
-                            Files.copy(is, contentPath, StandardCopyOption.REPLACE_EXISTING);
-                            Files.writeString(keyPath, cacheKey, StandardCharsets.UTF_8);
-                            return new BufferedInputStream(Files.newInputStream(contentPath));
-                        });
-                    }
-                } catch (IOException e) {
-                    DynamicAssetGenerator.LOGGER.error("Could not cache resource {}...", rl, e);
-                    supplier = source.get(rl, context);
-                }
-            }
-        }
-        if (supplier == null) {
-            supplier = source.get(rl, context);
-        }
-        if (supplier == null) return null;
-        IoSupplier<InputStream> finalSupplier = supplier;
-        StreamTransformer finalTransformer = transformer;
-        IoSupplier<InputStream> output = () -> {
-            try {
-                return finalTransformer.transform(finalSupplier.get());
-            } catch (Throwable e) {
-                DynamicAssetGenerator.LOGGER.error("Issue reading supplying resource {}:", rl, e);
-                throw new IOException(e);
-            }
-        };
-        if (DynamicAssetGenerator.TIME_RESOURCES) {
-            return () -> {
-                long startTime = System.nanoTime();
-                var result = output.get();
-                long endTime = System.nanoTime();
-
-                long duration = (endTime - startTime)/1000;
-                Timing.recordTime(this.getName().toString(), rl, duration);
-                return result;
-            };
-        }
-        return output;
-    }
-
-    private interface StreamTransformer {
-        InputStream transform(InputStream stream) throws IOException;
-
-        default StreamTransformer andThen(StreamTransformer after) {
-            return stream -> after.transform(transform(stream));
-        }
-    }
-
-    /**
-     * @return whether this cache should be cached to disk
-     */
-    public abstract boolean shouldCache();
-
-    /**
-     * @return the path on disk to cache this cache to, if it should be cached to the disk
-     */
-    public Path cachePath() {
-        return Services.PLATFORM.getModDataFolder().resolve("cache").resolve(name.getNamespace()).resolve(name.getPath());
     }
 
     /**

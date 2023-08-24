@@ -224,29 +224,21 @@ public class TextureMetaGenerator implements ResourceGenerator {
 
     public static class AnimationGenerator implements MetaSection {
         public static final Codec<AnimationGenerator> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.INT.listOf().optionalFieldOf("scales").forGetter(AnimationGenerator::getScales),
             Codec.INT.optionalFieldOf("frametime").forGetter(AnimationGenerator::getFrametime),
             Codec.INT.optionalFieldOf("width").forGetter(AnimationGenerator::getWidth),
             Codec.INT.optionalFieldOf("height").forGetter(AnimationGenerator::getHeight),
             Codec.BOOL.optionalFieldOf("interpolate").forGetter(AnimationGenerator::getInterpolate)
         ).apply(i, AnimationGenerator::new));
-
-        private final Optional<List<Integer>> scales;
         private final Optional<Integer> frametime;
         private final Optional<Integer> width;
         private final Optional<Integer> height;
         private final Optional<Boolean> interpolate;
 
-        private AnimationGenerator(Optional<List<Integer>> scales, Optional<Integer> frametime, Optional<Integer> width, Optional<Integer> height, Optional<Boolean> interpolate) {
-            this.scales = scales;
+        private AnimationGenerator(Optional<Integer> frametime, Optional<Integer> width, Optional<Integer> height, Optional<Boolean> interpolate) {
             this.frametime = frametime;
             this.width = width;
             this.height = height;
             this.interpolate = interpolate;
-        }
-
-        public Optional<List<Integer>> getScales() {
-            return scales;
         }
 
         public Optional<Integer> getFrametime() {
@@ -266,16 +258,10 @@ public class TextureMetaGenerator implements ResourceGenerator {
         }
 
         public static class Builder {
-            private Optional<List<Integer>> scales = Optional.empty();
             private Optional<Integer> frametime = Optional.empty();
             private Optional<Integer> width = Optional.empty();
             private Optional<Integer> height = Optional.empty();
             private Optional<Boolean> interpolate = Optional.empty();
-
-            public Builder withScales(List<Integer> scales) {
-                this.scales = Optional.of(scales);
-                return this;
-            }
 
             public Builder withFrametime(int frametime) {
                 this.frametime = Optional.of(frametime);
@@ -298,7 +284,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
             }
 
             public AnimationGenerator build() {
-                return new AnimationGenerator(scales, frametime, width, height, interpolate);
+                return new AnimationGenerator(frametime, width, height, interpolate);
             }
         }
 
@@ -371,17 +357,11 @@ public class TextureMetaGenerator implements ResourceGenerator {
             }
             frames.add(new Frame(0, frametime));
 
-            List<Integer> scale = new ArrayList<>(scales.orElse(List.of()));
-            while (scale.size() < originals.size())
-                scale.add(1);
-
-            for (int i = 0; i < originalsLocations.size(); i++) {
-                ResourceLocation location = originalsLocations.get(i);
+            for (ResourceLocation location : originalsLocations) {
                 var section = parsed.get(location);
                 if (section == null) continue;
                 int maxFrames = getMaxFrames(section);
-                int thisScale = scale.get(i);
-                frames = mutateList(frames, section, maxFrames, thisScale);
+                frames = mutateList(frames, section, maxFrames);
             }
 
             if (frames.size() > 1) {
@@ -406,15 +386,12 @@ public class TextureMetaGenerator implements ResourceGenerator {
             return maxFrames.get() + 1;
         }
 
-        private static List<Frame> mutateList(List<Frame> pattern, AnimationMetadataSection section, int maxFrames, int scale) {
+        private static List<Frame> mutateList(List<Frame> pattern, AnimationMetadataSection section, int maxFrames) {
             var out = new ArrayList<Frame>();
             for (Frame frame : pattern) {
                 section.forEachFrame((index, time) -> {
                     int frameTime = time * frame.time / section.getDefaultFrameTime();
-                    for (int i = 0; i < scale; i++) {
-                        Frame newFrame = new Frame(frame.index * maxFrames * scale + index * scale + i, frameTime);
-                        out.add(newFrame);
-                    }
+                    out.add(new Frame(frame.index * maxFrames + index, frameTime));
                 });
             }
             return out;

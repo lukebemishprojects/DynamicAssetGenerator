@@ -87,7 +87,6 @@ public class DynamicAssetGeneratorClient {
                 .withSources(List.of(new ResourceLocation("block/magma"), new ResourceLocation("block/prismarine")))
                 .withOutputLocation(new ResourceLocation("block/moss_block"))
                 .withAnimation(new TextureMetaGenerator.AnimationGenerator.Builder()
-                    .withScales(List.of(4,1))
                     .build())
                 .build()
             );

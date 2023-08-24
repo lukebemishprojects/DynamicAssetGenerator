@@ -31,11 +31,6 @@ public class AssetResourceCache extends ResourceCache {
     }
 
     @Override
-    public boolean shouldCache() {
-        return DynamicAssetGenerator.getConfig().cacheAssets();
-    }
-
-    @Override
     public @NotNull PackType getPackType() {
         return PackType.CLIENT_RESOURCES;
     }

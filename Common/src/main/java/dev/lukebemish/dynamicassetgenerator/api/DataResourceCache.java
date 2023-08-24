@@ -5,7 +5,6 @@
 
 package dev.lukebemish.dynamicassetgenerator.api;
 
-import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.sources.TagBakery;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -23,11 +22,6 @@ public class DataResourceCache extends ResourceCache {
     public DataResourceCache(ResourceLocation name) {
         super(name);
         this.planSource(tagBakery);
-    }
-
-    @Override
-    public boolean shouldCache() {
-        return DynamicAssetGenerator.getConfig().cacheData();
     }
 
     @Override

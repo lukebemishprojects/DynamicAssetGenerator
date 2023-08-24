@@ -19,10 +19,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForceClusteringCutoff, boolean timeResources, boolean keyedCache) {
+public record ModConfig(boolean fullCache, int paletteForceClusteringCutoff, boolean timeResources, boolean keyedCache) {
     public static final Codec<ModConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        Codec.BOOL.fieldOf("cache_assets").forGetter(ModConfig::cacheAssets),
-        Codec.BOOL.fieldOf("cache_data").forGetter(ModConfig::cacheData),
+        Codec.BOOL.fieldOf("full_cache").forGetter(ModConfig::fullCache),
         Codec.INT.fieldOf("palette_extraction_force_clustering_cutoff").forGetter(ModConfig::paletteForceClusteringCutoff),
         Codec.BOOL.fieldOf("time_resources").forGetter(ModConfig::timeResources),
         Codec.BOOL.fieldOf("keyed_cache").forGetter(ModConfig::keyedCache)
@@ -78,6 +77,6 @@ public record ModConfig(boolean cacheAssets, boolean cacheData, int paletteForce
     }
 
     private static ModConfig getDefault() {
-        return new ModConfig(false, false, 1_000_000, false, true);
+        return new ModConfig(false, 1_000_000, false, true);
     }
 }

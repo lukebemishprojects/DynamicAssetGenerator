@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,25 @@ public interface ResourceGenerationContext {
      */
     default ResourceSource getResourceSource() {
         return EmptyResourceSource.INSTANCE;
+    }
+
+    /**
+     * @return a generation context identical to the current one, but with a different resource source
+     */
+    @ApiStatus.NonExtendable
+    default ResourceGenerationContext withResourceSource(ResourceSource source) {
+        ResourceGenerationContext outer = this;
+        return new ResourceGenerationContext() {
+            @Override
+            public @NotNull ResourceLocation getCacheName() {
+                return outer.getCacheName();
+            }
+
+            @Override
+            public ResourceSource getResourceSource() {
+                return source;
+            }
+        };
     }
 
     interface ResourceSource {

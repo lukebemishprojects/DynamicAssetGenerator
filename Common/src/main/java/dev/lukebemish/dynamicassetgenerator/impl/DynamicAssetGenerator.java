@@ -62,8 +62,8 @@ public class DynamicAssetGenerator {
         ResourceCache.register(new BuiltinDataResourceCache(new ResourceLocation(MOD_ID, "builtin_data")), Pack.Position.TOP);
     }
 
-    public static Path keyedCache(ResourceLocation cacheKey) {
-        return Services.PLATFORM.getModDataFolder().resolve("keyed_cache").resolve(cacheKey.getNamespace()).resolve(cacheKey.getPath());
+    public static Path cache(ResourceLocation cacheKey, boolean keyed) {
+        return Services.PLATFORM.getModDataFolder().resolve(keyed ? "keyed_cache" : "cache").resolve(cacheKey.getNamespace()).resolve(cacheKey.getPath());
     }
 
     public static final Map<ResourceLocation, PackInfo> CACHES = new HashMap<>();

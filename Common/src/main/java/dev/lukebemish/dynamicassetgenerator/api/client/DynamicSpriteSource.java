@@ -10,17 +10,19 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
+import dev.lukebemish.dynamicassetgenerator.api.TrackingResourceSource;
+import dev.lukebemish.dynamicassetgenerator.api.cache.CacheMetaJsonOps;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TextureMetaGenerator;
-import dev.lukebemish.dynamicassetgenerator.api.client.generators.TouchedTextureTracker;
-import dev.lukebemish.dynamicassetgenerator.impl.Timing;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.ResourceCachingData;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ExposesName;
 import dev.lukebemish.dynamicassetgenerator.impl.client.ForegroundExtractor;
 import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCache;
 import dev.lukebemish.dynamicassetgenerator.impl.client.platform.ClientServices;
 import dev.lukebemish.dynamicassetgenerator.impl.mixin.SpriteSourcesAccessor;
+import dev.lukebemish.dynamicassetgenerator.impl.util.ResourceUtils;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
 import net.minecraft.client.renderer.texture.atlas.SpriteSourceType;
@@ -34,10 +36,7 @@ import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -141,31 +140,40 @@ public interface DynamicSpriteSource extends SpriteSource {
         Map<ResourceLocation, TexSource> sources = getSources(context, resourceManager);
 
         sources.forEach((rl, texSource) -> {
+            var trackingSource = TrackingResourceSource.of(context.getResourceSource(), "textures/", ".png");
+            ResourceGenerationContext trackingContext = context.withResourceSource(trackingSource);
             var dataHolder = new TexSourceDataHolder();
-            dataHolder.put(TouchedTextureTracker.class, new TouchedTextureTracker());
-            var imageSupplier = texSource.getCachedSupplier(dataHolder, context);
+            IoSupplier<NativeImage> imageSupplier = ResourceUtils.wrapSafeData(
+                new ResourceLocation(rl.getNamespace(), "textures/"+rl.getPath()+".png"),
+                (r, c) -> texSource.getCachedSupplier(dataHolder, c),
+                trackingContext,
+                im -> {
+                    try (var image = im) {
+                        return new ByteArrayInputStream(image.asByteArray());
+                    }
+                },
+                is -> {
+                    try (var input = is) {
+                        return NativeImage.read(input);
+                    }
+                },
+                (r, c) -> {
+                    CacheMetaJsonOps ops = new CacheMetaJsonOps();
+                    ops.putData(ResourceCachingData.class, new ResourceCachingData(r, c));
+                    return TexSource.CODEC.encodeStart(ops, texSource).result().map(DynamicAssetGenerator.GSON_FLAT::toJson).orElse(null);
+                }
+            );
             output.add(rl, () -> {
                 try {
                     if (imageSupplier == null) {
                         throw new IOException("No image supplier");
                     }
-                    final NativeImage image;
-                    if (DynamicAssetGenerator.TIME_RESOURCES) {
-                        long startTime = System.nanoTime();
-                        image = imageSupplier.get();
-                        long endTime = System.nanoTime();
-
-                        long duration = (endTime - startTime)/1000;
-                        Timing.recordTime(SpriteSourcesAccessor.getTypes().inverse().get(this.type()).toString()+"@"+context.getCacheName().toString(), rl, duration);
-                    } else {
-                        image = imageSupplier.get();
-                    }
-                    TouchedTextureTracker tracker = dataHolder.get(TouchedTextureTracker.class);
+                    final NativeImage image = imageSupplier.get();
                     AnimationMetadataSection section = AnimationMetadataSection.EMPTY;
-                    if (tracker != null && !tracker.getTouchedTextures().isEmpty()) {
+                    if (!trackingSource.getTouchedTextures().isEmpty()) {
                         TextureMetaGenerator.AnimationGenerator generator = new TextureMetaGenerator.AnimationGenerator.Builder().build();
                         List<Pair<ResourceLocation, JsonObject>> animations = new ArrayList<>();
-                        for (ResourceLocation touchedTexture : tracker.getTouchedTextures()) {
+                        for (ResourceLocation touchedTexture : trackingSource.getTouchedTextures()) {
                             var resource = context.getResourceSource().getResource(new ResourceLocation(touchedTexture.getNamespace(), "textures/"+touchedTexture.getPath()+".png.mcmeta"));
                             if (resource == null) {
                                 animations.add(new Pair<>(touchedTexture, null));
