@@ -64,7 +64,7 @@ public class TextureGenerator implements ResourceGenerator {
 
     @Override
     public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
-        return TexSource.CODEC.encodeStart(ops, this.input);
+        return DataResult.success(ops.empty()); // The actual persistent data is recorded while encoding the held texture source
     }
 
     @Override
