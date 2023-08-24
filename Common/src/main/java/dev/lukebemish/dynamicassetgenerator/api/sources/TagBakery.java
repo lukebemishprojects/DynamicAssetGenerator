@@ -11,32 +11,44 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * A utility for easily providing any number of tags to a resource cache.
  */
 @SuppressWarnings("unused")
 public class TagBakery implements PathAwareInputStreamSource, Resettable {
-    private Map<ResourceLocation, List<Supplier<Set<ResourceLocation>>>> bakedTags;
-    private final List<Supplier<Map<ResourceLocation,Set<ResourceLocation>>>> tagQueue;
+    private Map<ResourceLocation, Set<ResourceLocation>> bakedTags;
+    private final List<TagSupplier> tagQueue;
 
     private final Map<ResourceLocation, Set<ResourceLocation>> staticQueue = new HashMap<>();
 
     public TagBakery() {
         this.tagQueue = new ArrayList<>();
-        this.tagQueue.add(() -> staticQueue);
+        this.tagQueue.add(new TagSupplier() {
+            @Override
+            public Map<ResourceLocation, Set<ResourceLocation>> apply(ResourceGenerationContext context) {
+                return staticQueue;
+            }
+
+            @Override
+            public String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
+                return "STATIC_QUEUE";
+            }
+        });
     }
 
     /**
      * Queues an unresolved set of tags to be added when this source is resolved.
      * @param tagSupplier supplies a map of tag identifiers to sets of registry entry identifiers
      */
-    public void queue(Supplier<Map<ResourceLocation,Set<ResourceLocation>>> tagSupplier) {
+    public void queue(TagSupplier tagSupplier) {
         this.tagQueue.add(tagSupplier);
     }
 
@@ -69,30 +81,27 @@ public class TagBakery implements PathAwareInputStreamSource, Resettable {
     @Override
     public IoSupplier<InputStream> get(ResourceLocation outRl, ResourceGenerationContext context) {
         return () -> {
-            checkTags();
-            return build(bakedTags.get(outRl));
+            checkTags(context);
+            return build(bakedTags.get(outRl), context);
         };
     }
 
-    private InputStream build(List<Supplier<Set<ResourceLocation>>> paths) {
+    private InputStream build(Set<ResourceLocation> paths, ResourceGenerationContext context) {
         StringBuilder internal = new StringBuilder();
-        List<ResourceLocation> toAdd = new ArrayList<>();
-        for (Supplier<Set<ResourceLocation>> p : paths) {
-            toAdd.addAll(p.get());
-        }
+        List<ResourceLocation> toAdd = new ArrayList<>(paths);
         toAdd.forEach(rl -> {
             if (!internal.isEmpty()) {
                 internal.append(",\n");
             }
-            internal.append("    \"").append(rl.getNamespace()).append(":").append(rl.getPath()).append("\"");
+            internal.append("\"").append(rl.getNamespace()).append(":").append(rl.getPath()).append("\"");
         });
-        String json = "{\n  \"replace\":false,\n  \"values\":["+internal+"\n]}";
+        String json = "{\n\"replace\":false,\n\"values\":["+internal+"\n]}";
         return new ByteArrayInputStream(json.getBytes());
     }
 
     @Override
     public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
-        checkTags();
+        checkTags(context);
         return bakedTags.keySet();
     }
 
@@ -101,17 +110,36 @@ public class TagBakery implements PathAwareInputStreamSource, Resettable {
         bakedTags = null;
     }
 
-    private void checkTags() {
+    private void checkTags(ResourceGenerationContext context) {
         if (bakedTags == null) {
             bakedTags = new HashMap<>();
-            tagQueue.forEach(supplier -> {
-                Map<ResourceLocation, Set<ResourceLocation>> map = supplier.get();
+            tagQueue.forEach(function -> {
+                Map<ResourceLocation, Set<ResourceLocation>> map = function.apply(context);
                 map.forEach((tag, set) -> {
                     ResourceLocation tagFile = new ResourceLocation(tag.getNamespace(), "tags/" + tag.getPath() + ".json");
-                    List<Supplier<Set<ResourceLocation>>> list = bakedTags.computeIfAbsent(tagFile, k -> new ArrayList<>());
-                    list.add(() -> set);
+                    Set<ResourceLocation> entrySet = bakedTags.computeIfAbsent(tagFile, k -> new HashSet<>());
+                    entrySet.addAll(set);
                 });
             });
         }
+    }
+
+    @FunctionalInterface
+    public interface TagSupplier extends Function<ResourceGenerationContext, Map<ResourceLocation,Set<ResourceLocation>>> {
+        default @Nullable String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
+            return null;
+        }
+    }
+
+    @Override
+    public @Nullable String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
+        StringBuilder builder = new StringBuilder();
+        for (TagSupplier tagSupplier : tagQueue) {
+            String key = tagSupplier.createCacheKey(outRl, context);
+            if (key == null) return null;
+            builder.append(Base64.getEncoder().encodeToString(key.getBytes(StandardCharsets.UTF_8)));
+            builder.append('\n');
+        }
+        return builder.substring(0, builder.length() - 1);
     }
 }
