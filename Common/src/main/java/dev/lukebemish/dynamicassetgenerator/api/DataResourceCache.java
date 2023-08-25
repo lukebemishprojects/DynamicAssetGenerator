@@ -5,7 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api;
 
-import dev.lukebemish.dynamicassetgenerator.api.sources.TagBakery;
+import dev.lukebemish.dynamicassetgenerator.api.sources.TagSupplier;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  * A {@link ResourceCache} meant to provide resources for data packs.
  */
 public class DataResourceCache extends ResourceCache {
-    private final TagBakery tagBakery = new TagBakery();
+    private final TagSupplier.TagBakery tagBakery = new TagSupplier.TagBakery();
 
     /**
      * @param name a unique identifier for this cache
@@ -33,7 +33,7 @@ public class DataResourceCache extends ResourceCache {
      * @return a tool to easily add any number of tag entries to this cache
      */
     @SuppressWarnings("unused")
-    public TagBakery tags() {
+    public TagSupplier.TagBakery tags() {
         return tagBakery;
     }
 }
