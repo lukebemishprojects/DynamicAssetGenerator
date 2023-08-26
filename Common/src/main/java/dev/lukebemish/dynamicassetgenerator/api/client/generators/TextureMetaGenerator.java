@@ -120,7 +120,6 @@ public class TextureMetaGenerator implements ResourceGenerator {
                 try {
                     var resource = context.getResourceSource().getResource(metaLocation);
                     if (resource == null) {
-                        DynamicAssetGenerator.LOGGER.error("Failed to load texture metadata source: {}",s);
                         return Pair.of(s, null);
                     }
                     try (var reader = new BufferedReader(new InputStreamReader(resource.get()))) {
