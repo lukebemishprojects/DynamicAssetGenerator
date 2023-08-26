@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Can supplier a map of tags to contents given a generation context
@@ -127,7 +128,7 @@ public interface TagSupplier extends Function<ResourceGenerationContext, Map<Res
         @Override
         public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
             checkTags(context);
-            return bakedTags.keySet();
+            return bakedTags.keySet().stream().map(rl -> rl.withPrefix("tags/").withSuffix(".json")).collect(Collectors.toSet());
         }
 
         @Override
