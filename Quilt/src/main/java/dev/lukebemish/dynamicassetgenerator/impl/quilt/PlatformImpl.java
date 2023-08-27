@@ -22,7 +22,7 @@ public class PlatformImpl implements Platform {
 
     @Override
     public Path getModDataFolder() {
-        return QuiltLoader.getGameDir().resolve("mod_data/"+ DynamicAssetGenerator.MOD_ID);
+        return QuiltLoader.getCacheDir().resolve(DynamicAssetGenerator.MOD_ID);
     }
 
     @Override
