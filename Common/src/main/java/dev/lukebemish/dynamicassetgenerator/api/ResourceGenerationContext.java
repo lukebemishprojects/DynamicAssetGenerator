@@ -220,8 +220,10 @@ public interface ResourceGenerationContext {
                     for (PackResources pack : packs.get()) {
                         for (String namespace : pack.getNamespaces(type)) {
                             pack.listResources(type, namespace, path, (rl, s) -> {
-                                if (!resources.containsKey(rl)) {
-                                    resources.put(rl, s);
+                                if (filter.test(rl)) {
+                                    if (!resources.containsKey(rl)) {
+                                        resources.put(rl, s);
+                                    }
                                 }
                             });
                         }
@@ -235,8 +237,10 @@ public interface ResourceGenerationContext {
                     for (PackResources pack : packs.get()) {
                         for (String namespace : pack.getNamespaces(type)) {
                             pack.listResources(type, namespace, path, (rl, s) -> {
-                                List<IoSupplier<InputStream>> list = resources.computeIfAbsent(rl, location -> new ArrayList<>());
-                                list.add(s);
+                                if (filter.test(rl)) {
+                                    List<IoSupplier<InputStream>> list = resources.computeIfAbsent(rl, location -> new ArrayList<>());
+                                    list.add(s);
+                                }
                             });
                         }
                     }
