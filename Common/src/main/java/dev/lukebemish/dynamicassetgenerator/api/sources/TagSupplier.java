@@ -167,6 +167,15 @@ public interface TagSupplier extends Function<ResourceGenerationContext, Map<Res
                 builder.append(Base64.getEncoder().encodeToString(key.getBytes(StandardCharsets.UTF_8)));
                 builder.append('\n');
             }
+            for (var entry : staticQueue.entrySet()) {
+                builder.append(entry.getKey());
+                builder.append("[");
+                for (var rl : entry.getValue()) {
+                    builder.append(rl);
+                    builder.append(',');
+                }
+                builder.append("]\n");
+            }
             return builder.substring(0, builder.length() - 1);
         }
 
