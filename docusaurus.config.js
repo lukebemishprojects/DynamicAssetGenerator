@@ -11,14 +11,14 @@ const config = {
   //favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://lukebemish.dev',
+  url: 'https://projects.lukebemish.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/DynamicAssetGenerator/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'lukebemish', // Usually your GitHub org/user name.
+  organizationName: 'lukebemishprojects', // Usually your GitHub org/user name.
   projectName: 'DynamicAssetGenerator', // Usually your repo name.
 
   onBrokenLinks: 'throw',
@@ -43,7 +43,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/lukebemish/DynamicAssetGenerator/tree/docs/',
+            'https://github.com/lukebemishprojects/DynamicAssetGenerator/tree/docs/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -66,7 +66,7 @@ const config = {
         items: [
           //{to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://github.com/lukebemish/DynamicAssetGenerator',
+            href: 'https://github.com/lukebemishprojects/DynamicAssetGenerator',
             label: 'GitHub',
             position: 'right',
           },
