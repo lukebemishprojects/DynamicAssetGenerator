@@ -8,7 +8,7 @@ ModsDotGroovy.make {
     loaderVersion = '[40,)'
 
     license = 'LGPL-3.0-or-later'
-    issueTrackerUrl = 'https://github.com/lukebemish/DynamicAssetGenerator/issues'
+    issueTrackerUrl = 'https://github.com/lukebemishprojects/DynamicAssetGenerator/issues'
 
     mod {
         modId = this.buildProperties['mod_id']
@@ -16,7 +16,7 @@ ModsDotGroovy.make {
         version = this.version
         group = this.group
         intermediate_mappings = 'net.fabricmc:intermediary'
-        displayUrl = 'https://github.com/lukebemish/DynamicAssetGenerator'
+        displayUrl = 'https://github.com/lukebemishprojects/DynamicAssetGenerator'
 
         description = 'A tool for generating asset and data resources at runtime from existing resources.'
         authors = [this.buildProperties['mod_author'] as String]
