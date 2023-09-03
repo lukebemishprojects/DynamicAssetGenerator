@@ -27,8 +27,8 @@ jobs:
           args: copy build/prepareJavadoc r2:javadoc-lukebemish-dev
         env:
           RCLONE_CONFIG_R2_TYPE: s3
-          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
-          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.JAVADOC_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.JAVADOC_SECRET_ACCESS_KEY }}
           RCLONE_CONFIG_R2_PROVIDER: Cloudflare
           RCLONE_CONFIG_R2_REGION: auto
           RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.JAVADOC_ENDPOINT }}
