@@ -7,7 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api.client.image;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.datafixers.util.Pair;
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import dev.lukebemish.dynamicassetgenerator.impl.util.Maath;
@@ -80,7 +80,7 @@ public final class ImageUtils {
         if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
             return def;
         }
-        return ColorTools.ARGB32.fromABGR32(image.getPixelRGBA(x, y));
+        return ColorTypes.ABGR32.toARGB32(image.getPixelRGBA(x, y));
     }
 
     /**
@@ -100,7 +100,7 @@ public final class ImageUtils {
         if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
             return false;
         }
-        image.setPixelRGBA(x, y, ColorTools.ABGR32.fromARGB32(color));
+        image.setPixelRGBA(x, y, ColorTypes.ABGR32.fromARGB32(color));
         return true;
     }
 

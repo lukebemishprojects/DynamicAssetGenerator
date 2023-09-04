@@ -9,7 +9,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.serialization.DataResult;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.api.colors.clustering.Cluster;
 import dev.lukebemish.dynamicassetgenerator.api.colors.clustering.Clusterer;
@@ -53,22 +53,22 @@ public class ForegroundExtractor implements Closeable {
 
     private OutputHolder outputHolder;
 
-    private final ColorTools.ConversionCache rgb2labCache = new ColorTools.ConversionCache(ColorTools.CIELAB32::fromARGB32);
+    private final ColorTypes.ConversionCache32 rgb2labCache = new ColorTypes.ConversionCache32(ColorTypes.CIELAB32::fromARGB32);
 
     private final ColorCoordinates coordinatesLab = new ColorCoordinates() {
         @Override
         public int getX(int color) {
-            return ColorTools.CIELAB32.lightness(rgb2labCache.convert(color));
+            return ColorTypes.CIELAB32.lightness(rgb2labCache.convert(color));
         }
 
         @Override
         public int getY(int color) {
-            return ColorTools.CIELAB32.a(rgb2labCache.convert(color));
+            return ColorTypes.CIELAB32.a(rgb2labCache.convert(color));
         }
 
         @Override
         public int getZ(int color) {
-            return ColorTools.CIELAB32.b(rgb2labCache.convert(color));
+            return ColorTypes.CIELAB32.b(rgb2labCache.convert(color));
         }
     };
 
@@ -134,7 +134,7 @@ public class ForegroundExtractor implements Closeable {
             }
         }
 
-        if (fColors.size() == 0) {
+        if (fColors.isEmpty()) {
             for (int x = 0; x < dim; x++) {
                 for (int y = 0; y < dim; y++) {
                     ImageUtils.safeSetPixelABGR(oImg, x, y, 0);
@@ -179,7 +179,7 @@ public class ForegroundExtractor implements Closeable {
                                 int bColor = backgroundPalette.getColorFromIndex(b);
                                 int fColor = fColors.getColorFromIndex(f);
                                 int fWithAlpha = (fColor & 0xFFFFFF) | (a << 24);
-                                double dist = extractorDistance(ColorTools.ARGB32.alphaBlend(fWithAlpha, bColor), wC);
+                                double dist = extractorDistance(ColorTypes.ARGB32.alphaBlend(fWithAlpha, bColor), wC);
                                 if (dist < lowest) {
                                     lowest = dist;
                                     alpha = a;
@@ -192,7 +192,7 @@ public class ForegroundExtractor implements Closeable {
                                 int bColor = backgroundPalette.getColorFromIndex(b);
                                 int fColor = backgroundPalette.getColorFromIndex(b1);
                                 int fWithAlpha = (fColor & 0xFFFFFF) | (a << 24);
-                                double dist = extractorDistance(ColorTools.ARGB32.alphaBlend(fWithAlpha, bColor), wC);
+                                double dist = extractorDistance(ColorTypes.ARGB32.alphaBlend(fWithAlpha, bColor), wC);
                                 if (dist < lowest) {
                                     lowest = dist;
                                     alpha = a;
@@ -323,9 +323,9 @@ public class ForegroundExtractor implements Closeable {
             }
         });
 
-        if (frontColors.size() == 0 || frontColors.size()*backgroundPalette.size()*postQueue.size() > DynamicAssetGenerator.getConfig().paletteForceClusteringCutoff()) {
+        if (frontColors.isEmpty() || frontColors.size()*backgroundPalette.size()*postQueue.size() > DynamicAssetGenerator.getConfig().paletteForceClusteringCutoff()) {
             Holder alt = recalcImagesAlternate();
-            if (frontColors.size() == 0) {
+            if (frontColors.isEmpty()) {
                 if (!hasLogged[1])
                     DynamicAssetGenerator.LOGGER.warn("Supplied images for extraction contained few differing colors; attempting clustering color extraction.");
                 hasLogged[1] = true;
@@ -407,7 +407,7 @@ public class ForegroundExtractor implements Closeable {
     private double extractorDistance(int color1, int color2) {
         int c1Lab = rgb2labCache.convert(color1);
         int c2Lab = rgb2labCache.convert(color2);
-        return ColorTools.CIELAB32.distance(c1Lab, c2Lab);
+        return ColorTypes.CIELAB32.distance(c1Lab, c2Lab);
     }
 
     private void runPostCalcQueue(NativeImage oImg, NativeImage pImg, Palette backgroundPalette, Palette frontColors, List<PostCalcEvent> postQueue) {
@@ -432,7 +432,7 @@ public class ForegroundExtractor implements Closeable {
                     int bColor = backgroundPalette.getColorFromIndex(b);
                     for (int f = 0; f < frontColors.size(); f++) {
                         int fColor = frontColors.getColorFromIndex(f);
-                        double dist = extractorDistance(wColor, ColorTools.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor));
+                        double dist = extractorDistance(wColor, ColorTypes.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor));
                         if (dist < lowest) {
                             lowest = dist;
                             alpha = a;
@@ -443,7 +443,7 @@ public class ForegroundExtractor implements Closeable {
                     }
                     for (int b1 = 0; b1 < backgroundPalette.size(); b1++) {
                         int fColor = backgroundPalette.getColorFromIndex(b1);
-                        int blend = ColorTools.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor);
+                        int blend = ColorTypes.ARGB32.alphaBlend((fColor & 0xFFFFFF) | (a << 24), bColor);
                         double dist = extractorDistance(wColor, blend);
                         if (dist < lowest) {
                             lowest = dist;

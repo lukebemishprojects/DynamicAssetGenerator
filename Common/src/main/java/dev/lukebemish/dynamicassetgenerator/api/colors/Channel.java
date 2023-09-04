@@ -25,28 +25,28 @@ public enum Channel implements StringRepresentable {
     ALPHA(() -> new ChannelOperation(3)),
 
     CIELAB_LIGHTNESS(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTools.ConversionCache(ColorTools.CIELAB32::fromARGB32)),
+            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.CIELAB32::fromARGB32)),
             new ChannelOperation(2))
     ),
     CIELAB_A(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTools.ConversionCache(ColorTools.CIELAB32::fromARGB32)),
+            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.CIELAB32::fromARGB32)),
             new ChannelOperation(1))
     ),
     CIELAB_B(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTools.ConversionCache(ColorTools.CIELAB32::fromARGB32)),
+            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.CIELAB32::fromARGB32)),
             new ChannelOperation(0))
     ),
 
     HSL_LIGHTNESS(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTools.ConversionCache(ColorTools.HSL32::fromARGB32)),
+            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
             new ChannelOperation(2))
     ),
     HSL_SATURATION(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTools.ConversionCache(ColorTools.HSL32::fromARGB32)),
+            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
             new ChannelOperation(1))
     ),
     HSL_HUE(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTools.ConversionCache(ColorTools.HSL32::fromARGB32)),
+            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
             new ChannelOperation(0))
     );
 

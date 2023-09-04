@@ -12,7 +12,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.FastColor;
@@ -127,12 +127,12 @@ public class ShadowedSource implements TexSource {
                             else
                                 sample -= this.getShadowStrength();
 
-                            sample = ColorTools.clamp8(sample);
+                            sample = ColorTypes.clamp8(sample);
 
                             int newColor = palette.getColor(sample) | (oldBackground & 0xFF000000);
-                            ImageUtils.safeSetPixelARGB(image, x, y, ColorTools.ARGB32.alphaBlend(oldForeground, newColor));
+                            ImageUtils.safeSetPixelARGB(image, x, y, ColorTypes.ARGB32.alphaBlend(oldForeground, newColor));
                         } else {
-                            ImageUtils.safeSetPixelARGB(image, x, y, ColorTools.ARGB32.alphaBlend(oldForeground, oldBackground));
+                            ImageUtils.safeSetPixelARGB(image, x, y, ColorTypes.ARGB32.alphaBlend(oldForeground, oldBackground));
                         }
                     }
                 });

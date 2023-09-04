@@ -14,7 +14,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
@@ -102,7 +102,7 @@ public final class PaletteSpreadSource implements TexSource {
             int rangeSize = range.upperBound() - range.lowerBound();
             if (value < current + rangeSize) {
                 float out = range.lowerBound() + (value - current) * rangeSize / sum;
-                return ColorTools.clamp8((int) (out + 0.5));
+                return ColorTypes.clamp8((int) (out + 0.5));
             }
             current += rangeSize;
         }

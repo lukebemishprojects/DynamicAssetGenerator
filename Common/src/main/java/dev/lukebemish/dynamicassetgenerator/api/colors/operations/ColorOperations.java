@@ -5,8 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.colors.operations;
 
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
-import net.minecraft.util.FastColor;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 
 /**
  * A collection of common pointwise operations on colors.
@@ -36,7 +35,7 @@ public final class ColorOperations {
         int color = 0;
         for (int i = 0; i < colors.length; i++) {
             if (inBounds[i]) {
-                color = ColorTools.ARGB32.alphaBlend(color, colors[i]);
+                color = ColorTypes.ARGB32.alphaBlend(color, colors[i]);
             }
         }
         return color;
@@ -54,13 +53,13 @@ public final class ColorOperations {
         int blue = 0;
         for (int i = 0; i < colors.length; i++) {
             if (inBounds[i]) {
-                alpha += FastColor.ARGB32.alpha(colors[i]);
-                red += FastColor.ARGB32.red(colors[i]);
-                green += FastColor.ARGB32.green(colors[i]);
-                blue += FastColor.ARGB32.blue(colors[i]);
+                alpha += ColorTypes.ARGB32.alpha(colors[i]);
+                red += ColorTypes.ARGB32.red(colors[i]);
+                green += ColorTypes.ARGB32.green(colors[i]);
+                blue += ColorTypes.ARGB32.blue(colors[i]);
             }
         }
-        return FastColor.ARGB32.color(ColorTools.clamp8(alpha), ColorTools.clamp8(red), ColorTools.clamp8(green), ColorTools.clamp8(blue));
+        return ColorTypes.ARGB32.color(ColorTypes.clamp8(alpha), ColorTypes.clamp8(red), ColorTypes.clamp8(green), ColorTypes.clamp8(blue));
     };
 
     /**
@@ -75,17 +74,17 @@ public final class ColorOperations {
         float blue = 255;
         for (int i = 0; i < colors.length; i++) {
             if (inBounds[i]) {
-                alpha *= FastColor.ARGB32.alpha(colors[i]) / 255f;
-                red *= FastColor.ARGB32.red(colors[i]) / 255f;
-                green *= FastColor.ARGB32.green(colors[i]) / 255f;
-                blue *= FastColor.ARGB32.blue(colors[i]) / 255f;
+                alpha *= ColorTypes.ARGB32.alpha(colors[i]) / 255f;
+                red *= ColorTypes.ARGB32.red(colors[i]) / 255f;
+                green *= ColorTypes.ARGB32.green(colors[i]) / 255f;
+                blue *= ColorTypes.ARGB32.blue(colors[i]) / 255f;
             }
         }
         alpha = Math.round(alpha);
         red = Math.round(red);
         green = Math.round(green);
         blue = Math.round(blue);
-        return FastColor.ARGB32.color(ColorTools.clamp8((int) alpha), ColorTools.clamp8((int) red), ColorTools.clamp8((int) green), ColorTools.clamp8((int) blue));
+        return ColorTypes.ARGB32.color(ColorTypes.clamp8((int) alpha), ColorTypes.clamp8((int) red), ColorTypes.clamp8((int) green), ColorTypes.clamp8((int) blue));
     };
 
     /**

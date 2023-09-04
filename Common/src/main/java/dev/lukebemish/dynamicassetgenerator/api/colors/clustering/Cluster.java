@@ -5,7 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.colors.clustering;
 
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
@@ -44,11 +44,11 @@ public class Cluster {
      * @param rgb2labCache a cache to use for converting colors to CIELAB, linked to the lifespan of the parent clusterer
      * @return the distance between the two clusters in CIELAB32 space
      */
-    public double dist(Cluster other, ColorTools.ConversionCache rgb2labCache) {
-        double min = ColorTools.CIELAB32.distance(rgb2labCache.convert(colors.getInt(0)), rgb2labCache.convert(other.colors.getInt(0)));
+    public double dist(Cluster other, ColorTypes.ConversionCache32 rgb2labCache) {
+        double min = ColorTypes.CIELAB32.distance(rgb2labCache.convert(colors.getInt(0)), rgb2labCache.convert(other.colors.getInt(0)));
         for (int f : colors) {
             for (int c : other.colors) {
-                double d = ColorTools.CIELAB32.distance(rgb2labCache.convert(f), rgb2labCache.convert(c));
+                double d = ColorTypes.CIELAB32.distance(rgb2labCache.convert(f), rgb2labCache.convert(c));
                 if (d < min)
                     min = d;
             }

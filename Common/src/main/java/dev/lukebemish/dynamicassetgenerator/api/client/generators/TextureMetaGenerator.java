@@ -172,7 +172,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
         /**
          * Set the animation data to use.
          */
-        public Builder withAnimation(AnimationGenerator animation) {
+        public Builder setAnimation(AnimationGenerator animation) {
             this.animation = animation;
             return this;
         }
@@ -180,7 +180,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
         /**
          * Set the villager data to use.
          */
-        public Builder withVillager(VillagerGenerator villager) {
+        public Builder setVillager(VillagerGenerator villager) {
             this.villager = villager;
             return this;
         }
@@ -188,7 +188,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
         /**
          * Set the texture data to use.
          */
-        public Builder withTexture(TextureGenerator texture) {
+        public Builder setTexture(TextureGenerator texture) {
             this.texture = texture;
             return this;
         }
@@ -197,7 +197,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
          * Set the location to output the generated {@code .mcmeta} file to, without the {@code "textures/"} prefix or
          * file extension.
          */
-        public Builder withOutputLocation(ResourceLocation outputLocation) {
+        public Builder setOutputLocation(ResourceLocation outputLocation) {
             this.outputLocation = outputLocation;
             return this;
         }
@@ -205,7 +205,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
         /**
          * Set the list of textures, without their {@code "textures/"} prefix or file extension, to combine.
          */
-        public Builder withSources(List<ResourceLocation> sources) {
+        public Builder setSources(List<ResourceLocation> sources) {
             this.sources = sources;
             return this;
         }
@@ -262,22 +262,22 @@ public class TextureMetaGenerator implements ResourceGenerator {
             private Optional<Integer> height = Optional.empty();
             private Optional<Boolean> interpolate = Optional.empty();
 
-            public Builder withFrametime(int frametime) {
+            public Builder setFrametime(int frametime) {
                 this.frametime = Optional.of(frametime);
                 return this;
             }
 
-            public Builder withWidth(int width) {
+            public Builder setWidth(int width) {
                 this.width = Optional.of(width);
                 return this;
             }
 
-            public Builder withHeight(int height) {
+            public Builder setHeight(int height) {
                 this.height = Optional.of(height);
                 return this;
             }
 
-            public Builder withInterpolate(boolean interpolate) {
+            public Builder setInterpolate(boolean interpolate) {
                 this.interpolate = Optional.of(interpolate);
                 return this;
             }
@@ -430,7 +430,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
         public static class Builder {
             private Optional<VillagerMetaDataSection.Hat> hat = Optional.empty();
 
-            public Builder withHat(VillagerMetaDataSection.Hat hat) {
+            public Builder setHat(VillagerMetaDataSection.Hat hat) {
                 this.hat = Optional.of(hat);
                 return this;
             }
@@ -485,12 +485,12 @@ public class TextureMetaGenerator implements ResourceGenerator {
             private Optional<Boolean> blur = Optional.empty();
             private Optional<Boolean> clamp = Optional.empty();
 
-            public Builder withBlur(boolean blur) {
+            public Builder setBlur(boolean blur) {
                 this.blur = Optional.of(blur);
                 return this;
             }
 
-            public Builder withClamp(boolean clamp) {
+            public Builder setClamp(boolean clamp) {
                 this.clamp = Optional.of(clamp);
                 return this;
             }

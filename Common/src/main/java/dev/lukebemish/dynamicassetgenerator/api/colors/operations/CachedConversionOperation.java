@@ -5,15 +5,15 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.colors.operations;
 
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 
 /**
- * A {@link PointwiseOperation.Unary} that uses a {@link ColorTools.ConversionCache} to convert colors.
+ * A {@link PointwiseOperation.Unary} that uses a {@link ColorTypes.ConversionCache32} to convert colors.
  */
 public class CachedConversionOperation implements PointwiseOperation.Unary<Integer> {
-    private final ColorTools.ConversionCache cache;
+    private final ColorTypes.ConversionCache32 cache;
 
-    public CachedConversionOperation(ColorTools.ConversionCache cache) {
+    public CachedConversionOperation(ColorTypes.ConversionCache32 cache) {
         this.cache = cache;
     }
 

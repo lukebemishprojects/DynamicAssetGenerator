@@ -51,7 +51,7 @@ public class Palette implements Collection<Integer> {
      */
     public Palette(double cutoff) {
         this.cutoff = cutoff;
-        this.backing = new FuzzySet<>((i1, i2) -> ColorTools.ARGB32.distance(i1, i2) < cutoff, colors -> {
+        this.backing = new FuzzySet<>((i1, i2) -> ColorTypes.ARGB32.distance(i1, i2) < cutoff, colors -> {
             int r = 0;
             int g = 0;
             int b = 0;
@@ -140,7 +140,7 @@ public class Palette implements Collection<Integer> {
         updateList();
     }
 
-    private static final int MAX_WIDTH = (int) Math.floor(ColorTools.ARGB32.distance(0x000000, 0xFFFFFF));
+    private static final int MAX_WIDTH = (int) Math.floor(ColorTypes.ARGB32.distance(0x000000, 0xFFFFFF));
 
     /**
      * Extends the high and low ends of the palette until it stretches to a given size.
@@ -148,7 +148,7 @@ public class Palette implements Collection<Integer> {
      * @throws IllegalStateException if the palette is empty
      */
     public void extendToWidth(int targetWidth) {
-        this.extend(palette -> ColorTools.ARGB32.distance(palette.colors.get(0), palette.colors.get(palette.colors.size() - 1)) >= targetWidth);
+        this.extend(palette -> ColorTypes.ARGB32.distance(palette.colors.get(0), palette.colors.get(palette.colors.size() - 1)) >= targetWidth);
     }
 
     /**
@@ -170,7 +170,7 @@ public class Palette implements Collection<Integer> {
     public void extend(Predicate<Palette> isExtended) {
         if (backing.isEmpty())
             throw new IllegalStateException("Color palette is empty");
-        double spacing = ColorTools.ARGB32.distance(colors.get(0), colors.get(colors.size() - 1)) / (colors.size() - 1);
+        double spacing = ColorTypes.ARGB32.distance(colors.get(0), colors.get(colors.size() - 1)) / (colors.size() - 1);
         boolean reachedLow = false;
         boolean reachedHigh = false;
         while (!isExtended.test(this)) {
@@ -181,7 +181,7 @@ public class Palette implements Collection<Integer> {
                     continue;
                 }
                 int end = isLow ? colors.get(0) : colors.get(colors.size() - 1);
-                double endDistance = ColorTools.ARGB32.distance(end, isLow ? 0x000000 : 0xFFFFFF);
+                double endDistance = ColorTypes.ARGB32.distance(end, isLow ? 0x000000 : 0xFFFFFF);
                 int oldSize = backing.size();
                 if (endDistance < spacing) {
                     int newColor = isLow ? 0x000000 : 0xFFFFFF;
@@ -196,10 +196,10 @@ public class Palette implements Collection<Integer> {
                 }
 
                 int target = isLow ? 0x00 : 0xFF;
-                int r = (int) ((FastColor.ARGB32.red(end) * (endDistance - spacing) + target * spacing) / endDistance);
-                int g = (int) ((FastColor.ARGB32.green(end) * (endDistance - spacing) + target * spacing) / endDistance);
-                int b = (int) ((FastColor.ARGB32.blue(end) * (endDistance - spacing) + target * spacing) / endDistance);
-                int newColor = FastColor.ARGB32.color(0xFF, r, g, b);
+                int r = (int) ((ColorTypes.ARGB32.red(end) * (endDistance - spacing) + target * spacing) / endDistance);
+                int g = (int) ((ColorTypes.ARGB32.green(end) * (endDistance - spacing) + target * spacing) / endDistance);
+                int b = (int) ((ColorTypes.ARGB32.blue(end) * (endDistance - spacing) + target * spacing) / endDistance);
+                int newColor = ColorTypes.ARGB32.color(0xFF, r, g, b);
                 backing.add(newColor);
                 boolean didExtension = updateExtended(isLow, oldSize);
                 if (didExtension)
@@ -348,7 +348,7 @@ public class Palette implements Collection<Integer> {
         }
         var originalSampleSize = originalSize() * 256 / colors.size();
         var output = (extendedSample - originalStartSample()) * 256 / originalSampleSize;
-        return ColorTools.clamp8(output);
+        return ColorTypes.clamp8(output);
     }
 
     /**
@@ -360,7 +360,7 @@ public class Palette implements Collection<Integer> {
             throw new IllegalStateException("Color palette is empty");
         List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
         for (int i = 0; i < colors.size(); i++) {
-            indexWithDistance.add(Pair.of(i, ColorTools.ARGB32.distance(color, colors.get(i))));
+            indexWithDistance.add(Pair.of(i, ColorTypes.ARGB32.distance(color, colors.get(i))));
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
         if (indexWithDistance.size() == 1 || indexWithDistance.get(0).getSecond() <= this.cutoff)
@@ -399,7 +399,7 @@ public class Palette implements Collection<Integer> {
             throw new IllegalStateException("Color palette is empty");
         List<Pair<Integer, Double>> indexWithDistance = new ArrayList<>();
         for (int knownColor : colors) {
-            indexWithDistance.add(Pair.of(knownColor, ColorTools.ARGB32.distance(color, knownColor)));
+            indexWithDistance.add(Pair.of(knownColor, ColorTypes.ARGB32.distance(color, knownColor)));
         }
         indexWithDistance.sort(Comparator.comparingDouble(Pair::getSecond));
         return indexWithDistance.get(0).getFirst();
@@ -436,9 +436,16 @@ public class Palette implements Collection<Integer> {
             });
     }
 
+    /**
+     * A comparator that sorts colors by their Euclidean distance from black, ignoring alpha, with 0xFFFFFF (white)
+     * being the largest.
+     */
+    private static final Comparator<Integer> COMPARATOR = Comparator.comparingInt(i ->
+        FastColor.ARGB32.red(i) + FastColor.ARGB32.green(i) + FastColor.ARGB32.blue(i));
+
     private void updateList() {
-        colors = backing.stream().sorted(ColorTools.ARGB32.COMPARATOR).toList();
-        if (colors.size() >= 1)
+        colors = backing.stream().sorted(COMPARATOR).toList();
+        if (!colors.isEmpty())
             lines = IntStream.range(1, colors.size()).mapToObj(i -> new LineSegment(colors.get(i-1), colors.get(i))).toList();
         else
             lines = List.of();

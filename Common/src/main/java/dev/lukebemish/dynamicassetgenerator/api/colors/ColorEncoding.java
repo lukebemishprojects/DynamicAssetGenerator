@@ -16,8 +16,8 @@ import java.util.function.IntUnaryOperator;
  * {@link com.mojang.blaze3d.platform.NativeImage}. Meant to be used to represent encoded colors in data.
  */
 public enum ColorEncoding implements StringRepresentable {
-    ARGB("ARGB", ColorTools.ABGR32::fromARGB32, ColorTools.ARGB32::fromABGR32),
-    RGB("RGB", i -> ColorTools.ABGR32.fromARGB32(i) | 0xFF000000, i -> ColorTools.ARGB32.fromABGR32(i) | 0xFF000000),
+    ARGB("ARGB", ColorTypes.ABGR32::fromARGB32, ColorTypes.ABGR32::toARGB32),
+    RGB("RGB", i -> ColorTypes.ABGR32.fromARGB32(i) | 0xFF000000, i -> ColorTypes.ABGR32.toARGB32(i) | 0xFF000000),
     ABGR("ABGR", IntUnaryOperator.identity(), IntUnaryOperator.identity()),
     BGR("BGR", i -> i | 0xFF000000, i -> i | 0xFF000000);
 

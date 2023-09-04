@@ -5,7 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.colors.clustering;
 
-import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTools;
+import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 
 import java.util.*;
 
@@ -16,7 +16,7 @@ import java.util.*;
 public class Clusterer {
     private final Map<Integer, Integer> colorToClusterIndex = new HashMap<>();
     private final List<Cluster> clusters = new ArrayList<>();
-    private final ColorTools.ConversionCache rgb2labCache = new ColorTools.ConversionCache(ColorTools.CIELAB32::fromARGB32);
+    private final ColorTypes.ConversionCache32 rgb2labCache = new ColorTypes.ConversionCache32(ColorTypes.CIELAB32::fromARGB32);
 
     private final double cutoff;
 
@@ -105,9 +105,9 @@ public class Clusterer {
     }
 
     private static double distanceToLab(int colorA, int colorB) {
-        int labA = ColorTools.CIELAB32.fromARGB32(colorA);
-        int labB = ColorTools.CIELAB32.fromARGB32(colorB);
-        return ColorTools.CIELAB32.distance(labA, labB);
+        int labA = ColorTypes.CIELAB32.fromARGB32(colorA);
+        int labB = ColorTypes.CIELAB32.fromARGB32(colorB);
+        return ColorTypes.CIELAB32.distance(labA, labB);
     }
 
     /**
