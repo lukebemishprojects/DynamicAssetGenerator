@@ -19,10 +19,10 @@ public final class ColorOperations {
     public static final PointwiseOperation.Binary<Integer> MASK = (i, m, iInBounds, mInBounds) -> {
         if (!mInBounds || !iInBounds)
             return 0;
-        int maskAlpha = m & 0xFF000000;
-        int oldAlpha = i & 0xFF000000;
+        int maskAlpha = ColorTypes.ARGB32.alpha(m);
+        int oldAlpha = ColorTypes.ARGB32.alpha(i);
         int newAlpha = maskAlpha * oldAlpha / 255;
-        return (i & 0xFFFFFF) | newAlpha;
+        return (i & 0xFFFFFF) | ((newAlpha & 0xFF) << 24);
     };
 
     /**
