@@ -69,7 +69,7 @@ public final class EdgeMask implements TexSource {
                 int height = inImg.getHeight();
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);
                 for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < width; y++) {
+                    for (int y = 0; y < height; y++) {
                         boolean isEdge = false;
                         int color = inImg.getPixelRGBA(x, y);
                         if (FastColor.ABGR32.alpha(color) >= cutoff) {

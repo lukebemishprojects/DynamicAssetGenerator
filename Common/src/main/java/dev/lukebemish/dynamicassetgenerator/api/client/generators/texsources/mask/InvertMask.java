@@ -48,7 +48,7 @@ public final class InvertMask implements TexSource {
                 int height = inImg.getHeight();
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);
                 for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < width; y++) {
+                    for (int y = 0; y < height; y++) {
                         int source = inImg.getPixelRGBA(x, y);
                         out.setPixelRGBA(x, y, ~source);
                     }

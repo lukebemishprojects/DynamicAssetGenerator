@@ -73,7 +73,7 @@ public final class GrowMask implements TexSource {
 
                 NativeImage out = NativeImageHelper.of(NativeImage.Format.RGBA, width, height, false);
                 for (int x = 0; x < width; x++) {
-                    for (int y = 0; y < width; y++) {
+                    for (int y = 0; y < height; y++) {
                         boolean shouldGrow = false;
                         for (int i : xs) {
                             for (int j : ys) {
