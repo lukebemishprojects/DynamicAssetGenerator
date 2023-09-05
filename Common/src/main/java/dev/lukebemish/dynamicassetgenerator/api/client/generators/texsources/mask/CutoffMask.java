@@ -58,7 +58,7 @@ public final class CutoffMask implements TexSource {
         return () -> {
             PointwiseOperation.Unary<Integer> operation = PointwiseOperation.Unary.chain(
                     channel.makeOperation(),
-                    (c, i) -> i ? (c >= cutoff ? 0xFFFFFFFF : 0) : 0
+                    (c, i) -> i ? ((c & 0xFF) >= cutoff ? 0xFFFFFFFF : 0) : 0
             );
             try (NativeImage inImg = input.get()) {
                 return ImageUtils.generateScaledImage(operation, List.of(inImg));

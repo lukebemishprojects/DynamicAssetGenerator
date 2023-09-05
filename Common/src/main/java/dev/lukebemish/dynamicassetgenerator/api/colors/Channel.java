@@ -38,16 +38,29 @@ public enum Channel implements StringRepresentable {
     ),
 
     HSL_LIGHTNESS(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
-            new ChannelOperation(2))
+        new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
+        new ChannelOperation(2))
     ),
     HSL_SATURATION(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
-            new ChannelOperation(1))
+        new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
+        new ChannelOperation(1))
     ),
     HSL_HUE(() -> PointwiseOperation.Unary.chain(
-            new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
-            new ChannelOperation(0))
+        new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSL32::fromARGB32)),
+        new ChannelOperation(0))
+    ),
+
+    HSV_VALUE(() -> PointwiseOperation.Unary.chain(
+        new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSV32::fromARGB32)),
+        new ChannelOperation(2))
+    ),
+    HSV_SATURATION(() -> PointwiseOperation.Unary.chain(
+        new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSV32::fromARGB32)),
+        new ChannelOperation(1))
+    ),
+    HSV_HUE(() -> PointwiseOperation.Unary.chain(
+        new CachedConversionOperation(new ColorTypes.ConversionCache32(ColorTypes.HSV32::fromARGB32)),
+        new ChannelOperation(0))
     );
 
     private final Supplier<PointwiseOperation.Unary<Integer>> operation;

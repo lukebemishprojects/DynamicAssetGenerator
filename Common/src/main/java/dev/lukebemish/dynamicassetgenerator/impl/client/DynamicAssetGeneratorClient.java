@@ -44,6 +44,7 @@ public class DynamicAssetGeneratorClient {
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "palette_spread"), PaletteSpreadSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "error"), ErrorSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "shadowed"), ShadowedSource.CODEC);
+        TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "channel_route"), ChannelRouteSource.CODEC);
 
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/cutoff"), CutoffMask.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "mask/edge"), EdgeMask.CODEC);
