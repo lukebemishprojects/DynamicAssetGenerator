@@ -41,8 +41,7 @@ public record BuiltinDynamicSpriteSource(Map<ResourceLocation, TexSource> source
                     JsonElement json = DynamicAssetGenerator.GSON.fromJson(reader, JsonElement.class);
                     var result = TexSource.CODEC.parse(JsonOps.INSTANCE, json);
                     result.result().ifPresent(texSource -> {
-                        ResourceLocation sourceLocation = new ResourceLocation(rl.getNamespace(), rl.getPath().substring(0, rl.getPath().length() - 5));
-                        outSources.put(sourceLocation, texSource);
+                        outSources.put(rl, texSource);
                     });
                     result.error().ifPresent(partial ->
                         DynamicAssetGenerator.LOGGER.error("Failed to load tex source json for " + location + ": " + rl + ": " + partial.message()));
