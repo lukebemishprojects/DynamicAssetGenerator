@@ -26,7 +26,7 @@ import java.util.*;
  */
 public class ChannelRouteSource implements TexSource {
     public static final Codec<ChannelRouteSource> CODEC = RecordCodecBuilder.create(i -> i.group(
-        Codec.unboundedMap(Codec.STRING, TexSource.CODEC).fieldOf("source").forGetter(ChannelRouteSource::getSources),
+        Codec.unboundedMap(Codec.STRING, TexSource.CODEC).fieldOf("sources").forGetter(ChannelRouteSource::getSources),
         ChannelSource.CODEC.optionalFieldOf("red").forGetter(s -> Optional.ofNullable(s.getRed())),
         ChannelSource.CODEC.optionalFieldOf("green").forGetter(s -> Optional.ofNullable(s.getGreen())),
         ChannelSource.CODEC.optionalFieldOf("blue").forGetter(s -> Optional.ofNullable(s.getBlue())),
