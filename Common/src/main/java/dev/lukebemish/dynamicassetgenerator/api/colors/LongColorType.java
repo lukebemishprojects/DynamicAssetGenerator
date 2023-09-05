@@ -134,13 +134,16 @@ public abstract class LongColorType {
 
             int chroma = xMax - xMin;
             int m = xMax==r ? 0 : xMax==g ? 1 : 2;
+            int h = 0;
 
-            int h = switch (m) {
-                case 0 -> (g - b)*0xFFFF / chroma + (g < b ? 6*0xFFFF : 0);
-                case 1 -> (b - r)*0xFFFF / chroma + 2*0xFFFF;
-                default -> (r - g)*0xFFFF / chroma + 4*0xFFFF;
-            };
-            h/=6;
+            if (chroma != 0) {
+                h = switch (m) {
+                    case 0 -> (g - b) * 0xFFFF / chroma + (g < b ? 6 * 0xFFFF : 0);
+                    case 1 -> (b - r) * 0xFFFF / chroma + 2 * 0xFFFF;
+                    default -> (r - g) * 0xFFFF / chroma + 4 * 0xFFFF;
+                };
+                h /= 6;
+            }
 
             return makeColor(ColorTypes.ARGB64.alpha(color), h, chroma, xMin, xMax);
         }

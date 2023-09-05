@@ -134,13 +134,16 @@ public abstract class IntColorType {
 
             int chroma = xMax - xMin;
             int m = xMax==r ? 0 : xMax==g ? 1 : 2;
+            int h = 0;
 
-            int h = switch (m) {
-                case 0 -> (g - b)*0xFF / chroma + (g < b ? 6*0xFF : 0);
-                case 1 -> (b - r)*0xFF / chroma + 2*0xFF;
-                default -> (r - g)*0xFF / chroma + 4*0xFF;
-            };
-            h/=6;
+            if (chroma != 0) {
+                h = switch (m) {
+                    case 0 -> (g - b) * 0xFF / chroma + (g < b ? 6 * 0xFF : 0);
+                    case 1 -> (b - r) * 0xFF / chroma + 2 * 0xFF;
+                    default -> (r - g) * 0xFF / chroma + 4 * 0xFF;
+                };
+                h /= 6;
+            }
 
             return makeColor(ColorTypes.ARGB32.alpha(color), h, chroma, xMin, xMax);
         }
