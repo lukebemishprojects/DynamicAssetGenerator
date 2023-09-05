@@ -18,10 +18,12 @@ public class MultiCloser implements AutoCloseable {
     @Override
     public void close() {
         for (AutoCloseable c : toClose) {
-            try {
-                c.close();
-            } catch (Exception e) {
-                DynamicAssetGenerator.LOGGER.debug("Exception while closing resources:\n",e);
+            if (c != null) {
+                try {
+                    c.close();
+                } catch (Exception e) {
+                    DynamicAssetGenerator.LOGGER.debug("Exception while closing resources:\n", e);
+                }
             }
         }
     }

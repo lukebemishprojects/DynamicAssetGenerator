@@ -101,6 +101,26 @@ public interface PointwiseOperation<T> {
     }
 
     /**
+     * A pointwise operation that can be applied to four images.
+     */
+    @FunctionalInterface
+    interface Tertiary<T> extends PointwiseOperation<T> {
+        T apply(int firstColor, int secondColor, int thirdColor, int fourthColor, boolean isFirstInBounds, boolean isSecondInBounds, boolean isThirdInBounds, boolean isFourthInBounds);
+
+        @Override
+        default int expectedImages() {
+            return 4;
+        }
+
+        @Override
+        default T apply(int[] colors, boolean[] inBounds) {
+            if (colors.length != 3 || inBounds.length != 3)
+                throw new IllegalArgumentException("Ternary operation must have exactly three input images");
+            return apply(colors[0], colors[1], colors[2], colors[3], inBounds[0], inBounds[1], inBounds[2], inBounds[3]);
+        }
+    }
+
+    /**
      * A pointwise operation that can be applied to any number of images.
      */
     @FunctionalInterface
