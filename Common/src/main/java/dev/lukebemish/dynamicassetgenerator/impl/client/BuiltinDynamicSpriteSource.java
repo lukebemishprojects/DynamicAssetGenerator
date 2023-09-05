@@ -13,6 +13,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.DynamicSpriteSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +34,9 @@ public record BuiltinDynamicSpriteSource(Map<ResourceLocation, TexSource> source
     public Map<ResourceLocation, TexSource> getSources(ResourceGenerationContext context, ResourceManager resourceManager) {
         Map<ResourceLocation, TexSource> outSources = new HashMap<>(sources());
         if (location != null) {
-            resourceManager.listResources(location.getNamespace() + "/" + location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((rl, resource) -> {
+            FileToIdConverter converter = new FileToIdConverter(location.getNamespace() + "/" + location.getPath(), ".json");
+            resourceManager.listResources(location.getNamespace() + "/" + location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((fileRl, resource) -> {
+                ResourceLocation rl = converter.fileToId(fileRl);
                 try (var reader = resource.openAsReader()) {
                     JsonElement json = DynamicAssetGenerator.GSON.fromJson(reader, JsonElement.class);
                     var result = TexSource.CODEC.parse(JsonOps.INSTANCE, json);
