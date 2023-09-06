@@ -75,40 +75,48 @@ public abstract class LongColorType {
         @Contract(pure = true)
         private float makeLimitedRed(float chroma, int hue) {
             float hPrime = hue / (0xFFFF / 6f);
-            float hPrimeOffset = Math.abs(hue / (0xFFFF / 6f) - 3);
             float x = chroma * (1 - Math.abs(hPrime % 2 - 1));
-            if (hPrimeOffset < 1) {
-                return 0;
-            } else if (hPrimeOffset < 2) {
+            if (hPrime < 1) {
+                return chroma;
+            } else if (hPrime < 2) {
                 return x;
+            } else if (hPrime < 4) {
+                return 0;
+            } else if (hPrime < 5) {
+                return x;
+            } else {
+                return chroma;
             }
-            return chroma;
         }
 
         @Contract(pure = true)
         private float makeLimitedGreen(float chroma, int hue) {
             float hPrime = hue / (0xFFFF / 6f);
-            float hPrimeOffset = Math.abs(hue / (0xFFFF / 6f) - 5) % 3;
             float x = chroma * (1 - Math.abs(hPrime % 2 - 1));
-            if (hPrimeOffset < 1) {
-                return 0;
-            } else if (hPrimeOffset < 2) {
+            if (hPrime < 1) {
                 return x;
+            } else if (hPrime < 3) {
+                return chroma;
+            } else if (hPrime < 4) {
+                return x;
+            } else {
+                return 0;
             }
-            return chroma;
         }
 
         @Contract(pure = true)
         private float makeLimitedBlue(float chroma, int hue) {
             float hPrime = hue / (0xFFFF / 6f);
-            float hPrimeOffset = Math.abs(hue / (0xFFFF / 6f) - 1) % 3;
             float x = chroma * (1 - Math.abs(hPrime % 2 - 1));
-            if (hPrimeOffset < 1) {
+            if (hPrime < 2) {
                 return 0;
-            } else if (hPrimeOffset < 2) {
+            } else if (hPrime < 3) {
+                return x;
+            } else if (hPrime < 5) {
+                return chroma;
+            } else {
                 return x;
             }
-            return chroma;
         }
 
         /**
@@ -147,8 +155,8 @@ public abstract class LongColorType {
             if (chroma != 0) {
                 var fH = switch (m) {
                     case 0 -> {
-                        var value = ((fG - fB) / fChroma) % 6f;
-                        if (value <= 0) yield value + 6f;
+                        var value = ((fG - fB) / fChroma);
+                        if (value < 0) yield value + 6f;
                         yield value;
                     }
                     case 1 -> (fB - fR) / fChroma + 2;

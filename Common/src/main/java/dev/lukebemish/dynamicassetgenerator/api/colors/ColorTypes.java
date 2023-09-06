@@ -137,7 +137,7 @@ public final class ColorTypes {
             } else {
                 s = (v - l) / Math.min(l, 1 - l);
             }
-            return color(alpha, hue, Math.round(s * 0xFF) & 0xFF, Math.round(l * 0xFF) & 0xFF);
+            return color(alpha, hue, clamp8(Math.round(s * 0xFF)), clamp8(Math.round(l * 0xFF)));
         }
     }
     public static final HSL32 HSL32 = new HSL32();
@@ -175,7 +175,7 @@ public final class ColorTypes {
         protected int makeColor(int alpha, int hue, float chroma, float xMin, float xMax) {
             float v = ((xMax + xMin) + chroma) / 2f;
             float s = v == 0 ? 0 : chroma / v;
-            return color(alpha, hue, Math.round(s * 0xFF) & 0xFF, Math.round(v * 0xFF) & 0xFF);
+            return color(alpha, hue, clamp8(Math.round(s * 0xFF)), clamp8(Math.round(v * 0xFF)));
         }
     }
     public static final HSV32 HSV32 = new HSV32();
@@ -393,7 +393,7 @@ public final class ColorTypes {
             } else {
                 s = (v - l) / Math.min(l, 1 - l);
             }
-            return color(alpha, hue, Math.round(s * 0xFFFF) & 0xFFFF, Math.round(l * 0xFFFF) & 0xFFFF);
+            return color(alpha, hue, clamp16(Math.round(s * 0xFFFF)), clamp16(Math.round(l * 0xFFFF)));
         }
     }
     public static final HSL64 HSL64 = new HSL64();
@@ -431,7 +431,7 @@ public final class ColorTypes {
         protected long makeColor(int alpha, int hue, float chroma, float xMin, float xMax) {
             float v = ((xMax + xMin) + chroma) / 2f;
             float s = v == 0 ? 0 : chroma / v;
-            return color(alpha, hue, Math.round(s * 0xFFFF) & 0xFFFF, Math.round(v * 0xFFFF) & 0xFFFF);
+            return color(alpha, hue, clamp16(Math.round(s * 0xFFFF)), clamp16(Math.round(v * 0xFFFF)));
         }
     }
     public static final HSV64 HSV64 = new HSV64();
