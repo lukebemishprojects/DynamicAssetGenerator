@@ -5,6 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.colors;
 
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -135,17 +136,25 @@ public abstract class LongColorType {
             int chroma = xMax - xMin;
             int m = xMax==r ? 0 : xMax==g ? 1 : 2;
             int h = 0;
+            float fR = r / 0xFFFFp0f;
+            float fG = g / 0xFFFFp0f;
+            float fB = b / 0xFFFFp0f;
+            float fChroma = chroma / 0xFFFFp0f;
 
             if (chroma != 0) {
-                h = switch (m) {
-                    case 0 -> (g - b) * 0xFFFF / chroma + (g < b ? 6 * 0xFFFF : 0);
-                    case 1 -> (b - r) * 0xFFFF / chroma + 2 * 0xFFFF;
-                    default -> (r - g) * 0xFFFF / chroma + 4 * 0xFFFF;
+                var fH = switch (m) {
+                    case 0 -> {
+                        var value = ((fG - fB) / fChroma) % 6f;
+                        if (value <= 0) yield value + 6f;
+                        yield value;
+                    }
+                    case 1 -> (fB - fR) / fChroma + 2;
+                    default -> (fR - fG) / fChroma + 4;
                 };
-                h /= 6;
+                h = Mth.clamp(Math.round(fH / 6 * 0xFFFF), 0, 0xFFFF);
             }
 
-            return makeColor(ColorTypes.ARGB64.alpha(color), h, chroma/0xFFFFp0f, xMin/0xFFFFp0f, xMax/0xFFFFp0f);
+            return makeColor(ColorTypes.ARGB64.alpha(color), h, fChroma, xMin/0xFFFFp0f, xMax/0xFFFFp0f);
         }
 
         /**

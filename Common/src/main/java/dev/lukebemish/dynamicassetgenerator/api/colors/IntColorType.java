@@ -5,6 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.colors;
 
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -135,14 +136,22 @@ public abstract class IntColorType {
             int chroma = xMax - xMin;
             int m = xMax==r ? 0 : xMax==g ? 1 : 2;
             int h = 0;
+            float fR = r / 255f;
+            float fG = g / 255f;
+            float fB = b / 255f;
+            float fChroma = chroma / 255f;
 
             if (chroma != 0) {
-                h = switch (m) {
-                    case 0 -> (g - b) * 0xFF / chroma + (g < b ? 6 * 0xFF : 0);
-                    case 1 -> (b - r) * 0xFF / chroma + 2 * 0xFF;
-                    default -> (r - g) * 0xFF / chroma + 4 * 0xFF;
+                var fH = switch (m) {
+                    case 0 -> {
+                        var value = ((fG - fB) / fChroma) % 6f;
+                        if (value <= 0) yield value + 6f;
+                        yield value;
+                    }
+                    case 1 -> (fB - fR) / fChroma + 2;
+                    default -> (fR - fG) / fChroma + 4;
                 };
-                h /= 6;
+                h = Mth.clamp(Math.round(fH / 6 * 0xFF), 0, 0xFF);
             }
 
             return makeColor(ColorTypes.ARGB32.alpha(color), h, chroma/255f, xMin/255f, xMax/255f);
