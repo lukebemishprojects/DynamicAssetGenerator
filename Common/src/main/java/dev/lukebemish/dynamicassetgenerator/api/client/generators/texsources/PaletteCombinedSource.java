@@ -120,21 +120,37 @@ public final class PaletteCombinedSource implements TexSource {
 
         final PointwiseOperation.Unary<Integer> paletteResolver = new PaletteToColorOperation(palette);
 
-        PointwiseOperation.Ternary<Integer> operation = (background,
-                                                         overlay,
-                                                         paletted,
-                                                         backgroundInBounds,
-                                                         overlayInBounds,
-                                                         palettedInBounds) -> {
-            paletted = stretcher.apply(paletted, palettedInBounds);
+        final PointwiseOperation<Integer> operation;
 
-            int resolvedPalette = paletteResolver.apply(paletted, palettedInBounds);
-            int[] toOverlay = options.includeBackground() ? new int[]{overlay, resolvedPalette, background} : new int[]{overlay, resolvedPalette};
-            boolean[] toOverlayInBounds = options.includeBackground() ? new boolean[]{overlayInBounds, palettedInBounds, backgroundInBounds} : new boolean[]{overlayInBounds, palettedInBounds};
-            return ColorOperations.OVERLAY.apply(toOverlay, toOverlayInBounds);
-        };
+        if (options.includeBackground()) {
+            operation = (PointwiseOperation.Ternary<Integer>) (background1,
+                                                               overlay1,
+                                                               paletted1,
+                                                               backgroundInBounds,
+                                                               overlayInBounds,
+                                                               palettedInBounds) -> {
+                paletted1 = stretcher.apply(paletted1, palettedInBounds);
 
-        return ImageUtils.generateScaledImage(operation, List.of(backgroundImage, overlayImage, paletteImage));
+                int resolvedPalette = paletteResolver.apply(paletted1, palettedInBounds);
+                int[] toOverlay = new int[]{overlay1, resolvedPalette, background1};
+                boolean[] toOverlayInBounds = new boolean[]{overlayInBounds, palettedInBounds, backgroundInBounds};
+                return ColorOperations.OVERLAY.apply(toOverlay, toOverlayInBounds);
+            };
+        } else {
+            operation = (PointwiseOperation.Binary<Integer>) (overlay1,
+                                                              paletted1,
+                                                              overlayInBounds,
+                                                              palettedInBounds) -> {
+                paletted1 = stretcher.apply(paletted1, palettedInBounds);
+
+                int resolvedPalette = paletteResolver.apply(paletted1, palettedInBounds);
+                int[] toOverlay = new int[]{overlay1, resolvedPalette};
+                boolean[] toOverlayInBounds = new boolean[]{overlayInBounds, palettedInBounds};
+                return ColorOperations.OVERLAY.apply(toOverlay, toOverlayInBounds);
+            };
+        }
+
+        return ImageUtils.generateScaledImage(operation, options.includeBackground() ? List.of(backgroundImage, overlayImage, paletteImage) : List.of(overlayImage, paletteImage));
     }
 
     public TexSource getOverlay() {
