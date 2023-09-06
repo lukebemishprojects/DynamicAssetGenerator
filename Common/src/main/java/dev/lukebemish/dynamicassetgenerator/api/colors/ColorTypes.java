@@ -128,7 +128,7 @@ public final class ColorTypes {
         }
 
         @Override
-        protected int makeColor(int alpha, int hue, int chroma, int xMin, int xMax) {
+        protected int makeColor(int alpha, int hue, float chroma, float xMin, float xMax) {
             float l = (xMax + xMin) / 2f;
             float v = l + chroma / 2f;
             float s;
@@ -172,7 +172,7 @@ public final class ColorTypes {
         }
 
         @Override
-        protected int makeColor(int alpha, int hue, int chroma, int xMin, int xMax) {
+        protected int makeColor(int alpha, int hue, float chroma, float xMin, float xMax) {
             float v = ((xMax + xMin) + chroma) / 2f;
             float s = v == 0 ? 0 : chroma / v;
             return color(alpha, hue, Math.round(s * 0xFF) & 0xFF, Math.round(v * 0xFF) & 0xFF);
@@ -384,7 +384,7 @@ public final class ColorTypes {
         }
 
         @Override
-        protected long makeColor(int alpha, int hue, int chroma, int xMin, int xMax) {
+        protected long makeColor(int alpha, int hue, float chroma, float xMin, float xMax) {
             float l = (xMax + xMin) / 2f;
             float v = l + chroma / 2f;
             float s;
@@ -428,7 +428,7 @@ public final class ColorTypes {
         }
 
         @Override
-        protected long makeColor(int alpha, int hue, int chroma, int xMin, int xMax) {
+        protected long makeColor(int alpha, int hue, float chroma, float xMin, float xMax) {
             float v = ((xMax + xMin) + chroma) / 2f;
             float s = v == 0 ? 0 : chroma / v;
             return color(alpha, hue, Math.round(s * 0xFFFF) & 0xFFFF, Math.round(v * 0xFFFF) & 0xFFFF);

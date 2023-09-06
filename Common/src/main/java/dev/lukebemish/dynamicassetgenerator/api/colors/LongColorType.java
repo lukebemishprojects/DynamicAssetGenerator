@@ -145,20 +145,20 @@ public abstract class LongColorType {
                 h /= 6;
             }
 
-            return makeColor(ColorTypes.ARGB64.alpha(color), h, chroma, xMin, xMax);
+            return makeColor(ColorTypes.ARGB64.alpha(color), h, chroma/0xFFFFp0f, xMin/0xFFFFp0f, xMax/0xFFFFp0f);
         }
 
         /**
          * Finalized encoding of a color given some parameters.
          * @param alpha alpha value, from 0x0000 to 0xFFFF
          * @param hue hue, from 0x0000 to 0xFFFF
-         * @param chroma chroma, from 0x0000 to 0xFFFF
-         * @param xMin minimum value of RGB channels
-         * @param xMax maximum value of RGB channels
+         * @param chroma chroma, from 0 to 1
+         * @param xMin minimum value of RGB channels, from 0 to 1
+         * @param xMax maximum value of RGB channels, from 0 to 1
          * @return an encoded color
          */
         @Contract(pure = true)
-        abstract protected long makeColor(int alpha, int hue, int chroma, int xMin, int xMax);
+        abstract protected long makeColor(int alpha, int hue, float chroma, float xMin, float xMax);
     }
 
     /**
