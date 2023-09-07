@@ -17,6 +17,7 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.ColorEncoding;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.StringRepresentable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +47,7 @@ public final class ColorSource implements TexSource {
     }
 
     @Override
-    public Codec<? extends TexSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

@@ -35,7 +35,7 @@ public final class TextureReaderSource implements TexSource {
     }
 
     @Override
-    public Codec<? extends TexSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

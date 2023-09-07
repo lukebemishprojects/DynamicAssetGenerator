@@ -116,7 +116,7 @@ public interface TexSource {
     /**
      * @return a codec which can be used to serialize this source
      */
-    Codec<? extends TexSource> codec();
+    @NotNull Codec<? extends TexSource> codec();
 
     /**
      * Provides a supplier for the texture this source will generate, or null if a texture cannot be provided. Should

@@ -14,6 +14,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperations;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public final class MaskSource implements TexSource {
     }
 
     @Override
-    public Codec<? extends TexSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

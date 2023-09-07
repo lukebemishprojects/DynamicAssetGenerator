@@ -14,6 +14,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import dev.lukebemish.dynamicassetgenerator.api.client.image.ImageUtils;
 import dev.lukebemish.dynamicassetgenerator.impl.client.NativeImageHelper;
 import net.minecraft.server.packs.resources.IoSupplier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -41,7 +42,7 @@ public final class TransformSource implements TexSource {
     }
 
     @Override
-    public Codec<? extends TexSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

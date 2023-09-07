@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2022-2023 Luke Bemish and contributors
+ * Copyright (C) 2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
 package dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
@@ -20,97 +18,33 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOpera
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.FastColor;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * A {@link TexSource} that maps the colors of another {@link TexSource} to the location of those colors within a
  * palette.
  */
 @ApiStatus.Experimental
-public final class PaletteSpreadSource implements TexSource {
-    private static final List<Range> DEFAULT_RANGE = List.of(new Range(0, 255));
-
+public class PaletteSpreadSource implements TexSource {
     public static final Codec<PaletteSpreadSource> CODEC = RecordCodecBuilder.create(i -> i.group(
             TexSource.CODEC.fieldOf("source").forGetter(PaletteSpreadSource::getSource),
-            Codec.DOUBLE.optionalFieldOf("palette_cutoff", Palette.DEFAULT_CUTOFF).forGetter(PaletteSpreadSource::getPaletteCutoff),
-            Codec.either(Range.CODEC, Range.CODEC.listOf()).xmap(
-                    either -> either.map(List::of, Function.identity()),
-                    list -> list.size() == 1 ? Either.left(list.get(0)) : Either.right(list)
-            ).flatXmap(list -> {
-                if (!verifyDisjoint(list)) {
-                    return DataResult.error(() -> "Ranges must be disjoint");
-                }
-                return DataResult.success(list);
-            }, DataResult::success).optionalFieldOf("range", DEFAULT_RANGE).forGetter(PaletteSpreadSource::getRange)
+            Codec.DOUBLE.optionalFieldOf("palette_cutoff", Palette.DEFAULT_CUTOFF).forGetter(PaletteSpreadSource::getPaletteCutoff)
     ).apply(i, PaletteSpreadSource::new));
+
     private final TexSource source;
     private final double paletteCutoff;
-    private final List<Range> range;
 
-    private PaletteSpreadSource(TexSource source, double paletteCutoff, List<Range> range) {
+    private PaletteSpreadSource(TexSource source, double paletteCutoff) {
         this.source = source;
         this.paletteCutoff = paletteCutoff;
-        this.range = range;
-    }
-
-    /**
-     * Represents a range of integers between 0 and 255, bounded exclusively on the top.
-     * @param lowerBound the lower edge of the range; must be between 0 and 255, inclusive
-     * @param upperBound the upper edge of the range; must be between 0 and 255, inclusive, and must be larger than the
-     *                   lower edge.
-     */
-    public record Range(int lowerBound, int upperBound) {
-        public static final Codec<Range> CODEC = Codec.intRange(0, 255).listOf().flatXmap(list -> {
-            if (list.size() != 2) {
-                return DataResult.error(() -> "Range must have exactly 2 elements");
-            }
-            if (list.get(1) <= list.get(0)) {
-                return DataResult.error(() -> "Second element of range must be larger than the first");
-            }
-            return DataResult.success(new Range(list.get(0), list.get(1)));
-        }, range -> DataResult.success(List.of(range.lowerBound(), range.upperBound())));
-    }
-
-    private static boolean verifyDisjoint(List<Range> ranges) {
-        if (ranges.isEmpty()) {
-            return false;
-        }
-        for (int i = 0; i < ranges.size(); i++) {
-            if (ranges.get(i).lowerBound() > ranges.get(i).upperBound()) {
-                return false;
-            }
-            for (int j = i + 1; j < ranges.size() && j < i + 2; j++) {
-                if (ranges.get(i).upperBound() > ranges.get(j).lowerBound()) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static int mapToRange(float value, List<Range> ranges) {
-        int sum = 0;
-        for (Range range : ranges) {
-            sum += range.upperBound() - range.lowerBound();
-        }
-        int current = 0;
-        for (Range range : ranges) {
-            int rangeSize = range.upperBound() - range.lowerBound();
-            if (value < current + rangeSize) {
-                float out = range.lowerBound() + (value - current) * rangeSize / sum;
-                return ColorTypes.clamp8((int) (out + 0.5));
-            }
-            current += rangeSize;
-        }
-        return ranges.get(ranges.size() - 1).upperBound();
     }
 
     @Override
-    public Codec<? extends TexSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -122,32 +56,16 @@ public final class PaletteSpreadSource implements TexSource {
             return null;
         }
         return () -> {
-            try (NativeImage paletteImage = source.get()) {
-                int min = 0xFF;
-                int max = 0x00;
-                for (int i = 0; i < paletteImage.getWidth(); i++) {
-                    for (int j = 0; j < paletteImage.getHeight(); j++) {
-                        int color = paletteImage.getPixelRGBA(i, j);
-                        int alpha = FastColor.ABGR32.alpha(color);
-                        if (alpha != 0) {
-                            int value = (FastColor.ABGR32.red(color) + FastColor.ABGR32.green(color) + FastColor.ABGR32.blue(color)) / 3;
-                            if (value < min)
-                                min = value;
-                            if (value > max)
-                                max = value;
-                        }
-                    }
-                }
-                int finalMax = max;
-                int finalMin = min;
-                PointwiseOperation.Unary<Integer> operation = (color, isInBounds) -> {
-                    int value = (FastColor.ARGB32.red(color) + FastColor.ARGB32.green(color) + FastColor.ARGB32.blue(color)) / 3;
-                    float stretched = (value - finalMin) * 255f / (finalMax - finalMin);
-                    int out = mapToRange(stretched, getRange());
-                    return FastColor.ARGB32.color(FastColor.ARGB32.alpha(color), out, out, out);
+            try (NativeImage image = source.get()) {
+                var palette = ImageUtils.getPalette(image, this.getPaletteCutoff());
+                PointwiseOperation.Unary<Integer> operation = (c, i) -> {
+                    if (!i) return 0;
+                    var alpha = ColorTypes.ARGB32.alpha(c);
+                    int sample = palette.getSample(c);
+                    return FastColor.ARGB32.color(alpha, sample, sample, sample);
                 };
 
-                return ImageUtils.generateScaledImage(operation, List.of(paletteImage));
+                return ImageUtils.generateScaledImage(operation, List.of(image));
             }
         };
     }
@@ -160,14 +78,9 @@ public final class PaletteSpreadSource implements TexSource {
         return paletteCutoff;
     }
 
-    public List<Range> getRange() {
-        return range;
-    }
-
     public static class Builder {
         private TexSource source;
         private double paletteCutoff = Palette.DEFAULT_CUTOFF;
-        private List<Range> range = DEFAULT_RANGE;
 
         /**
          * Sets the input texture to map the colors of.
@@ -186,17 +99,9 @@ public final class PaletteSpreadSource implements TexSource {
             return this;
         }
 
-        /**
-         * Sets the ranges to map the colors to. Defaults to a single range from 0 to 255.
-         */
-        public Builder setRange(List<Range> range) {
-            this.range = range;
-            return this;
-        }
-
         public PaletteSpreadSource build() {
             Objects.requireNonNull(source);
-            return new PaletteSpreadSource(source, paletteCutoff, range);
+            return new PaletteSpreadSource(source, paletteCutoff);
         }
     }
 }

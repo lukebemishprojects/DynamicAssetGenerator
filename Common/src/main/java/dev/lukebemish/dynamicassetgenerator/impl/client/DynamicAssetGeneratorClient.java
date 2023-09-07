@@ -41,6 +41,7 @@ public class DynamicAssetGeneratorClient {
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "color"), ColorSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "animation_splitter"), AnimationSplittingSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "frame_capture"), AnimationFrameCapture.CODEC);
+        TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "spread"), SpreadSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "palette_spread"), PaletteSpreadSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "error"), ErrorSource.CODEC);
         TexSource.register(new ResourceLocation(DynamicAssetGenerator.MOD_ID, "shadowed"), ShadowedSource.CODEC);

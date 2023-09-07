@@ -16,6 +16,7 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import dev.lukebemish.dynamicassetgenerator.api.colors.Palette;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.FastColor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -64,7 +65,7 @@ public class ShadowedSource implements TexSource {
     }
 
     @Override
-    public Codec<? extends TexSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

@@ -32,7 +32,10 @@ public final class ImageUtils {
         Palette palette = new Palette(cutoff);
         for (int i = 0; i < image.getWidth(); i++) {
             for (int j = 0; j < image.getHeight(); j++) {
-                palette.add(safeGetPixelARGB(image, i, j));
+                int color = safeGetPixelARGB(image, i, j);
+                if (ColorTypes.ARGB32.alpha(color) != 0) {
+                    palette.add(color);
+                }
             }
         }
         return palette;

@@ -58,7 +58,7 @@ public final class PaletteCombinedSource implements TexSource {
     }
 
     @Override
-    public Codec<PaletteCombinedSource> codec() {
+    public @NotNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
