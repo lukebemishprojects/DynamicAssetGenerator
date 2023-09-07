@@ -128,11 +128,14 @@ public final class PaletteSpreadSource implements TexSource {
                 for (int i = 0; i < paletteImage.getWidth(); i++) {
                     for (int j = 0; j < paletteImage.getHeight(); j++) {
                         int color = paletteImage.getPixelRGBA(i, j);
-                        int value = (FastColor.ABGR32.red(color) + FastColor.ABGR32.green(color) + FastColor.ABGR32.blue(color)) / 3;
-                        if (value < min)
-                            min = value;
-                        if (value > max)
-                            max = value;
+                        int alpha = FastColor.ABGR32.alpha(color);
+                        if (alpha != 0) {
+                            int value = (FastColor.ABGR32.red(color) + FastColor.ABGR32.green(color) + FastColor.ABGR32.blue(color)) / 3;
+                            if (value < min)
+                                min = value;
+                            if (value > max)
+                                max = value;
+                        }
                     }
                 }
                 int finalMax = max;
