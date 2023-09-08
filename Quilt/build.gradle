@@ -21,6 +21,10 @@ repositories {
 	maven { url 'https://maven.wispforest.io' }
 }
 
+configurations {
+    testCompileClasspath.extendsFrom(compileClasspath)
+}
+
 dependencies {
 	minecraft libs.minecraft
 	mappings loom.layered() {
