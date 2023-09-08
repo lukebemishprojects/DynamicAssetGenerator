@@ -135,17 +135,19 @@ public final class SpreadSource implements TexSource {
                         }
                     }
                 }
-                int finalMax = max;
-                int finalMin = min;
-                PointwiseOperation.Unary<Integer> operation = (color, isInBounds) -> {
-                    int value = (FastColor.ARGB32.red(color) + FastColor.ARGB32.green(color) + FastColor.ARGB32.blue(color)) / 3;
-                    float stretched = (value - finalMin) * 255f / (finalMax - finalMin);
-                    int out = mapToRange(stretched, getRange());
-                    return FastColor.ARGB32.color(FastColor.ARGB32.alpha(color), out, out, out);
-                };
+                PointwiseOperation.Unary<Integer> operation = createSpreadingOperation(max, min);
 
                 return ImageUtils.generateScaledImage(operation, List.of(paletteImage));
             }
+        };
+    }
+
+    private PointwiseOperation.@NonNull Unary<Integer> createSpreadingOperation(int max, int min) {
+        return (color, isInBounds) -> {
+            int value = (FastColor.ARGB32.red(color) + FastColor.ARGB32.green(color) + FastColor.ARGB32.blue(color)) / 3;
+            float stretched = (value - min) * 255f / (max - min);
+            int out = mapToRange(stretched, getRange());
+            return FastColor.ARGB32.color(FastColor.ARGB32.alpha(color), out, out, out);
         };
     }
 

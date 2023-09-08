@@ -118,6 +118,13 @@ public final class PaletteCombinedSource implements TexSource {
             stretcher = (color, isInBounds) -> color;
         }
 
+        final PointwiseOperation<Integer> operation = createCombiningOperation(options, palette, stretcher);
+
+        return ImageUtils.generateScaledImage(operation, options.includeBackground() ? List.of(backgroundImage, overlayImage, paletteImage) : List.of(overlayImage, paletteImage));
+    }
+
+    @NonNull
+    private static PointwiseOperation<Integer> createCombiningOperation(PaletteCombiningOptions options, Palette palette, PointwiseOperation.Unary<Integer> stretcher) {
         final PointwiseOperation.Unary<Integer> paletteResolver = new PaletteToColorOperation(palette);
 
         final PointwiseOperation<Integer> operation;
@@ -149,8 +156,7 @@ public final class PaletteCombinedSource implements TexSource {
                 return ColorOperations.OVERLAY.apply(toOverlay, toOverlayInBounds);
             };
         }
-
-        return ImageUtils.generateScaledImage(operation, options.includeBackground() ? List.of(backgroundImage, overlayImage, paletteImage) : List.of(overlayImage, paletteImage));
+        return operation;
     }
 
     public TexSource getOverlay() {

@@ -65,7 +65,7 @@ public final class AnimationFrameCapture implements TexSource {
             if (source == null)
                 return DataResult.error(() -> "In uncacheable state, no parent animation source to capture...");
             DataResult<T> parentElementTyped = TexSource.CODEC.encodeStart(ops, source);
-            if (parentElementTyped.result().isEmpty())
+            if (parentElementTyped.error().isPresent())
                 return DataResult.error(() -> "Could not encode parent animation source: " + parentElementTyped.error().get().message());
             builder.add("parent", parentElementTyped);
             return builder.build(ops.empty());

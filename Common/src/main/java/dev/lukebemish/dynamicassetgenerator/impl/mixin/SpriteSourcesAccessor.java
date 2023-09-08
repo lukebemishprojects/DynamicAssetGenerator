@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(SpriteSources.class)
 public interface SpriteSourcesAccessor {
+    @SuppressWarnings("UnusedReturnValue")
     @Invoker("register")
     static SpriteSourceType invokeRegister(String pName, Codec<? extends SpriteSource> pCodec) {
         throw new AssertionError("Mixin failed to apply");

@@ -25,7 +25,7 @@ import java.util.Optional;
 
 public record BuiltinDynamicSpriteSource(Map<ResourceLocation, TexSource> sources, @Nullable ResourceLocation location) implements DynamicSpriteSource {
     public static final ResourceLocation LOCATION = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "tex_sources");
-    public static Codec<BuiltinDynamicSpriteSource> CODEC = RecordCodecBuilder.create(i -> i.group(
+    public static final Codec<BuiltinDynamicSpriteSource> CODEC = RecordCodecBuilder.create(i -> i.group(
         Codec.unboundedMap(ResourceLocation.CODEC, TexSource.CODEC).fieldOf("sources").forGetter(BuiltinDynamicSpriteSource::sources),
         ResourceLocation.CODEC.optionalFieldOf("location").forGetter(s -> Optional.ofNullable(s.location()))
     ).apply(i, (sources, location) -> new BuiltinDynamicSpriteSource(sources, location.orElse(null))));

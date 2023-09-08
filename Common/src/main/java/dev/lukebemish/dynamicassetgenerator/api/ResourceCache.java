@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * Caches instructions for producing resources, and generates them as packs are loaded.
  */
 public abstract class ResourceCache {
-    protected List<Supplier<? extends PathAwareInputStreamSource>> cache = new ArrayList<>();
+    protected final List<Supplier<? extends PathAwareInputStreamSource>> cache = new ArrayList<>();
     private final List<Resettable> resetListeners = new ArrayList<>();
 
     /**
