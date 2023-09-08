@@ -73,6 +73,10 @@ minecraft {
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
+configurations {
+    testCompileClasspath.extendsFrom(compileClasspath)
+}
+
 dependencies {
     minecraft libs.forge
     compileOnly project(":Common")
