@@ -13,8 +13,8 @@ import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.List;
@@ -44,33 +44,33 @@ public final class InvisibleProviderUtils {
         return new PackResources() {
             @Nullable
             @Override
-            public IoSupplier<InputStream> getRootResource(String @NotNull ... strings) {
+            public IoSupplier<InputStream> getRootResource(String @NonNull ... strings) {
                 return null;
             }
 
             @Override
-            public IoSupplier<InputStream> getResource(@NotNull PackType type, @NotNull ResourceLocation location) {
+            public IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull ResourceLocation location) {
                 return provider.getResource(type, location);
             }
 
             @Override
-            public void listResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String path, @NotNull ResourceOutput resourceOutput) {
+            public void listResources(@NonNull PackType packType, @NonNull String namespace, @NonNull String path, @NonNull ResourceOutput resourceOutput) {
                 provider.listResources(packType, namespace, path, resourceOutput);
             }
 
             @Override
-            public @NotNull Set<String> getNamespaces(@NotNull PackType type) {
+            public @NonNull Set<String> getNamespaces(@NonNull PackType type) {
                 return provider.getNamespaces(type);
             }
 
             @Nullable
             @Override
-            public <T> T getMetadataSection(@NotNull MetadataSectionSerializer<T> deserializer) {
+            public <T> T getMetadataSection(@NonNull MetadataSectionSerializer<T> deserializer) {
                 return null;
             }
 
             @Override
-            public @NotNull String packId() {
+            public @NonNull String packId() {
                 return "placeholder__"+provider.getClass().getName().toLowerCase(Locale.ROOT)
                         .replace('.', '_')
                         .replace('$', '_');

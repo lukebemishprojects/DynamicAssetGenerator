@@ -19,8 +19,8 @@ import dev.lukebemish.dynamicassetgenerator.impl.ResourceCachingData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Function;
@@ -53,7 +53,7 @@ public interface ResourceGenerator extends PathAwareInputStreamSource {
     Codec<ResourceGenerator> PERSISTENT_CACHE_CODEC = CacheMetaCodec.of(CODEC, List.of(
         CacheMetaCodec.SingleCacheType.of(new DataConsumer<>() {
             @Override
-            public @NotNull <T> DataResult<T> encode(DynamicOps<T> ops, ResourceCachingData data, ResourceGenerator object) {
+            public @NonNull <T> DataResult<T> encode(DynamicOps<T> ops, ResourceCachingData data, ResourceGenerator object) {
                 return object.persistentCacheData(ops, data.location(), data.context());
             }
         }, PERSISTENT_CACHE_KEY, ResourceCachingData.class)
@@ -97,7 +97,7 @@ public interface ResourceGenerator extends PathAwareInputStreamSource {
      * @param context the context that the resource will be generated in. Resources can safely be accessed in this context
      * @return a key that can be used to uniquely identify the resource, or null if this is not possible
      */
-    @NotNull
+    @NonNull
     @ApiStatus.Experimental
     default <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
         return DataResult.error(() -> "Resource generators must be made explicitly cacheable by implementing the relevant API");

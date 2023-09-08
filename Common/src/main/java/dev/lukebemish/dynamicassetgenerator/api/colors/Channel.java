@@ -10,7 +10,7 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.CachedConversi
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ChannelOperation;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.util.StringRepresentable;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -77,7 +77,7 @@ public enum Channel implements StringRepresentable {
     }
 
     @Override
-    public @NotNull String getSerializedName() {
+    public @NonNull String getSerializedName() {
         return this.name().toLowerCase(Locale.ROOT);
     }
 

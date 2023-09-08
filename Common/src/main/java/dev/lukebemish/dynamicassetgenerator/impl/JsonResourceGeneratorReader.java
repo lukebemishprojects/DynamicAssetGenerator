@@ -15,8 +15,8 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,7 +85,7 @@ public class JsonResourceGeneratorReader implements PathAwareInputStreamSource, 
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
+    public @NonNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         setupMap(context);
         return map.keySet();
     }

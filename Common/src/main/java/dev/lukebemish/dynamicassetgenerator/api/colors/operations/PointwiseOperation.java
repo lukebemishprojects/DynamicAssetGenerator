@@ -114,7 +114,7 @@ public interface PointwiseOperation<T> {
 
         @Override
         default T apply(int[] colors, boolean[] inBounds) {
-            if (colors.length != 3 || inBounds.length != 3)
+            if (colors.length != 4 || inBounds.length != 4)
                 throw new IllegalArgumentException("Ternary operation must have exactly three input images");
             return apply(colors[0], colors[1], colors[2], colors[3], inBounds[0], inBounds[1], inBounds[2], inBounds[3]);
         }

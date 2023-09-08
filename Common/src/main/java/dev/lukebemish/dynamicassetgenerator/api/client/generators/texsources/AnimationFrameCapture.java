@@ -14,7 +14,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -33,7 +33,7 @@ public final class AnimationFrameCapture implements TexSource {
     }
 
     @Override
-    public @NotNull Codec<? extends TexSource> codec() {
+    public @NonNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -55,7 +55,7 @@ public final class AnimationFrameCapture implements TexSource {
     }
 
     @Override
-    @NotNull
+    @NonNull
     public <T> DataResult<T> cacheMetadata(DynamicOps<T> ops, TexSourceDataHolder data) {
         AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.ImageCollection.class);
         if (collection != null) {

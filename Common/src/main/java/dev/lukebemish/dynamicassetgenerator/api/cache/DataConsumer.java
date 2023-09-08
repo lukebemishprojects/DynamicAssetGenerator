@@ -7,7 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api.cache;
 
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Represents a function that can process any metadata necessary for encoding into an encodable form, given the object
@@ -25,5 +25,5 @@ public interface DataConsumer<D, A> {
      * @return the encoded metadata
      * @param <T> the type to encode into
      */
-    @NotNull <T> DataResult<T> encode(DynamicOps<T> ops, D data, A object);
+    @NonNull <T> DataResult<T> encode(DynamicOps<T> ops, D data, A object);
 }

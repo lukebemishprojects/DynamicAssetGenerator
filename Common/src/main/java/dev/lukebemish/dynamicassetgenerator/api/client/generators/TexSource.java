@@ -24,8 +24,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.ExtraCodecs;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Function;
@@ -60,14 +60,14 @@ public interface TexSource {
         }).dispatch(TexSource::codec, Function.identity()), List.of(
         CacheMetaCodec.SingleCacheType.of(new DataConsumer<>() {
             @Override
-            @NotNull
+            @NonNull
             public <T1> DataResult<T1> encode(DynamicOps<T1> ops, TexSourceDataHolder data, TexSource object) {
                 return object.cacheMetadata(ops, data);
             }
         }, METADATA_CACHE_KEY, TexSourceDataHolder.class),
         CacheMetaCodec.SingleCacheType.of(new DataConsumer<>() {
             @Override
-            @NotNull
+            @NonNull
             public <T1> DataResult<T1> encode(DynamicOps<T1> ops, ResourceCachingData data, TexSource object) {
                 return object.persistentCacheData(ops, data.context());
             }
@@ -93,7 +93,8 @@ public interface TexSource {
      * @param data Data holder that the key is dependent on.
      * @return A success with a unique key for the given context, or an error if no key can be generated.
      */
-    @NotNull @ApiStatus.Experimental
+    @NonNull
+    @ApiStatus.Experimental
     default <T> DataResult<T> cacheMetadata(DynamicOps<T> ops, TexSourceDataHolder data) {
         return DataResult.success(ops.empty());
     }
@@ -108,7 +109,8 @@ public interface TexSource {
      * @param context the context that the resource will be generated in. Resources can safely be accessed in this context
      * @return A success with a unique key for the given context, or an error if no key can be generated.
      */
-    @NotNull @ApiStatus.Experimental
+    @NonNull
+    @ApiStatus.Experimental
     default <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceGenerationContext context) {
         return DataResult.success(ops.empty());
     }
@@ -116,7 +118,7 @@ public interface TexSource {
     /**
      * @return a codec which can be used to serialize this source
      */
-    @NotNull Codec<? extends TexSource> codec();
+    @NonNull Codec<? extends TexSource> codec();
 
     /**
      * Provides a supplier for the texture this source will generate, or null if a texture cannot be provided. Should

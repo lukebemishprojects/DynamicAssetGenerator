@@ -17,8 +17,8 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.ColorTypes;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import dev.lukebemish.dynamicassetgenerator.impl.util.MultiCloser;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -109,7 +109,7 @@ public class ChannelRouteSource implements TexSource {
     }
 
     @Override
-    public @NotNull Codec<? extends TexSource> codec() {
+    public @NonNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

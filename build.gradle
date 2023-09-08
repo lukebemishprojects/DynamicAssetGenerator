@@ -69,6 +69,7 @@ subprojects { p ->
 
     dependencies {
         compileOnly libs.jetbrains.annotations
+        compileOnly libs.jspecify
     }
 
     tasks.withType(JavaCompile).configureEach {

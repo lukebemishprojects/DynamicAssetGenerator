@@ -13,8 +13,8 @@ import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.*;
@@ -29,7 +29,7 @@ public interface ResourceGenerationContext {
     /**
      * @return a resource location unique to the {@link ResourceCache} this context is linked to
      */
-    @NotNull ResourceLocation getCacheName();
+    @NonNull ResourceLocation getCacheName();
 
     /**
      * @return a tool to access resources during generation
@@ -46,7 +46,7 @@ public interface ResourceGenerationContext {
         ResourceGenerationContext outer = this;
         return new ResourceGenerationContext() {
             @Override
-            public @NotNull ResourceLocation getCacheName() {
+            public @NonNull ResourceLocation getCacheName() {
                 return outer.getCacheName();
             }
 
@@ -71,7 +71,7 @@ public interface ResourceGenerationContext {
          * @param location the location to get the resource at
          * @return a supplier for an input stream for the resource, or null if the resource does not exist
          */
-        @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location);
+        @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location);
 
         /**
          * Lists all resources within a given path, from highest to lowest priority.
@@ -79,7 +79,7 @@ public interface ResourceGenerationContext {
          * @param location the location to list resources from
          * @return a list of suppliers for input streams for the resources
          */
-        List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location);
+        List<IoSupplier<InputStream>> getResourceStack(@NonNull ResourceLocation location);
 
         /**
          * Lists all resources in a namespace that match a given filter, from the highest priority pack not provided by a {@link ResourceCache}.
@@ -88,7 +88,7 @@ public interface ResourceGenerationContext {
          * @param filter a filter to apply to the resource locations
          * @return a map of resource locations to suppliers for input streams for the resources
          */
-        Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter);
+        Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NonNull String path, @NonNull Predicate<ResourceLocation> filter);
 
         /**
          * Lists all resources within a given path, from highest to lowest priority.
@@ -96,13 +96,13 @@ public interface ResourceGenerationContext {
          * @param filter a filter to apply to the resource locations
          * @return a map of resource locations to suppliers for input streams for the resources
          */
-        Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter);
+        Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NonNull String path, @NonNull Predicate<ResourceLocation> filter);
 
         /**
          * @return a set of all namespaces that have resources in this context
          */
         @SuppressWarnings("unused")
-        @NotNull Set<String> getNamespaces();
+        @NonNull Set<String> getNamespaces();
 
         /**
          * A default implementation which exposes resources captured during pack load. Should <em>not</em> be accessed
@@ -139,13 +139,13 @@ public interface ResourceGenerationContext {
             var outer = this;
             return new ResourceSource() {
                 @Override
-                public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+                public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {
                     IoSupplier<InputStream> supplier = outer.getResource(location);
                     return supplier != null ? supplier : fallback.getResource(location);
                 }
 
                 @Override
-                public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+                public List<IoSupplier<InputStream>> getResourceStack(@NonNull ResourceLocation location) {
                     var list = outer.getResourceStack(location);
                     if (list.isEmpty()) {
                         return fallback.getResourceStack(location);
@@ -154,14 +154,14 @@ public interface ResourceGenerationContext {
                 }
 
                 @Override
-                public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
                     var map = new HashMap<>(fallback.listResources(path, filter));
                     map.putAll(outer.listResources(path, filter));
                     return map;
                 }
 
                 @Override
-                public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
                     var map = new HashMap<>(fallback.listResourceStacks(path, filter));
                     outer.listResourceStacks(path, filter).forEach((rl, list) -> {
                         if (!list.isEmpty()) {
@@ -172,7 +172,7 @@ public interface ResourceGenerationContext {
                 }
 
                 @Override
-                public @NotNull Set<String> getNamespaces() {
+                public @NonNull Set<String> getNamespaces() {
                     var set = new HashSet<>(fallback.getNamespaces());
                     set.addAll(outer.getNamespaces());
                     return set;
@@ -192,7 +192,7 @@ public interface ResourceGenerationContext {
             return new ResourceGenerationContext.ResourceSource() {
 
                 @Override
-                public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+                public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {
                     for (PackResources pack : packs.get()) {
                         IoSupplier<InputStream> resource = pack.getResource(type, location);
                         if (resource != null) {
@@ -203,7 +203,7 @@ public interface ResourceGenerationContext {
                 }
 
                 @Override
-                public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+                public List<IoSupplier<InputStream>> getResourceStack(@NonNull ResourceLocation location) {
                     List<IoSupplier<InputStream>> out = new ArrayList<>();
                     for (PackResources pack : packs.get()) {
                         IoSupplier<InputStream> resource = pack.getResource(type, location);
@@ -215,7 +215,7 @@ public interface ResourceGenerationContext {
                 }
 
                 @Override
-                public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
                     Map<ResourceLocation, IoSupplier<InputStream>> resources = new HashMap<>();
                     for (PackResources pack : packs.get()) {
                         for (String namespace : pack.getNamespaces(type)) {
@@ -232,7 +232,7 @@ public interface ResourceGenerationContext {
                 }
 
                 @Override
-                public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
                     Map<ResourceLocation, List<IoSupplier<InputStream>>> resources = new HashMap<>();
                     for (PackResources pack : packs.get()) {
                         for (String namespace : pack.getNamespaces(type)) {
@@ -248,7 +248,7 @@ public interface ResourceGenerationContext {
                 }
 
                 @Override
-                public @NotNull Set<String> getNamespaces() {
+                public @NonNull Set<String> getNamespaces() {
                     Set<String> namespaces = new HashSet<>();
                     for (PackResources pack : packs.get()) {
                         namespaces.addAll(pack.getNamespaces(type));

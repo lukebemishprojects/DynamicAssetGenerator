@@ -12,8 +12,8 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLogger;
 
@@ -36,7 +36,7 @@ public final class FallbackSource implements TexSource {
         this.fallback = fallback;
     }
 
-    public @NotNull Codec<? extends TexSource> codec() {
+    public @NonNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

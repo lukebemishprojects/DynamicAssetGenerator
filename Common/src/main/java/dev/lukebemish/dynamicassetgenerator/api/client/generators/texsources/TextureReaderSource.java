@@ -15,7 +15,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataHolder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -35,7 +35,7 @@ public final class TextureReaderSource implements TexSource {
     }
 
     @Override
-    public @NotNull Codec<? extends TexSource> codec() {
+    public @NonNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -57,7 +57,7 @@ public final class TextureReaderSource implements TexSource {
     }
 
     @Override
-    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceGenerationContext context) {
+    public @NonNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceGenerationContext context) {
         ResourceLocation outRl = new ResourceLocation(this.getPath().getNamespace(), "textures/" + this.getPath().getPath() + ".png");
         var supplier = context.getResourceSource().getResource(outRl);
         if (supplier != null) {

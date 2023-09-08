@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.InputStream;
 import java.util.Set;
@@ -22,12 +22,12 @@ import java.util.Set;
  */
 public interface InvisibleResourceProvider {
 
-    IoSupplier<InputStream> getResource(@NotNull PackType type, @NotNull ResourceLocation location);
+    IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull ResourceLocation location);
 
-    void listResources(@NotNull PackType type, @NotNull String namespace, @NotNull String path, @NotNull PackResources.ResourceOutput resourceOutput);
+    void listResources(@NonNull PackType type, @NonNull String namespace, @NonNull String path, PackResources.@NonNull ResourceOutput resourceOutput);
 
-    Set<String> getNamespaces(@NotNull PackType type);
+    Set<String> getNamespaces(@NonNull PackType type);
 
-    default void reset(@NotNull PackType type) {}
+    default void reset(@NonNull PackType type) {}
 
 }

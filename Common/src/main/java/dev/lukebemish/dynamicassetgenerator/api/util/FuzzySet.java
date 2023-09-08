@@ -5,7 +5,7 @@
 
 package dev.lukebemish.dynamicassetgenerator.api.util;
 
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.function.BiPredicate;
@@ -60,19 +60,19 @@ public class FuzzySet<T> implements Set<T> {
         return false;
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Iterator<T> iterator() {
         return fuzzy.keySet().iterator();
     }
 
     @Override
-    public Object @NotNull [] toArray() {
+    public Object @NonNull [] toArray() {
         return fuzzy.keySet().toArray();
     }
 
     @Override
-    public <T1> T1 @NotNull [] toArray(T1 @NotNull [] t1s) {
+    public <T1> T1 @NonNull [] toArray(T1 @NonNull [] t1s) {
         return fuzzy.keySet().toArray(t1s);
     }
 
@@ -115,7 +115,7 @@ public class FuzzySet<T> implements Set<T> {
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> collection) {
+    public boolean containsAll(@NonNull Collection<?> collection) {
         for (Object o : collection) {
             if (!contains(o))
                 return false;
@@ -124,7 +124,7 @@ public class FuzzySet<T> implements Set<T> {
     }
 
     @Override
-    public boolean addAll(@NotNull Collection<? extends T> collection) {
+    public boolean addAll(@NonNull Collection<? extends T> collection) {
         boolean changed = false;
         for (T t : collection) {
             changed |= add(t);
@@ -134,7 +134,7 @@ public class FuzzySet<T> implements Set<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean retainAll(@NotNull Collection<?> collection) {
+    public boolean retainAll(@NonNull Collection<?> collection) {
         var keys = fuzzy.keySet().stream().filter(ts -> {
             for (Object o : collection) {
                 if (cutoff.test(ts, (T) o))
@@ -154,7 +154,7 @@ public class FuzzySet<T> implements Set<T> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public boolean removeAll(@NotNull Collection<?> collection) {
+    public boolean removeAll(@NonNull Collection<?> collection) {
         var keys = fuzzy.keySet().stream().filter(ts -> {
             for (Object o : collection) {
                 if (cutoff.test(ts, (T) o))

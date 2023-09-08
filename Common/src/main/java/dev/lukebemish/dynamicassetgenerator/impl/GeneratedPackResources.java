@@ -11,8 +11,8 @@ import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.HashSet;
@@ -43,13 +43,13 @@ public class GeneratedPackResources implements PackResources {
 
     @Nullable
     @Override
-    public IoSupplier<InputStream> getRootResource(String @NotNull ... strings) {
+    public IoSupplier<InputStream> getRootResource(String @NonNull ... strings) {
         return null;
     }
 
     @Nullable
     @Override
-    public IoSupplier<InputStream> getResource(@NotNull PackType packType, @NotNull ResourceLocation location) {
+    public IoSupplier<InputStream> getResource(@NonNull PackType packType, @NonNull ResourceLocation location) {
         if (packType == cache.getPackType()) {
             if (getStreams().containsKey(location)) {
                 return getStreams().get(location);
@@ -59,7 +59,7 @@ public class GeneratedPackResources implements PackResources {
     }
 
     @Override
-    public void listResources(@NotNull PackType packType, @NotNull String namespace, @NotNull String directory, @NotNull ResourceOutput resourceOutput) {
+    public void listResources(@NonNull PackType packType, @NonNull String namespace, @NonNull String directory, @NonNull ResourceOutput resourceOutput) {
         if (packType == cache.getPackType()) {
             for (ResourceLocation key : getStreams().keySet()) {
                 if (key.getPath().startsWith(directory) && key.getNamespace().equals(namespace) && getStreams().get(key) != null) {
@@ -70,7 +70,7 @@ public class GeneratedPackResources implements PackResources {
     }
 
     @Override
-    public @NotNull Set<String> getNamespaces(@NotNull PackType type) {
+    public @NonNull Set<String> getNamespaces(@NonNull PackType type) {
         Set<String> namespaces = new HashSet<>();
         if (type == cache.getPackType()) {
             for (ResourceLocation key : getStreams().keySet()) {
@@ -91,7 +91,7 @@ public class GeneratedPackResources implements PackResources {
     }
 
     @Override
-    public @NotNull String packId() {
+    public @NonNull String packId() {
         return DynamicAssetGenerator.MOD_ID+'/'+cache.getName().toString();
     }
 

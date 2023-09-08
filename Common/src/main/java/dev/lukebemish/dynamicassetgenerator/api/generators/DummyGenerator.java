@@ -12,7 +12,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.InputStream;
 import java.util.Set;
@@ -33,12 +33,12 @@ public class DummyGenerator implements ResourceGenerator {
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
+    public @NonNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of();
     }
 
     @Override
-    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
+    public @NonNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
         return DataResult.success(ops.empty());
     }
 

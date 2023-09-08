@@ -10,8 +10,8 @@ import dev.lukebemish.dynamicassetgenerator.api.Resettable;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -126,7 +126,7 @@ public interface TagSupplier extends Function<ResourceGenerationContext, Map<Res
         }
 
         @Override
-        public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
+        public @NonNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
             checkTags(context);
             return bakedTags.keySet().stream().map(rl -> rl.withPrefix("tags/").withSuffix(".json")).collect(Collectors.toSet());
         }

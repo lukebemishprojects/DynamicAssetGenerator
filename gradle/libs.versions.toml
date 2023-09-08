@@ -21,6 +21,7 @@ librarian = "1.2.0"
 mixingradle = "0.7.36"
 
 jetbrains_annotations = "24.0.1"
+jspecify = "0.3.0"
 
 minotaur = "2.8.3"
 cursegradle = "1.4.0"
@@ -36,6 +37,8 @@ qsl = { module = "org.quiltmc:qsl", version.ref = "qsl" }
 forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
 
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
 autoservice = { module = "com.google.auto.service:auto-service", version.ref = "autoservice" }
 
 owolib = { module = "io.wispforest:owo-lib", version.ref = "owolib" }

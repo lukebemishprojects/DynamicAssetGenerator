@@ -8,7 +8,7 @@ package dev.lukebemish.dynamicassetgenerator.api;
 import dev.lukebemish.dynamicassetgenerator.api.sources.TagSupplier;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A {@link ResourceCache} meant to provide resources for data packs.
@@ -25,7 +25,7 @@ public class DataResourceCache extends ResourceCache {
     }
 
     @Override
-    public @NotNull PackType getPackType() {
+    public @NonNull PackType getPackType() {
         return PackType.SERVER_DATA;
     }
 

@@ -6,7 +6,7 @@
 package dev.lukebemish.dynamicassetgenerator.api.cache;
 
 import com.mojang.serialization.DynamicOps;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link DynamicOps} that can hold data of various sorts, accessible by codecs, representing a context the encoding

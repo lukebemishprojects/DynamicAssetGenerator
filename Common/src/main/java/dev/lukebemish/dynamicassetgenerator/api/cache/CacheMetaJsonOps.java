@@ -7,7 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api.cache;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -33,8 +33,8 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.*;
 import java.util.*;
@@ -91,37 +91,37 @@ public interface DynamicSpriteSource extends SpriteSource {
             private final ResourceSource source = ResourceGenerationContext.ResourceSource.filtered(pack -> true, PackType.CLIENT_RESOURCES)
                 .fallback(new ResourceSource() {
                     @Override
-                    public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+                    public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {
                         return resourceManager.getResource(location).<IoSupplier<InputStream>>map(r -> r::open).orElse(null);
                     }
 
                     @Override
-                    public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+                    public List<IoSupplier<InputStream>> getResourceStack(@NonNull ResourceLocation location) {
                         return resourceManager.getResourceStack(location).stream().<IoSupplier<InputStream>>map(r -> r::open).toList();
                     }
 
                     @Override
-                    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
                         Map<ResourceLocation, IoSupplier<InputStream>> map = new HashMap<>();
                         resourceManager.listResources(path, filter).forEach((rl, r) -> map.put(rl, r::open));
                         return map;
                     }
 
                     @Override
-                    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+                    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
                         Map<ResourceLocation, List<IoSupplier<InputStream>>> map = new HashMap<>();
                         resourceManager.listResourceStacks(path, filter).forEach((rl, r) -> map.put(rl, r.stream().<IoSupplier<InputStream>>map(i -> i::open).toList()));
                         return map;
                     }
 
                     @Override
-                    public @NotNull Set<String> getNamespaces() {
+                    public @NonNull Set<String> getNamespaces() {
                         return resourceManager.getNamespaces();
                     }
                 });
 
             @Override
-            public @NotNull ResourceLocation getCacheName() {
+            public @NonNull ResourceLocation getCacheName() {
                 if (output instanceof ExposesName exposesName) {
                     var atlasName = exposesName.dynamicassetgenerator$getName();
                     return getLocation().withPath(getLocation().getPath()+"__"+atlasName.getNamespace()+"__"+atlasName.getPath());
@@ -209,7 +209,7 @@ public interface DynamicSpriteSource extends SpriteSource {
     }
 
     @Override
-    @NotNull
+    @NonNull
     default SpriteSourceType type() {
         return SpriteSourcesAccessor.getTypes().get(getLocation());
     }

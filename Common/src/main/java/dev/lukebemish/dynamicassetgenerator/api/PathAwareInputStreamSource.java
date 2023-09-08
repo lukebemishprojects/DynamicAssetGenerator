@@ -6,7 +6,7 @@
 package dev.lukebemish.dynamicassetgenerator.api;
 
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Set;
 
@@ -18,6 +18,6 @@ public interface PathAwareInputStreamSource extends InputStreamSource {
     /**
      * @return the locations that this {@link InputStreamSource} can provide resources at.
      */
-    @NotNull
+    @NonNull
     Set<ResourceLocation> getLocations(ResourceGenerationContext context);
 }

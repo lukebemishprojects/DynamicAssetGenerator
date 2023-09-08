@@ -11,7 +11,7 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.ForegroundExtractor;
 import dev.lukebemish.dynamicassetgenerator.impl.client.TexSourceCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A {@link ResourceCache} meant to provide resources for resource packs. Texture sources should only be used within
@@ -34,7 +34,7 @@ public class AssetResourceCache extends ResourceCache {
     }
 
     @Override
-    public @NotNull PackType getPackType() {
+    public @NonNull PackType getPackType() {
         return PackType.CLIENT_RESOURCES;
     }
 }

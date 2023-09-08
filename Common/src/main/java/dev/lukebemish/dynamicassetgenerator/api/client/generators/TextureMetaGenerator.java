@@ -21,8 +21,8 @@ import net.minecraft.client.resources.metadata.animation.AnimationMetadataSectio
 import net.minecraft.client.resources.metadata.animation.VillagerMetaDataSection;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -87,7 +87,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
         .build();
 
     @Override
-    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
+    public @NonNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
         var builder = ops.listBuilder();
         for (var s : sources) {
             ResourceLocation metaLocation = new ResourceLocation(s.getNamespace(), "textures/" + s.getPath() + ".png.mcmeta");
@@ -153,7 +153,7 @@ public class TextureMetaGenerator implements ResourceGenerator {
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
+    public @NonNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of(new ResourceLocation(outputLocation.getNamespace(),"textures/"+ outputLocation.getPath()+".png.mcmeta"));
     }
 

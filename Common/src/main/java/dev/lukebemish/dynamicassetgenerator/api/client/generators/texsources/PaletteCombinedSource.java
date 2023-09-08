@@ -18,8 +18,8 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PaletteToColor
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.util.FastColor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -58,7 +58,7 @@ public final class PaletteCombinedSource implements TexSource {
     }
 
     @Override
-    public @NotNull Codec<? extends TexSource> codec() {
+    public @NonNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 
@@ -89,7 +89,7 @@ public final class PaletteCombinedSource implements TexSource {
         };
     }
 
-    @NotNull
+    @NonNull
     public static NativeImage combineImages(NativeImage backgroundImage, NativeImage overlayImage, NativeImage paletteImage, PaletteCombiningOptions options) {
         Palette palette = ImageUtils.getPalette(backgroundImage);
         palette.extend(options.palettePredicate());

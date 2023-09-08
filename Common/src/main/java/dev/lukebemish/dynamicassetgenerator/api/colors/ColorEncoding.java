@@ -7,7 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api.colors;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringRepresentable;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.IntUnaryOperator;
 
@@ -32,7 +32,7 @@ public enum ColorEncoding implements StringRepresentable {
     }
 
     @Override
-    public @NotNull String getSerializedName() {
+    public @NonNull String getSerializedName() {
         return this.name;
     }
 

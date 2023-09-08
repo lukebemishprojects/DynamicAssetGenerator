@@ -8,8 +8,8 @@ package dev.lukebemish.dynamicassetgenerator.impl;
 import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerationContext;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.List;
@@ -23,27 +23,27 @@ public final class EmptyResourceSource implements ResourceGenerationContext.Reso
     private EmptyResourceSource() {}
 
     @Override
-    public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+    public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {
         return null;
     }
 
     @Override
-    public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+    public List<IoSupplier<InputStream>> getResourceStack(@NonNull ResourceLocation location) {
         return List.of();
     }
 
     @Override
-    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String namespace, @NotNull Predicate<ResourceLocation> filter) {
+    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NonNull String namespace, @NonNull Predicate<ResourceLocation> filter) {
         return Map.of();
     }
 
     @Override
-    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String namespace, @NotNull Predicate<ResourceLocation> filter) {
+    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NonNull String namespace, @NonNull Predicate<ResourceLocation> filter) {
         return Map.of();
     }
 
     @Override
-    public @NotNull Set<String> getNamespaces() {
+    public @NonNull Set<String> getNamespaces() {
         return Set.of();
     }
 }

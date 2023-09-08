@@ -10,7 +10,7 @@ import dev.lukebemish.dynamicassetgenerator.api.colors.geometry.ColorCoordinates
 import dev.lukebemish.dynamicassetgenerator.api.colors.geometry.LineSegment;
 import dev.lukebemish.dynamicassetgenerator.api.util.FuzzySet;
 import net.minecraft.util.FastColor;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -119,7 +119,7 @@ public class Palette implements Collection<Integer> {
     }
 
     @Override
-    public boolean removeAll(@NotNull Collection<?> collection) {
+    public boolean removeAll(@NonNull Collection<?> collection) {
         boolean mutated = backing.removeAll(collection);
         if (mutated)
             updateList();
@@ -127,7 +127,7 @@ public class Palette implements Collection<Integer> {
     }
 
     @Override
-    public boolean retainAll(@NotNull Collection<?> collection) {
+    public boolean retainAll(@NonNull Collection<?> collection) {
         boolean mutated = backing.retainAll(collection);
         if (mutated)
             updateList();
@@ -252,19 +252,19 @@ public class Palette implements Collection<Integer> {
         return backing.contains(o);
     }
 
-    @NotNull
+    @NonNull
     @Override
     public Iterator<Integer> iterator() {
         return colors.iterator();
     }
 
     @Override
-    public Object @NotNull [] toArray() {
+    public Object @NonNull [] toArray() {
         return colors.toArray();
     }
 
     @Override
-    public <T> T @NotNull [] toArray(T @NotNull [] ts) {
+    public <T> T @NonNull [] toArray(T @NonNull [] ts) {
         return colors.toArray(ts);
     }
 
@@ -277,7 +277,7 @@ public class Palette implements Collection<Integer> {
     }
 
     @Override
-    public boolean containsAll(@NotNull Collection<?> collection) {
+    public boolean containsAll(@NonNull Collection<?> collection) {
         return backing.containsAll(collection);
     }
 

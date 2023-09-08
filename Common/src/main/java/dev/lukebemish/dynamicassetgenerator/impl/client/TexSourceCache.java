@@ -15,7 +15,7 @@ import dev.lukebemish.dynamicassetgenerator.impl.CacheReference;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.util.Map;
@@ -27,7 +27,8 @@ public final class TexSourceCache {
 
     private static final Map<ResourceLocation, Map<String, CacheReference<Either<NativeImage, IOException>>>> MULTI_CACHE = new ConcurrentHashMap<>();
 
-    @NotNull public static NativeImage fromCache(IoSupplier<NativeImage> supplier, TexSource source, ResourceGenerationContext context, TexSourceDataHolder data) throws IOException {
+    @NonNull
+    public static NativeImage fromCache(IoSupplier<NativeImage> supplier, TexSource source, ResourceGenerationContext context, TexSourceDataHolder data) throws IOException {
         var cache = MULTI_CACHE.computeIfAbsent(context.getCacheName(), k -> new ConcurrentHashMap<>());
         try {
             var dataOps = new CacheMetaJsonOps();

@@ -7,8 +7,7 @@ package dev.lukebemish.dynamicassetgenerator.api;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 
@@ -35,7 +34,6 @@ public interface InputStreamSource {
      * @param context the context that the resource will be generated in. Resources can safely be accessed in this context
      * @return a key that can be used to uniquely identify the resource, or null if this is not possible
      */
-    @ApiStatus.Experimental
     default @Nullable String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
         return null;
     }

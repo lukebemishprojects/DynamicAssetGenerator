@@ -17,7 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.quiltmc.loader.api.QuiltLoader;
 
 import java.io.ByteArrayInputStream;
@@ -46,7 +46,7 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
         private static Map<ResourceLocation, String> tagMap;
 
         @Override
-        public IoSupplier<InputStream> getResource(@NotNull PackType type, @NotNull ResourceLocation location) {
+        public IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull ResourceLocation location) {
             if (type == PackType.SERVER_DATA) {
                 checkMap();
                 if (tagMap.containsKey(location))
@@ -56,7 +56,7 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
         }
 
         @Override
-        public void listResources(@NotNull PackType type, @NotNull String namespace, @NotNull String path, PackResources.@NotNull ResourceOutput resourceOutput) {
+        public void listResources(@NonNull PackType type, @NonNull String namespace, @NonNull String path, PackResources.@NonNull ResourceOutput resourceOutput) {
             if (type == PackType.SERVER_DATA) {
                 checkMap();
                 tagMap.keySet().stream()
@@ -66,7 +66,7 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
         }
 
         @Override
-        public Set<String> getNamespaces(@NotNull PackType type) {
+        public Set<String> getNamespaces(@NonNull PackType type) {
             if (type == PackType.SERVER_DATA) {
                 checkMap();
                 return tagMap.keySet().stream().map(ResourceLocation::getNamespace).collect(Collectors.toSet());
@@ -75,7 +75,7 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
         }
 
         @Override
-        public void reset(@NotNull PackType type) {
+        public void reset(@NonNull PackType type) {
             if (type == PackType.SERVER_DATA)
                 tagMap = null;
         }

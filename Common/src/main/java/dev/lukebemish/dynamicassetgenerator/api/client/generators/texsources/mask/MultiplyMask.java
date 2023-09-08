@@ -10,7 +10,7 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.api.client.generators.texsources.AbstractManyOperationSource;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.ColorOperations;
 import dev.lukebemish.dynamicassetgenerator.api.colors.operations.PointwiseOperation;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.Objects;
@@ -26,7 +26,7 @@ public class MultiplyMask extends AbstractManyOperationSource {
     }
 
     @Override
-    public @NotNull Codec<? extends TexSource> codec() {
+    public @NonNull Codec<? extends TexSource> codec() {
         return CODEC;
     }
 

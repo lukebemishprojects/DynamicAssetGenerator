@@ -12,8 +12,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.*;
@@ -124,11 +124,11 @@ public abstract class ResourceCache {
      *              are not guaranteed to be set up yet
      * @return a context for generating resources within this cache
      */
-    @NotNull
+    @NonNull
     public ResourceGenerationContext makeContext(boolean blind) {
         return new ResourceGenerationContext() {
             @Override
-            public @NotNull ResourceLocation getCacheName() {
+            public @NonNull ResourceLocation getCacheName() {
                 return getName();
             }
 
@@ -211,14 +211,14 @@ public abstract class ResourceCache {
     /**
      * @return the type of pack this cache will generate resources for
      */
-    @NotNull
+    @NonNull
     public abstract PackType getPackType();
 
 
     private static Supplier<PathAwareInputStreamSource> wrap(Supplier<Set<ResourceLocation>> rls, InputStreamSource source) {
         return () -> new PathAwareInputStreamSource() {
             @Override
-            public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
+            public @NonNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
                 return rls.get();
             }
 

@@ -3,4 +3,7 @@
  * dynamically generated data, as often the vanilla tools to read certain data structures are not available at this
  * time.
  */
+@NullMarked
 package dev.lukebemish.dynamicassetgenerator.api.templates;
+
+import org.jspecify.annotations.NullMarked;

@@ -15,7 +15,7 @@ import dev.lukebemish.dynamicassetgenerator.api.ResourceGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class TextureGenerator implements ResourceGenerator {
      * @param outputLocation the location to generate a texture at, excluding the "textures/" prefix or ".png" extension
      * @param source the texture source to generate
      */
-    public TextureGenerator(@NotNull ResourceLocation outputLocation, @NotNull TexSource source) {
+    public TextureGenerator(@NonNull ResourceLocation outputLocation, @NonNull TexSource source) {
         this.input = source;
         this.outputLocation = outputLocation;
     }
@@ -63,12 +63,12 @@ public class TextureGenerator implements ResourceGenerator {
     }
 
     @Override
-    public @NotNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
+    public @NonNull <T> DataResult<T> persistentCacheData(DynamicOps<T> ops, ResourceLocation location, ResourceGenerationContext context) {
         return DataResult.success(ops.empty()); // The actual persistent data is recorded while encoding the held texture source
     }
 
     @Override
-    public @NotNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
+    public @NonNull Set<ResourceLocation> getLocations(ResourceGenerationContext context) {
         return Set.of(getOutputLocation());
     }
 

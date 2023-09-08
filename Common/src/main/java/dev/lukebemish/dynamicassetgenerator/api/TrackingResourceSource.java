@@ -8,8 +8,8 @@ package dev.lukebemish.dynamicassetgenerator.api;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.*;
@@ -65,33 +65,33 @@ public class TrackingResourceSource implements ResourceGenerationContext.Resourc
     }
 
     @Override
-    public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
+    public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {
         addLocation(location);
         return delegate.getResource(location);
     }
 
     @Override
-    public List<IoSupplier<InputStream>> getResourceStack(@NotNull ResourceLocation location) {
+    public List<IoSupplier<InputStream>> getResourceStack(@NonNull ResourceLocation location) {
         addLocation(location);
         return delegate.getResourceStack(location);
     }
 
     @Override
-    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+    public Map<ResourceLocation, IoSupplier<InputStream>> listResources(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
         var resources = delegate.listResources(path, filter);
         resources.keySet().forEach(this::addLocation);
         return resources;
     }
 
     @Override
-    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NotNull String path, @NotNull Predicate<ResourceLocation> filter) {
+    public Map<ResourceLocation, List<IoSupplier<InputStream>>> listResourceStacks(@NonNull String path, @NonNull Predicate<ResourceLocation> filter) {
         var resources = delegate.listResourceStacks(path, filter);
         resources.keySet().forEach(this::addLocation);
         return resources;
     }
 
     @Override
-    public @NotNull Set<String> getNamespaces() {
+    public @NonNull Set<String> getNamespaces() {
         return delegate.getNamespaces();
     }
 }
