@@ -9,6 +9,11 @@ apply from: 'version.gradle'
 modsDotGroovy {
     dslVersion = libs.versions.mdg.dsl.get()
     platform 'multiloader'
+    multiloader {
+        forge = [project(':Forge')]
+        fabric = [project(':FabriQuilt')]
+        quilt = [project(':FabriQuilt')]
+    }
 }
 
 subprojects { p ->
@@ -38,9 +43,6 @@ subprojects { p ->
                     'Specification-Title'     : mod_name,
                     'Specification-Vendor'    : mod_author,
                     'Specification-Version'   : rootProject.version,
-                    'Implementation-Title'    : project.name,
-                    'Implementation-Version'  : rootProject.version,
-                    'Implementation-Vendor'   : mod_author,
                     'Implementation-Commit-Time': versioning.getGitCommitDate(),
                     'Implementation-Commit': versioning.getGitCommit(),
                     'Build-On-Minecraft'      : libs.versions.minecraft.get(),

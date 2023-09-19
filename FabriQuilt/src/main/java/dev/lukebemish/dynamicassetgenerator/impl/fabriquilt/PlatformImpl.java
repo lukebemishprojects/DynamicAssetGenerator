@@ -3,26 +3,25 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.quilt;
+package dev.lukebemish.dynamicassetgenerator.impl.fabriquilt;
 
+import com.google.auto.service.AutoService;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.platform.services.Platform;
-import com.google.auto.service.AutoService;
-import org.quiltmc.loader.api.QuiltLoader;
 
 import java.nio.file.Path;
 
 @AutoService(Platform.class)
 public class PlatformImpl implements Platform {
-    private static final String MOD_VERSION = QuiltLoader.getModContainer(DynamicAssetGenerator.MOD_ID).orElseThrow().metadata().version().raw();
+    private static final String MOD_VERSION = FabriQuiltShared.getInstance().modVersion(DynamicAssetGenerator.MOD_ID);
 
     public Path getConfigFolder() {
-        return QuiltLoader.getConfigDir();
+        return FabriQuiltShared.getInstance().configDir();
     }
 
     @Override
     public Path getModDataFolder() {
-        return QuiltLoader.getCacheDir().resolve(DynamicAssetGenerator.MOD_ID);
+        return FabriQuiltShared.getInstance().cacheDir().resolve(DynamicAssetGenerator.MOD_ID);
     }
 
     @Override

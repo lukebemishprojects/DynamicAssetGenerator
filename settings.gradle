@@ -48,4 +48,4 @@ plugins {
 }
 
 rootProject.name = 'dynamicassetgenerator'
-include("Common", "Forge", "Quilt")
+include("Common", "Forge", "FabriQuilt")

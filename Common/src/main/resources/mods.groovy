@@ -29,20 +29,38 @@ ModsDotGroovy.make {
             }
 
             onQuilt {
-                quiltLoader = ">=${this.quiltLoaderVersion}"
-                quilt_base = ">=${this.libs.versions.qsl}"
+                quilt_loader = ">=${this.libs.versions.quilt.loader}"
+                quilted_fabric_api = ">=${this.libs.versions.qfapi}"            }
+
+            onFabric {
+                mod 'fabric-api', {
+                    versionRange = ">=${this.libs.versions.qfapi.split('-')[0].split(/\+/)[1]}"
+                }
             }
         }
 
         entrypoints {
-            client_init = ['dev.lukebemish.dynamicassetgenerator.impl.quilt.DynamicAssetGeneratorClientQuilt']
-            init = ['dev.lukebemish.dynamicassetgenerator.impl.quilt.DynamicAssetGeneratorQuilt']
+            onQuilt {
+                client_init = ['dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.quilt.DynamicAssetGeneratorClientQuilt']
+                init = ['dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.quilt.DynamicAssetGeneratorQuilt']
+            }
+            onFabric {
+                client = ['dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.fabric.DynamicAssetGeneratorClientFabric']
+                main = ['dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.fabric.DynamicAssetGeneratorFabric']
+            }
         }
     }
     onQuilt {
         mixin = [
-                'mixin.dynamic_asset_generator.json',
-                'mixin.dynamic_asset_generator_quilt.json'
+            'mixin.dynamic_asset_generator.json',
+            'mixin.dynamic_asset_generator_fabriquilt.json'
+        ]
+    }
+    onFabric {
+        mixin = [
+            'mixin.dynamic_asset_generator.json',
+            'mixin.dynamic_asset_generator_fabriquilt.json',
+            'mixin.dynamic_asset_generator_fabric.json'
         ]
     }
 }

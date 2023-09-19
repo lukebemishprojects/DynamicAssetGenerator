@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.quilt.compat;
+package dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.compat;
 
 import com.google.auto.service.AutoService;
 import com.google.gson.JsonElement;
@@ -12,13 +12,13 @@ import dev.lukebemish.dynamicassetgenerator.api.compat.ConditionalInvisibleResou
 import dev.lukebemish.dynamicassetgenerator.api.compat.InvisibleResourceProvider;
 import dev.lukebemish.dynamicassetgenerator.api.templates.TagFile;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
+import dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.FabriQuiltShared;
 import io.wispforest.owo.util.TagInjector;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jspecify.annotations.NonNull;
-import org.quiltmc.loader.api.QuiltLoader;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -34,7 +34,7 @@ public class OwoLibProviderWrapper implements ConditionalInvisibleResourceProvid
 
     @Override
     public boolean isAvailable() {
-        return QuiltLoader.isModLoaded("owo");
+        return FabriQuiltShared.getInstance().isModLoaded("owo");
     }
 
     @Override

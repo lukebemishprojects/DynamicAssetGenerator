@@ -6,7 +6,7 @@ plugins {
 
 apply plugin: 'org.quiltmc.loom'
 
-archivesBaseName = "${artifact_id}-quilt-${libs.versions.minecraft.get()}"
+archivesBaseName = "${artifact_id}-fabriquilt-${libs.versions.minecraft.get()}"
 
 repositories {
 	maven {
@@ -31,9 +31,11 @@ dependencies {
 		officialMojangMappings()
 		parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.mappings.get()}@zip")
 	}
-	modImplementation libs.quilt.loader
+    modCompileOnly libs.quilt.loader
+    modCompileOnly libs.qfapi
 
-	modImplementation libs.qsl
+    modLocalRuntime libs.quilt.loader
+    modLocalRuntime libs.qfapi
 
 	implementation project(":Common")
 
@@ -71,11 +73,6 @@ loom {
 
 processResources {
     from project(":Common").sourceSets.main.resources
-	inputs.property "version", project.version
-
-	filesMatching("quilt.mod.json") {
-		expand "version": project.version
-	}
 }
 
 tasks.withType(JavaCompile) {
@@ -122,11 +119,12 @@ if (System.getenv('CURSEFORGE_KEY')) {
 			releaseType = "${project.release_type}"
 			addGameVersion "${libs.versions.minecraft.get()}"
 			addGameVersion 'Quilt'
+            addGameVersion 'Fabric'
 			mainArtifact(remapJar) {
-				displayName = "Dynamic Asset Generator [Quilt] v$project.version"
+				displayName = "Dynamic Asset Generator [FabriQuilt] v$project.version"
 			}
 			relations {
-				requiredDependency 'qsl'
+				requiredDependency 'fabric-api'
 			}
 		}
 		options {
@@ -144,9 +142,9 @@ if (System.getenv('MODRINTH_KEY')) {
 		detectLoaders = false
 		uploadFile = remapJar
 		gameVersions = ["${libs.versions.minecraft.get()}"]
-		loaders = ['quilt']
+		loaders = ['quilt','fabric']
 		dependencies {
-			required.project 'qsl'
+			required.project 'fabric-api'
 		}
 	}
 }

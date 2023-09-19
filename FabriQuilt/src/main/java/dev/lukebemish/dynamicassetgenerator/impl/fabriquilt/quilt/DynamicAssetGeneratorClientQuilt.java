@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.quilt;
+package dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.quilt;
 
 import dev.lukebemish.dynamicassetgenerator.impl.client.DynamicAssetGeneratorClient;
+import dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.FabriQuiltShared;
 import net.minecraft.server.packs.PackType;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.client.ClientModInitializer;
@@ -15,6 +16,6 @@ public class DynamicAssetGeneratorClientQuilt implements ClientModInitializer {
     @Override
     public void onInitializeClient(ModContainer container) {
         DynamicAssetGeneratorClient.init();
-        DynamicAssetGeneratorQuilt.registerForType(PackType.CLIENT_RESOURCES);
+        FabriQuiltShared.registerForType(PackType.CLIENT_RESOURCES);
     }
 }

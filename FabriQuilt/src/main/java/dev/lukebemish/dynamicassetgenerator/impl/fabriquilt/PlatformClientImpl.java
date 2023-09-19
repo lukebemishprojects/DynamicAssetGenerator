@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.quilt;
+package dev.lukebemish.dynamicassetgenerator.impl.fabriquilt;
 
 import com.google.auto.service.AutoService;
 import com.mojang.serialization.Codec;
