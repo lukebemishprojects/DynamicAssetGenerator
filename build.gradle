@@ -10,7 +10,7 @@ modsDotGroovy {
     dslVersion = libs.versions.mdg.dsl.get()
     platform 'multiloader'
     multiloader {
-        forge = [project(':Forge')]
+        forge = [project(':NeoForge')]
         fabric = [project(':FabriQuilt')]
         quilt = [project(':FabriQuilt')]
     }
@@ -61,11 +61,6 @@ subprojects { p ->
         maven {
             name 'Quilt (Release)'
             url 'https://maven.quiltmc.org/repository/release/'
-        }
-
-        maven {
-            name = 'TheModdingInquisition'
-            url = 'https://maven.moddinginquisition.org/releases'
         }
     }
 

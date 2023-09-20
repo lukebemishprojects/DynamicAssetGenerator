@@ -9,9 +9,6 @@ registries:
   quiltmc:
     type: maven-repository
     url: https://maven.quiltmc.org/repository/release/
-  modding-inquisition:
-    type: maven-repository
-    url: https://maven.moddinginquisition.org/releases/
   sponge:
     type: maven-repository
     url: https://repo.spongepowered.org/repository/maven-public/
@@ -20,7 +17,7 @@ registries:
     url: https://maven.parchmentmc.org/
   forge:
     type: maven-repository
-    url: https://maven.minecraftforge.net/
+    url: https://maven.neoforged.net/
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
@@ -28,7 +25,6 @@ updates:
       - maven-central
       - fabricmc
       - quiltmc
-      - modding-inquisition
       - sponge
       - parchment
       - forge

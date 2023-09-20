@@ -3,22 +3,22 @@ minecraft = "1.20.1"
 parchment_minecraft = "1.19.3"
 parchment_mappings = "2023.03.12"
 
-forge = "1.20.1-47.0.3"
+neoforge = "1.20.1-47.1.75"
 mixin = "0.8.4"
 
 quilt_loader = "0.19.2"
 qfapi = "7.2.2+0.88.1-1.20.1"
 
 mdg_plugin = "1.4.1"
-mdg_dsl = "1.5.0"
+mdg_dsl = "1.5.1"
 autoservice = "1.1.1"
 
 quilt_loom = "1.2.3"
 quilt_licenser = "2.0.1"
 
-forgegradle = "6.0.6"
+neogradle = "6.0.18"
 librarian = "1.2.0"
-mixingradle = "0.7.36"
+mixingradle = "0.7.38"
 
 jetbrains_annotations = "24.0.1"
 jspecify = "0.3.0"
@@ -34,7 +34,7 @@ minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 quilt_loader = { module = "org.quiltmc:quilt-loader", version.ref = "quilt_loader" }
 qfapi = { module = "org.quiltmc.quilted-fabric-api:quilted-fabric-api", version.ref = "qfapi" }
 
-forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
+neoforge = { module = "net.neoforged:forge", version.ref = "neoforge" }
 
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
@@ -43,12 +43,14 @@ autoservice = { module = "com.google.auto.service:auto-service", version.ref = "
 
 owolib = { module = "io.wispforest:owo-lib", version.ref = "owolib" }
 
+mixin = { module = "org.spongepowered:mixin", version.ref = "mixin" }
+
 [plugins]
 
-mdg_plugin = { id = "io.github.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
+mdg_plugin = { id = "org.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
 quilt_loom = { id = "org.quiltmc.loom", version.ref = "quilt_loom" }
 quilt_licenser = { id = "org.quiltmc.gradle.licenser", version.ref = "quilt_licenser" }
-forgegradle = { id = "net.minecraftforge.gradle", version.ref = "forgegradle" }
+neogradle = { id = "net.neoforged.gradle", version.ref = "neogradle" }
 librarian = { id = "org.parchmentmc.librarian.forgegradle", version.ref = "librarian" }
 mixingradle = { id = "org.spongepowered.mixin", version.ref = "mixingradle" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }

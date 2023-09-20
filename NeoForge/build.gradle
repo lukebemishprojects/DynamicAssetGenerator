@@ -1,5 +1,5 @@
 plugins {
-    alias libs.plugins.forgegradle
+    alias libs.plugins.neogradle
     alias libs.plugins.librarian
     alias libs.plugins.mixingradle
     alias libs.plugins.minotaur
@@ -9,17 +9,10 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
-archivesBaseName = "${artifact_id}-forge-${libs.versions.minecraft.get()}"
+archivesBaseName = "${artifact_id}-neoforge-${libs.versions.minecraft.get()}"
 
 minecraft {
     mappings channel: 'parchment', version: "${libs.versions.parchment.minecraft.get()}-${libs.versions.parchment.mappings.get()}-${libs.versions.minecraft.get()}"
-
-    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-        // This location is hardcoded in Forge and can not be changed.
-        // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
-        accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-        project.logger.debug('Forge Access Transformers are enabled for this project.')
-    }
 
     runs {
         client {
@@ -28,8 +21,6 @@ minecraft {
             taskName 'Client'
             property 'dynamicassetgenerator.test', 'true'
             property 'dynamicassetgenerator.time_resources', 'true'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 modClientRun {
                     source sourceSets.main
@@ -44,25 +35,8 @@ minecraft {
             taskName 'Server'
             property 'dynamicassetgenerator.test', 'true'
             property 'dynamicassetgenerator.time_resources', 'true'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 modServerRun {
-                    source sourceSets.main
-                    source project(":Common").sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-            taskName 'Data'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modDataRun {
                     source sourceSets.main
                     source project(":Common").sourceSets.main
                 }
@@ -71,20 +45,18 @@ minecraft {
     }
 }
 
-sourceSets.main.resources.srcDir 'src/generated/resources'
-
 configurations {
     testCompileClasspath.extendsFrom(compileClasspath)
 }
 
 dependencies {
-    minecraft libs.forge
+    minecraft libs.neoforge
     compileOnly project(":Common")
 
     compileOnly libs.autoservice
     annotationProcessor libs.autoservice
 
-    annotationProcessor "org.spongepowered:mixin:${libs.versions.mixin.get()}:processor"
+    annotationProcessor(variantOf(libs.mixin) { classifier 'processor' })
 }
 
 mixin {
@@ -126,7 +98,7 @@ publishing {
 }
 
 // Publishing
-
+// TODO: change CF plugin
 if (System.getenv('CURSEFORGE_KEY')) {
     curseforge {
         apiKey = System.getenv('CURSEFORGE_KEY')
@@ -134,9 +106,9 @@ if (System.getenv('CURSEFORGE_KEY')) {
             id = '577096'
             releaseType = "${project.release_type}"
             addGameVersion "${libs.versions.minecraft.get()}"
-            addGameVersion 'Forge'
+            addGameVersion 'NeoForge'
             mainArtifact(jar) {
-                displayName = "Dynamic Asset Generator [Forge] v$project.version"
+                displayName = "Dynamic Asset Generator [NeoForge] v$project.version"
             }
         }
         options {
@@ -154,6 +126,6 @@ if (System.getenv('MODRINTH_KEY')) {
         detectLoaders = false
         uploadFile = jar
         gameVersions = ["${libs.versions.minecraft.get()}"]
-        loaders = ['forge']
+        loaders = ['neoforge']
     }
 }
