@@ -22,7 +22,7 @@ public class AssetResourceCache extends ResourceCache {
      * The location of an empty texture, which consists of a single transparent pixel.
      */
     @SuppressWarnings("unused")
-    public static final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "textures/empty.png");
+    public static final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(DynamicAssetGenerator.MOD_ID, "empty");
 
     /**
      * @param name a unique identifier for this cache
