@@ -24,7 +24,6 @@ jetbrains_annotations = "24.0.1"
 jspecify = "0.3.0"
 
 minotaur = "2.8.3"
-cursegradle = "1.4.0"
 
 owolib = "0.11.0+1.20"
 
@@ -54,4 +53,4 @@ neogradle = { id = "net.neoforged.gradle", version.ref = "neogradle" }
 librarian = { id = "org.parchmentmc.librarian.forgegradle", version.ref = "librarian" }
 mixingradle = { id = "org.spongepowered.mixin", version.ref = "mixingradle" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
-cursegradle = { id = "com.matthewprenger.cursegradle", version.ref = "cursegradle" }
+curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.16"}

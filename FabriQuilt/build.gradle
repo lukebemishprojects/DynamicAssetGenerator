@@ -1,12 +1,12 @@
 plugins {
 	id 'maven-publish'
-	alias libs.plugins.cursegradle
+	alias libs.plugins.curseforgegradle
 	alias libs.plugins.minotaur
 }
 
 apply plugin: 'org.quiltmc.loom'
 
-archivesBaseName = "${artifact_id}-fabriquilt-${libs.versions.minecraft.get()}"
+base.archivesName = "${artifact_id}-fabriquilt-${libs.versions.minecraft.get()}"
 
 repositories {
 	maven {
@@ -98,9 +98,6 @@ tasks.jar.finalizedBy(tasks.remapJar)
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.archivesBaseName
-            version project.version
             from components.java
         }
     }
@@ -111,26 +108,25 @@ publishing {
 
 // Publishing
 
+import net.darkhax.curseforgegradle.TaskPublishCurseForge;
+
 if (System.getenv('CURSEFORGE_KEY')) {
-	curseforge {
-		apiKey = System.getenv('CURSEFORGE_KEY')
-		project {
-			id = '577096'
-			releaseType = "${project.release_type}"
-			addGameVersion "${libs.versions.minecraft.get()}"
-			addGameVersion 'Quilt'
-            addGameVersion 'Fabric'
-			mainArtifact(remapJar) {
-				displayName = "Dynamic Asset Generator [FabriQuilt] v$project.version"
-			}
-			relations {
-				requiredDependency 'fabric-api'
-			}
-		}
-		options {
-			forgeGradleIntegration = true
-		}
-	}
+    task curseforge(type: TaskPublishCurseForge) {
+        disableVersionDetection()
+        apiToken = System.getenv('CURSEFORGE_KEY')
+        def projectId = '577096'
+        def mainFile = upload(projectId, tasks.remapJar)
+        mainFile.displayName = "Dynamic Asset Generator [Fabric/Quilt] v$project.version"
+        mainFile.releaseType = "${project.release_type}"
+        mainFile.addModLoader('Fabric','Quilt')
+        mainFile.addGameVersion("${libs.versions.minecraft.get()}")
+        mainFile.addRequirement("fabric-api")
+        mainFile.changelog = ''
+    }
+
+    afterEvaluate {
+        tasks.curseforge.dependsOn tasks.remapJar
+    }
 }
 
 if (System.getenv('MODRINTH_KEY')) {

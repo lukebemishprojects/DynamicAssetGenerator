@@ -3,13 +3,13 @@ plugins {
     alias libs.plugins.librarian
     alias libs.plugins.mixingradle
     alias libs.plugins.minotaur
-    alias libs.plugins.cursegradle
+    alias libs.plugins.curseforgegradle
 }
 
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
-archivesBaseName = "${artifact_id}-neoforge-${libs.versions.minecraft.get()}"
+base.archivesName = "${artifact_id}-neoforge-${libs.versions.minecraft.get()}"
 
 minecraft {
     mappings channel: 'parchment', version: "${libs.versions.parchment.minecraft.get()}-${libs.versions.parchment.mappings.get()}-${libs.versions.minecraft.get()}"
@@ -85,9 +85,6 @@ jar.finalizedBy('reobfJar')
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.archivesBaseName
-            version project.version
             artifact jar
             artifact sourcesJar
             artifact javadocJar
@@ -98,22 +95,24 @@ publishing {
 }
 
 // Publishing
-// TODO: change CF plugin
+
+import net.darkhax.curseforgegradle.TaskPublishCurseForge;
+
 if (System.getenv('CURSEFORGE_KEY')) {
-    curseforge {
-        apiKey = System.getenv('CURSEFORGE_KEY')
-        project {
-            id = '577096'
-            releaseType = "${project.release_type}"
-            addGameVersion "${libs.versions.minecraft.get()}"
-            addGameVersion 'NeoForge'
-            mainArtifact(jar) {
-                displayName = "Dynamic Asset Generator [NeoForge] v$project.version"
-            }
-        }
-        options {
-            forgeGradleIntegration = true
-        }
+    task curseforge(type: TaskPublishCurseForge) {
+        disableVersionDetection()
+        apiToken = System.getenv('CURSEFORGE_KEY')
+        def projectId = '577096'
+        def mainFile = upload(projectId, tasks.reobfJar)
+        mainFile.displayName = "Dynamic Asset Generator [NeoForge] v$project.version"
+        mainFile.releaseType = "${project.release_type}"
+        mainFile.addModLoader('NeoForge')
+        mainFile.addGameVersion("${libs.versions.minecraft.get()}")
+        mainFile.changelog = ''
+    }
+
+    afterEvaluate {
+        tasks.curseforge.dependsOn tasks.reobfJar
     }
 }
 

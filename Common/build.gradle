@@ -4,7 +4,7 @@ plugins {
 
 apply plugin: 'org.quiltmc.loom'
 
-archivesBaseName = "${artifact_id}-common-${libs.versions.minecraft.get()}"
+base.archivesName = "${artifact_id}-common-${libs.versions.minecraft.get()}"
 
 loom {
     runConfigs.configureEach {
@@ -40,9 +40,6 @@ processResources {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId project.archivesBaseName
-            version project.version
             from components.java
         }
     }
