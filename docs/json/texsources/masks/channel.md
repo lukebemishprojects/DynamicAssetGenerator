@@ -12,4 +12,4 @@ Format:
 }
 ```
 
-Generates a mask whose alpha channel is the specified channel of the source texture. The `channel` may be one of `red`, `green`, `blue`, `alpha`, `cielab_lightness`, `cielab_a`, `cielab_b`, `hsl_hue`, `hsl_lightness`, or `hsl_saturation`.
+Generates a mask whose alpha channel is the specified channel of the source texture. The `channel` may be one of `red`, `green`, `blue`, `alpha`, `cielab_lightness`, `cielab_a`, `cielab_b`, `hsl_hue`, `hsl_lightness`, `hsl_saturation`, `hsv_hue`, `hsv_value`, or `hsv_saturation`.

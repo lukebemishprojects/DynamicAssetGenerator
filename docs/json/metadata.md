@@ -19,11 +19,8 @@ Format:
     "animation" : {
         "frametime" : 300,
         "interpolate" : true,
-        "pattern_source" : "namespace:texture_path1",
-        "scales" : [
-            1,
-            2
-        ]
+        "width" : 16,
+        "height" : 16,
     },
     "villager" : {
         "hat" : "partial"
@@ -39,10 +36,5 @@ This generator generates a `.png.mcmeta` file for a texture at `output_location`
 
 `animation`, `villager`, and `texture`, along with all their arguments, are optional; if not provided, they will either be excluded if appropriate of inherited from the source textures if present.
 
-`animation`:
-* `frametime` and `interpolate` are the same as the corresponding arguments in a `.png.mcmeta` file.
-* `pattern_source` determines which of the sources to take the general ordering of the frames from.
-* `scales` can be used to specify that one or more of the source textures has been scaled in time when added to the output texture; see [Animation Splitter](texsources/splitter).
-
-The arguments of `villager` and `texture` allow the corresponding arguments in the `.png.mcmeta` to be overridden instead of inherited.
+The arguments of `villager`, `animation`, and `texture` allow the corresponding arguments in the `.png.mcmeta` to be overridden instead of inherited.
 

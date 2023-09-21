@@ -30,8 +30,8 @@ Custom texture sources can be created by implementing `TexSource`, which require
 `getSupplier` takes a `TexSourceDataHolder` and a `ResourceGenerationContext`, and returns a `IoSupplier<NativeImage>`, or 
 `null` if no texture can be constructed. The `TexSourceDataHolder` is used to hold data that should be passed to "child"
 elements of the texture source, such as the logger, which can be retrieved with `TexSourceDataHolder#getLogger`. Note that
-making your source's output depend on other data in this element requires implementing the currently-experimental caching
-API.
+making your source's output depend on other data in this element requires implementing the caching API, and that if your
+source reads existing resources, it should implement the cache key API.
 
 `codec` returns a codec that can be used to serialize or deserialize the texture source. This codec must be registered with
 `TexSource.register`, and is used when caching texture sources; a texture source's generated texture must be fully 

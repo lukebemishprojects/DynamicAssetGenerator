@@ -1,12 +1,12 @@
 # Shadowed Source
 
-Source Type ID: `dynamic_asset_generator:palette_spread`
+Source Type ID: `dynamic_asset_generator:shadowed`
 
 Format:
 
 ```json
 {
-    "type": "dynamic_asset_generator:palette_spread",
+    "type": "dynamic_asset_generator:shadowed",
     "background": {   },
     "foreground": {   },
     "extend_palette_size": 6, // optional, defaults to 6

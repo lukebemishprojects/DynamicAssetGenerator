@@ -1,6 +1,6 @@
 # JSON Generators
 
-Dynamic Asset Generator can be used to add or overwrite assets or data using JSON files. These files live in `assets/<namespace>/dynamic_asset_generator` or `data/<namespace>/dynamic_asset_generator`, and can be placed under any namespace and within subfolders. Their general format is as follows:
+Dynamic Asset Generator can be used to add or overwrite assets or data using JSON files. These files live in `assets/<namespace>/dynamic_asset_generator/generators` or `data/<namespace>/dynamic_asset_generator/generators`, and can be placed under any namespace and within subfolders. Their general format is as follows:
 
 ```json
 {
