@@ -50,7 +50,7 @@ public interface DynamicSpriteSource extends SpriteSource {
     /**
      * @return a map of texture location, not including the {@code "textures/"} prefix or file extension, to texture source
      */
-    Map<ResourceLocation, TexSource> getSources(ResourceGenerationContext context, ResourceManager resourceManager);
+    Map<ResourceLocation, TexSource> getSources(ResourceGenerationContext context);
 
     /**
      * @return a unique identifier for this sprite source type
@@ -137,7 +137,7 @@ public interface DynamicSpriteSource extends SpriteSource {
 
         this.reset(context);
 
-        Map<ResourceLocation, TexSource> sources = getSources(context, resourceManager);
+        Map<ResourceLocation, TexSource> sources = getSources(context);
 
         sources.forEach((rl, texSource) -> {
             var trackingSource = TrackingResourceSource.of(context.getResourceSource(), "textures", ".png");

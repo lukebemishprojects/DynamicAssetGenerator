@@ -15,10 +15,10 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSource;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -31,13 +31,13 @@ public record BuiltinDynamicSpriteSource(Map<ResourceLocation, TexSource> source
     ).apply(i, (sources, location) -> new BuiltinDynamicSpriteSource(sources, location.orElse(null))));
 
     @Override
-    public Map<ResourceLocation, TexSource> getSources(ResourceGenerationContext context, ResourceManager resourceManager) {
+    public Map<ResourceLocation, TexSource> getSources(ResourceGenerationContext context) {
         Map<ResourceLocation, TexSource> outSources = new HashMap<>(sources());
         if (location != null) {
             FileToIdConverter converter = new FileToIdConverter(location.getNamespace() + "/" + location.getPath(), ".json");
-            resourceManager.listResources(location.getNamespace() + "/" + location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((fileRl, resource) -> {
+            context.getResourceSource().listResources(location.getNamespace() + "/" + location.getPath(), rl -> rl.getPath().endsWith(".json")).forEach((fileRl, resource) -> {
                 ResourceLocation rl = converter.fileToId(fileRl);
-                try (var reader = resource.openAsReader()) {
+                try (var reader = new InputStreamReader(resource.get())) {
                     JsonElement json = DynamicAssetGenerator.GSON.fromJson(reader, JsonElement.class);
                     var result = TexSource.CODEC.parse(JsonOps.INSTANCE, json);
                     result.result().ifPresent(texSource -> outSources.put(rl, texSource));
