@@ -3,7 +3,7 @@
 :::note
 
 While these docs will contain examples and explanations, the javadocs for DynAssetGen are also a good source for information on the java API; while they are not complete, I am continually working to expand how much of
-the API surface is well documented in this way. Additionally, javadocs are published for each major DynAssetGen version after 4. Javadocs are located at [https://javadoc.lukebemish.dev/dev/lukebemish/dynamicassetgenerator/4/](https://javadoc.lukebemish.dev/dev/lukebemish/dynamicassetgenerator/4/).
+the API surface is well documented in this way. Additionally, javadocs are published for each major DynAssetGen version after 4. Javadocs are located at [https://javadoc.lukebemish.dev/dev/lukebemish/dynamicassetgenerator/5/](https://javadoc.lukebemish.dev/dev/lukebemish/dynamicassetgenerator/5/).
 
 :::
 
@@ -21,20 +21,20 @@ repositories {
 
 For each version of DynAssetGen, three types of artifacts are published:
 * `common` jars, which are in official "Mojmaps" mappings and contain no loader-specific code
-* `quilt` jars which run on Quilt
-* `forge` jars which run on Forge
+* `fabriquilt` jars which run on Quilt and Fabric
+* `neoforge` jars which run on NeoForge
 
 The artifact coordinates take the format `dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-<type>-<minecraft version>:<version>`
 
-```gradle title="Adding artifact on Forge"
+```gradle title="Adding artifact on NeoForge"
 dependencies {
-    implementation fg.deobf('dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-forge-<minecraft version>:<version>')
+    implementation fg.deobf('dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-neoforge-<minecraft version>:<version>')
 }
 ```
 
-```gradle title="Adding artifact on Quilt"
+```gradle title="Adding artifact on Quilt or Fabric"
 dependencies {
-    modImplementation 'dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-quilt-<minecraft version>:<version>'
+    modImplementation 'dev.lukebemish.dynamicassetgenerator:dynamicassetgenerator-fabriquilt-<minecraft version>:<version>'
 }
 ```
 
@@ -42,6 +42,7 @@ dependencies {
 
 | Minecraft Version | Latest |
 | :---------------- | :----- |
+| 1.20.2            | [![Latest 1.20.2 Version](https://img.shields.io/badge/dynamic/xml?style=for-the-badge&color=e3116c&label=&prefix=v&query=metadata%2F%2Flatest&url=https%3A%2F%2Fmaven.lukebemish.dev%2Freleases%2Fdev%2Flukebemish%2Fdynamicassetgenerator%2Fdynamicassetgenerator-common-1.19.3%2Fmaven-metadata.xml)](https://maven.lukebemish.dev/releases/dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-common-1.20.2/) |
 | 1.20.1            | [![Latest 1.20.1 Version](https://img.shields.io/badge/dynamic/xml?style=for-the-badge&color=e3116c&label=&prefix=v&query=metadata%2F%2Flatest&url=https%3A%2F%2Fmaven.lukebemish.dev%2Freleases%2Fdev%2Flukebemish%2Fdynamicassetgenerator%2Fdynamicassetgenerator-common-1.20.1%2Fmaven-metadata.xml)](https://maven.lukebemish.dev/releases/dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-common-1.20.1/) |
 | 1.19.4            | [![Latest 1.19.3 Version](https://img.shields.io/badge/dynamic/xml?style=for-the-badge&color=e3116c&label=&prefix=v&query=metadata%2F%2Flatest&url=https%3A%2F%2Fmaven.lukebemish.dev%2Freleases%2Fdev%2Flukebemish%2Fdynamicassetgenerator%2Fdynamicassetgenerator-common-1.19.4%2Fmaven-metadata.xml)](https://maven.lukebemish.dev/releases/dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-common-1.19.4/) |
 | 1.19.3            | [![Latest 1.19.3 Version](https://img.shields.io/badge/dynamic/xml?style=for-the-badge&color=e3116c&label=&prefix=v&query=metadata%2F%2Flatest&url=https%3A%2F%2Fmaven.lukebemish.dev%2Freleases%2Fdev%2Flukebemish%2Fdynamicassetgenerator%2Fdynamicassetgenerator-common-1.19.3%2Fmaven-metadata.xml)](https://maven.lukebemish.dev/releases/dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-common-1.19.3/) |
