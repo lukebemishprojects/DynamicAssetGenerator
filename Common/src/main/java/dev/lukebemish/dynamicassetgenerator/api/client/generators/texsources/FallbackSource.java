@@ -14,7 +14,6 @@ import dev.lukebemish.dynamicassetgenerator.api.client.generators.TexSourceDataH
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
 import org.slf4j.helpers.NOPLogger;
 
 import java.io.IOException;
@@ -43,7 +42,7 @@ public final class FallbackSource implements TexSource {
     @Override
     public @Nullable IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         TexSourceDataHolder newData = new TexSourceDataHolder(data);
-        newData.put(Logger.class, NOPLogger.NOP_LOGGER);
+        newData.put(TexSourceDataHolder.LOGGER_TOKEN, NOPLogger.NOP_LOGGER);
         IoSupplier<NativeImage> original = this.getOriginal().getCachedSupplier(newData, context);
         IoSupplier<NativeImage> fallback = this.getFallback().getCachedSupplier(data, context);
 

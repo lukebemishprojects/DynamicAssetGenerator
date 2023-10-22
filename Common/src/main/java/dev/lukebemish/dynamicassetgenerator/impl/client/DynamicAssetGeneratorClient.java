@@ -85,7 +85,7 @@ public class DynamicAssetGeneratorClient {
                     new AnimationSplittingSource.Builder().setSources(Map.of("magma",
                         new TextureReaderSource.Builder().setPath(new ResourceLocation("block/magma")).build(),
                             "prismarine",
-                        new TextureReaderSource.Builder().setPath(new ResourceLocation("block/prismarine")).build())).setGenerator(new PaletteCombinedSource.Builder().setOverlay(new TextureReaderSource.Builder().setPath(new ResourceLocation("dynamic_asset_generator", "empty")).build()).setBackground(new AnimationFrameCapture.Builder().setCapture("prismarine").build()).setPaletted(new AnimationFrameCapture.Builder().setCapture("magma").build()).setIncludeBackground(false).setStretchPaletted(true).setExtendPaletteSize(paletteExtend).build()).build()));
+                        new TextureReaderSource.Builder().setPath(new ResourceLocation("block/prismarine")).build())).setGenerator(new PaletteCombinedSource.Builder().setOverlay(new TextureReaderSource.Builder().setPath(AssetResourceCache.EMPTY_TEXTURE).build()).setBackground(new AnimationFrameCapture.Builder().setCapture("prismarine").build()).setPaletted(new AnimationFrameCapture.Builder().setCapture("magma").build()).setIncludeBackground(false).setStretchPaletted(true).setExtendPaletteSize(paletteExtend).build()).build()));
             ASSET_CACHE.planSource(new TextureMetaGenerator.Builder()
                 .setSources(List.of(new ResourceLocation("block/magma"), new ResourceLocation("block/prismarine")))
                 .setOutputLocation(new ResourceLocation("block/moss_block"))

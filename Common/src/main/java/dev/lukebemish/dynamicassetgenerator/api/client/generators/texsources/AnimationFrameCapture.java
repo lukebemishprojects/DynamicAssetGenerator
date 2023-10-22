@@ -40,7 +40,7 @@ public final class AnimationFrameCapture implements TexSource {
     @Override
     public IoSupplier<NativeImage> getSupplier(TexSourceDataHolder data, ResourceGenerationContext context) {
         return () -> {
-            AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.ImageCollection.class);
+            AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.IMAGE_COLLECTION_TOKEN);
             if (collection == null) {
                 data.getLogger().debug("No parent animation source to capture...");
                 throw new IOException("No parent animation source to capture...");
@@ -57,7 +57,7 @@ public final class AnimationFrameCapture implements TexSource {
     @Override
     @NonNull
     public <T> DataResult<T> cacheMetadata(DynamicOps<T> ops, TexSourceDataHolder data) {
-        AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.ImageCollection.class);
+        AnimationSplittingSource.ImageCollection collection = data.get(AnimationSplittingSource.IMAGE_COLLECTION_TOKEN);
         if (collection != null) {
             var builder = ops.mapBuilder();
             builder.add("frame", ops.createInt(collection.getFrame()));
@@ -66,6 +66,7 @@ public final class AnimationFrameCapture implements TexSource {
                 return DataResult.error(() -> "In uncacheable state, no parent animation source to capture...");
             DataResult<T> parentElementTyped = TexSource.CODEC.encodeStart(ops, source);
             if (parentElementTyped.error().isPresent())
+                //noinspection OptionalGetWithoutIsPresent
                 return DataResult.error(() -> "Could not encode parent animation source: " + parentElementTyped.error().get().message());
             builder.add("parent", parentElementTyped);
             return builder.build(ops.empty());

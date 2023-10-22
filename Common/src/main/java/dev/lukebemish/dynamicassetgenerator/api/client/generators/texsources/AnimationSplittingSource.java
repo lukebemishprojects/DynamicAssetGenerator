@@ -37,6 +37,7 @@ public final class AnimationSplittingSource implements TexSource {
     ).apply(instance, AnimationSplittingSource::new));
     private final Map<String, TexSource> sources;
     private final TexSource generator;
+    static final TexSourceDataHolder.Token<ImageCollection> IMAGE_COLLECTION_TOKEN = new TexSourceDataHolder.Token<>();
 
     private AnimationSplittingSource(Map<String, TexSource> sources, TexSource generator) {
         this.sources = sources;
@@ -81,7 +82,7 @@ public final class AnimationSplittingSource implements TexSource {
                     images.forEach((str, old) -> map.put(str, getPartialImage(old, finalI)));
                     try (ImageCollection collection = new ImageCollection(map, this.getSources(), i)) {
                         TexSourceDataHolder newData = new TexSourceDataHolder(data);
-                        newData.put(ImageCollection.class, collection);
+                        newData.put(IMAGE_COLLECTION_TOKEN, collection);
                         IoSupplier<NativeImage> supplier = generator.getCachedSupplier(newData, context);
                         if (supplier == null) {
                             data.getLogger().error("Generator created no image...");
