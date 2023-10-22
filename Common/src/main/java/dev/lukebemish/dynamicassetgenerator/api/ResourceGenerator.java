@@ -29,13 +29,15 @@ import java.util.function.Function;
  * Represents a set of instructions to generate any number of resources, to be read from JSON.
  */
 public interface ResourceGenerator extends PathAwareInputStreamSource {
+
+    @ApiStatus.Internal
     String PERSISTENT_CACHE_KEY = "__dynamic_asset_generator_persistent";
-    Codec<ResourceGenerator> CODEC = ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ResourceGenerator>>() {
+    Codec<ResourceGenerator> CODEC = CacheMetaCodec.of(ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends ResourceGenerator>>() {
         @Override
         public <T> DataResult<Pair<Codec<? extends ResourceGenerator>, T>> decode(DynamicOps<T> ops, T input) {
             return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !CommonRegisters.RESOURCEGENERATORS.containsKey(keyValuePair.getFirst())
-                    ? DataResult.error(() -> "Unknown dynamic resource generator type: " + keyValuePair.getFirst())
-                    : DataResult.success(keyValuePair.mapFirst(CommonRegisters.RESOURCEGENERATORS::get)));
+                ? DataResult.error(() -> "Unknown dynamic resource generator type: " + keyValuePair.getFirst())
+                : DataResult.success(keyValuePair.mapFirst(CommonRegisters.RESOURCEGENERATORS::get)));
         }
 
         @Override
@@ -48,9 +50,7 @@ public interface ResourceGenerator extends PathAwareInputStreamSource {
             T toMerge = ops.createString(key.toString());
             return ops.mergeToPrimitive(prefix, toMerge);
         }
-    }).dispatch(ResourceGenerator::codec, Function.identity());
-
-    Codec<ResourceGenerator> PERSISTENT_CACHE_CODEC = CacheMetaCodec.of(CODEC, List.of(
+    }).dispatch(ResourceGenerator::codec, Function.identity()), List.of(
         CacheMetaCodec.SingleCacheType.of(new DataConsumer<>() {
             @Override
             public @NonNull <T> DataResult<T> encode(DynamicOps<T> ops, ResourceCachingData data, ResourceGenerator object) {
@@ -79,7 +79,7 @@ public interface ResourceGenerator extends PathAwareInputStreamSource {
     default String createCacheKey(ResourceLocation outRl, ResourceGenerationContext context) {
         CacheMetaJsonOps ops = new CacheMetaJsonOps();
         ops.putData(ResourceCachingData.class, new ResourceCachingData(outRl, context));
-        DataResult<JsonElement> result = PERSISTENT_CACHE_CODEC.encodeStart(ops, this);
+        DataResult<JsonElement> result = CODEC.encodeStart(ops, this);
         JsonElement element = result.result().orElse(null);
         if (element != null) {
             return DynamicAssetGenerator.GSON_FLAT.toJson(element);

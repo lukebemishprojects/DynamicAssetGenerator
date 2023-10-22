@@ -39,6 +39,7 @@ import java.util.function.Function;
  */
 public interface TexSource {
 
+    @ApiStatus.Internal
     String METADATA_CACHE_KEY = "__dynamic_asset_generator_metadata";
     Codec<TexSource> CODEC = CacheMetaCodec.of(ExtraCodecs.lazyInitializedCodec(() -> new Codec<Codec<? extends TexSource>>() {
             @Override
