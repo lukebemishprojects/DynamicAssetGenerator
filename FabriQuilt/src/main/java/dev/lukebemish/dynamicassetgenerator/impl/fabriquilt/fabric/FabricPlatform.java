@@ -15,8 +15,8 @@ import net.minecraft.server.packs.repository.RepositorySource;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class FabricPlatform implements FabriQuiltShared {
     public static final FabriQuiltShared INSTANCE = new FabricPlatform();
@@ -94,21 +94,20 @@ public class FabricPlatform implements FabriQuiltShared {
     }
 
     @Override
-    public List<? extends PackResources> unpackPacks(List<? extends PackResources> packs) {
-        ArrayList<PackResources> packsOut = new ArrayList<>();
-        packs.forEach(pack -> {
+    public Stream<PackResources> unpackPacks(Stream<? extends PackResources> packs) {
+        return packs.flatMap(pack -> {
             if (GROUP_PACK_RESOURCES != null && GET_GROUP_PACK_PACKS != null) {
                 if (GROUP_PACK_RESOURCES.isInstance(pack)) {
                     try {
                         @SuppressWarnings({"unchecked", "rawtypes"}) List<? extends PackResources> unpackedPacks =
                             (List<? extends PackResources>) (List) GET_GROUP_PACK_PACKS.invoke(pack);
-                        packsOut.addAll(unpackedPacks);
+                        return Stream.concat(Stream.of(pack), unpackPacks(unpackedPacks.stream()));
                     } catch (Throwable e) {
                         logError(0);
                     }
                 }
             }
+            return Stream.of(pack);
         });
-        return packsOut;
     }
 }

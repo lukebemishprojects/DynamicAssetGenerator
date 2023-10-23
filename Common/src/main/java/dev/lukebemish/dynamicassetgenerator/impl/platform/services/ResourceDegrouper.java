@@ -7,8 +7,8 @@ package dev.lukebemish.dynamicassetgenerator.impl.platform.services;
 
 import net.minecraft.server.packs.PackResources;
 
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface ResourceDegrouper {
-    List<? extends PackResources> unpackPacks(List<? extends PackResources> packs);
+    Stream<PackResources> unpackPacks(Stream<PackResources> packs);
 }

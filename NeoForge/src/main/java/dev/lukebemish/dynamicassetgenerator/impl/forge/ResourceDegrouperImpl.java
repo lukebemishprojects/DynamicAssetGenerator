@@ -6,21 +6,23 @@
 package dev.lukebemish.dynamicassetgenerator.impl.forge;
 
 import com.google.auto.service.AutoService;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.services.ResourceDegrouper;
 import net.minecraft.server.packs.PackResources;
 import net.minecraftforge.resource.DelegatingPackResources;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
 
-@AutoService(dev.lukebemish.dynamicassetgenerator.impl.platform.services.ResourceDegrouper.class)
-public class ResourceDegrouperImpl implements dev.lukebemish.dynamicassetgenerator.impl.platform.services.ResourceDegrouper {
-    public List<? extends PackResources> unpackPacks(List<? extends PackResources> packs) {
-        ArrayList<PackResources> packsOut = new ArrayList<>();
-        packs.forEach(pack -> {
-            if (pack instanceof DelegatingPackResources delegatingResourcePack) {
-                packsOut.addAll(delegatingResourcePack.getChildren());
-            } else packsOut.add(pack);
+@AutoService(ResourceDegrouper.class)
+public class ResourceDegrouperImpl implements ResourceDegrouper {
+    public Stream<PackResources> unpackPacks(Stream<PackResources> packs) {
+        return packs.flatMap(pack -> {
+            if (pack instanceof DelegatingPackResources delegatingPackResources) {
+                var children = delegatingPackResources.getChildren();
+                if (children != null) {
+                    return Stream.concat(Stream.of(pack), unpackPacks(children.stream()));
+                }
+            }
+            return Stream.of(pack);
         });
-        return packsOut;
     }
 }

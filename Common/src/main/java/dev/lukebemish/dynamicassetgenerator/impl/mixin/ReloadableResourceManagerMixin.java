@@ -6,8 +6,6 @@
 package dev.lukebemish.dynamicassetgenerator.impl.mixin;
 
 import dev.lukebemish.dynamicassetgenerator.impl.ResourceFinder;
-import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
-import dev.lukebemish.dynamicassetgenerator.impl.util.InvisibleProviderUtils;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ReloadInstance;
@@ -20,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -37,10 +34,6 @@ public abstract class ReloadableResourceManagerMixin {
                                                             CompletableFuture<Unit> afterPreparation,
                                                             List<PackResources> packs,
                                                             CallbackInfoReturnable<ReloadInstance> cir) {
-        ResourceFinder.INSTANCES[type.ordinal()] = () -> {
-            ArrayList<PackResources> out = new ArrayList<>(Services.DEGROUPER.unpackPacks(packs));
-            InvisibleProviderUtils.INVISIBLE_RESOURCE_PROVIDERS.stream().map(InvisibleProviderUtils::constructPlaceholderResourcesFromProvider).forEach(out::add);
-            return out;
-        };
+        ResourceFinder.INSTANCES[type.ordinal()] = packs::stream;
     }
 }

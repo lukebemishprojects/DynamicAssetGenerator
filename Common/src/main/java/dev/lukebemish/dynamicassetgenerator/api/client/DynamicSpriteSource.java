@@ -88,7 +88,7 @@ public interface DynamicSpriteSource extends SpriteSource {
     @Override
     default void run(ResourceManager resourceManager, SpriteSource.Output output) {
         ResourceGenerationContext context = new ResourceGenerationContext() {
-            private final ResourceSource source = ResourceGenerationContext.ResourceSource.filtered(pack -> true, PackType.CLIENT_RESOURCES)
+            private final ResourceSource source = ResourceGenerationContext.ResourceSource.filtered(pack -> true, PackType.CLIENT_RESOURCES, resourceManager::listPacks)
                 .fallback(new ResourceSource() {
                     @Override
                     public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {

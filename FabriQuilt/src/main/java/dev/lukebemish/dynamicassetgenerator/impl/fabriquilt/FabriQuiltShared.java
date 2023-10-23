@@ -19,7 +19,7 @@ import net.minecraft.server.packs.repository.RepositorySource;
 import net.minecraft.world.flag.FeatureFlagSet;
 
 import java.nio.file.Path;
-import java.util.List;
+import java.util.stream.Stream;
 
 public interface FabriQuiltShared {
     @SuppressWarnings("deprecation")
@@ -61,5 +61,5 @@ public interface FabriQuiltShared {
             })));
     }
 
-    List<? extends PackResources> unpackPacks(List<? extends PackResources> packs);
+    Stream<PackResources> unpackPacks(Stream<? extends PackResources> packs);
 }

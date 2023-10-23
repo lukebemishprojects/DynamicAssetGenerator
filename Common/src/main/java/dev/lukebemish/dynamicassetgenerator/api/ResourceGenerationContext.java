@@ -8,6 +8,8 @@ package dev.lukebemish.dynamicassetgenerator.api;
 import com.google.common.base.Suppliers;
 import dev.lukebemish.dynamicassetgenerator.impl.EmptyResourceSource;
 import dev.lukebemish.dynamicassetgenerator.impl.ResourceFinder;
+import dev.lukebemish.dynamicassetgenerator.impl.platform.Services;
+import dev.lukebemish.dynamicassetgenerator.impl.util.InvisibleProviderUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
@@ -20,6 +22,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Information available during resource generation, passed to {@link InputStreamSource} as they are generated.
@@ -113,7 +116,7 @@ public interface ResourceGenerationContext {
          */
         static ResourceGenerationContext.ResourceSource filtered(Predicate<String> allowedPacks, PackType type) {
             int ordinal = type.ordinal();
-            Supplier<List<PackResources>> packs = () -> ResourceFinder.INSTANCES[ordinal].getPacks().stream().filter(pack -> allowedPacks.test(pack.packId())).toList();
+            Supplier<Stream<PackResources>> packs = () -> ResourceFinder.INSTANCES[ordinal].getPacks().filter(pack -> allowedPacks.test(pack.packId()));
             return of(type, packs);
         }
 
@@ -125,8 +128,8 @@ public interface ResourceGenerationContext {
          * @param packResources supplies a list of packs to provide resources from
          * @return a resource based on the supplied packs available when first invoked
          */
-        static ResourceGenerationContext.ResourceSource filtered(Predicate<String> allowedPacks, PackType type, Supplier<List<PackResources>> packResources) {
-            Supplier<List<PackResources>> packs = () -> packResources.get().stream().filter(pack -> allowedPacks.test(pack.packId())).toList();
+        static ResourceGenerationContext.ResourceSource filtered(Predicate<String> allowedPacks, PackType type, Supplier<Stream<PackResources>> packResources) {
+            Supplier<Stream<PackResources>> packs = () -> packResources.get().filter(pack -> allowedPacks.test(pack.packId()));
             return of(type, packs);
         }
 
@@ -187,8 +190,11 @@ public interface ResourceGenerationContext {
          * @param resources supplies a list of packs to provide resources from
          * @return a resource based on the supplied packs available when first invoked
          */
-        static ResourceGenerationContext.ResourceSource of(PackType type, Supplier<List<PackResources>> resources) {
-            Supplier<List<PackResources>> packs = Suppliers.memoize(resources::get);
+        static ResourceGenerationContext.ResourceSource of(PackType type, Supplier<Stream<PackResources>> resources) {
+            Supplier<List<PackResources>> packs = Suppliers.memoize(() -> Services.DEGROUPER.unpackPacks(Stream.concat(
+                resources.get(),
+                InvisibleProviderUtils.INVISIBLE_RESOURCE_PROVIDERS.stream().map(InvisibleProviderUtils::constructPlaceholderResourcesFromProvider)
+            )).toList());
             return new ResourceGenerationContext.ResourceSource() {
 
                 @Override

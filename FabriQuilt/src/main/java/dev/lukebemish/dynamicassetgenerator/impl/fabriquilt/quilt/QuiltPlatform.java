@@ -15,8 +15,7 @@ import org.quiltmc.qsl.resource.loader.api.GroupResourcePack;
 import org.quiltmc.qsl.resource.loader.api.ResourceLoader;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
 
 public class QuiltPlatform implements FabriQuiltShared {
     public static final FabriQuiltShared INSTANCE = new QuiltPlatform();
@@ -48,13 +47,12 @@ public class QuiltPlatform implements FabriQuiltShared {
     }
 
     @Override
-    public List<? extends PackResources> unpackPacks(List<? extends PackResources> packs) {
-        ArrayList<PackResources> packsOut = new ArrayList<>();
-        packs.forEach(pack -> {
+    public Stream<PackResources> unpackPacks(Stream<? extends PackResources> packs) {
+        return packs.flatMap(pack -> {
             if (pack instanceof GroupResourcePack groupResourcePack) {
-                packsOut.addAll(groupResourcePack.getPacks());
-            } else packsOut.add(pack);
+                return Stream.concat(Stream.of(pack), unpackPacks(groupResourcePack.getPacks().stream()));
+            }
+            return Stream.of(pack);
         });
-        return packsOut;
     }
 }
