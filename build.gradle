@@ -23,6 +23,10 @@ subprojects { p ->
     apply plugin: 'java-library'
     apply plugin: libs.plugins.quilt.licenser.get().pluginId
 
+    group = rootProject.group
+    version = rootProject.version
+    base.archivesName = "${rootProject.name}-${p.name.toLowerCase(Locale.ROOT)}-${libs.versions.minecraft.get()}"
+
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     java.withSourcesJar()
     java.withJavadocJar()
@@ -74,10 +78,8 @@ subprojects { p ->
         it.options.release = 17
     }
 
-    // Disables Gradle's custom module metadata from being published to maven. The
-    // metadata includes mapped dependencies which are not reasonably consumable by
-    // other mod developers.
-    tasks.withType(GenerateModuleMetadata) {
+    // Disables Gradle's custom module metadata from being published to maven. Ideally I'll be able to remove this soon-ish
+    tasks.withType(GenerateModuleMetadata).configureEach {
         enabled = false
     }
 

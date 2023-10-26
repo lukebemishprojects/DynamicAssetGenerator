@@ -4,8 +4,6 @@ plugins {
 
 apply plugin: 'org.quiltmc.loom'
 
-base.archivesName = "${artifact_id}-common-${libs.versions.minecraft.get()}"
-
 loom {
     runConfigs.configureEach {
         ideConfigGenerated = false
@@ -28,19 +26,11 @@ tasks.withType(AbstractRemapJarTask).each {
     it.targetNamespace = "named"
 }
 
-processResources {
-    def buildProps = project.properties.clone()
-
-    filesMatching(['pack.mcmeta']) {
-
-        expand buildProps
-    }
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            artifactId base.archivesName.get()
         }
     }
 

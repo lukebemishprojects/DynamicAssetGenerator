@@ -37,7 +37,7 @@ dependencies {
     modLocalRuntime libs.quilt.loader
     modLocalRuntime libs.qfapi
 
-	implementation project(":Common")
+	compileOnly project(":Common")
 
 	compileOnly libs.autoservice
 	annotationProcessor libs.autoservice
@@ -75,7 +75,7 @@ processResources {
     from project(":Common").sourceSets.main.resources
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     source(project(":Common").sourceSets.main.allSource)
 }
 
@@ -99,6 +99,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            artifactId base.archivesName.get()
         }
     }
 
@@ -108,17 +109,17 @@ publishing {
 
 // Publishing
 
-import net.darkhax.curseforgegradle.TaskPublishCurseForge;
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 if (System.getenv('CURSEFORGE_KEY')) {
-    task curseforge(type: TaskPublishCurseForge) {
+    tasks.register('curseforge', TaskPublishCurseForge) {
         disableVersionDetection()
         apiToken = System.getenv('CURSEFORGE_KEY')
         def projectId = '577096'
         def mainFile = upload(projectId, tasks.remapJar)
         mainFile.displayName = "Dynamic Asset Generator [Fabric/Quilt] v$project.version"
         mainFile.releaseType = "${project.release_type}"
-        mainFile.addModLoader('Fabric','Quilt')
+        mainFile.addModLoader('Fabric', 'Quilt')
         mainFile.addGameVersion("${libs.versions.minecraft.get()}")
         mainFile.addRequirement("fabric-api")
         mainFile.changelog = ''

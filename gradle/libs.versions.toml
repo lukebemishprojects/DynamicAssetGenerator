@@ -6,7 +6,7 @@ parchment_mappings = "2023.03.12"
 neoforge = "1.20.1-47.1.75"
 mixin = "0.8.4"
 
-quilt_loader = "0.19.2"
+quilt_loader = "0.21.1"
 qfapi = "7.2.2+0.88.1-1.20.1"
 
 mdg_plugin = "1.4.1"

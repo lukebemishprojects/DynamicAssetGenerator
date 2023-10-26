@@ -9,8 +9,6 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
-base.archivesName = "${artifact_id}-neoforge-${libs.versions.minecraft.get()}"
-
 minecraft {
     mappings channel: 'parchment', version: "${libs.versions.parchment.minecraft.get()}-${libs.versions.parchment.mappings.get()}-${libs.versions.minecraft.get()}"
 
@@ -64,7 +62,7 @@ mixin {
     config 'mixin.dynamic_asset_generator.json'
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     source(project(":Common").sourceSets.main.allSource)
 }
 
@@ -88,6 +86,7 @@ publishing {
             artifact jar
             artifact sourcesJar
             artifact javadocJar
+            artifactId base.archivesName.get()
         }
     }
     repositories {
@@ -96,10 +95,10 @@ publishing {
 
 // Publishing
 
-import net.darkhax.curseforgegradle.TaskPublishCurseForge;
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 if (System.getenv('CURSEFORGE_KEY')) {
-    task curseforge(type: TaskPublishCurseForge) {
+    tasks.register('curseforge', TaskPublishCurseForge) {
         disableVersionDetection()
         apiToken = System.getenv('CURSEFORGE_KEY')
         def projectId = '577096'
