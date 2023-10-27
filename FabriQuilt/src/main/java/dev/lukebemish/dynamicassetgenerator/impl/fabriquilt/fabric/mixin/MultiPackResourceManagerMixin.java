@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mixin(MultiPackResourceManager.class)
+@Mixin(value = MultiPackResourceManager.class, priority = 950)
 public class MultiPackResourceManagerMixin {
 
     @Unique
