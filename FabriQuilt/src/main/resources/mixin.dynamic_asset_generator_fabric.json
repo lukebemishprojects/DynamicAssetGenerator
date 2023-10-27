@@ -4,9 +4,11 @@
   "package": "dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MultiPackResourceManagerMixin"
+    "BuiltInPackSourceMixin"
   ],
-  "client": [],
+  "client": [
+    "ClientBuiltInPackSourceMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1
