@@ -12,41 +12,36 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(MultiPackResourceManager.class)
 public class MultiPackResourceManagerMixin {
-    @Mutable
-    @Shadow
-    @Final
-    private List<PackResources> packs;
 
     @Unique
     private PackType dynamic_asset_generator$type;
 
-    @Inject(
+    @ModifyVariable(
         method = "<init>",
-        at = @At("RETURN")
+        at = @At("HEAD"),
+        argsOnly = true
     )
-    private void dynamic_asset_generator$captureType(PackType type, List<PackResources> packs, CallbackInfo ci) {
+    private List<PackResources> dynamic_asset_generator$captureType(List<PackResources> packs, PackType type, List<PackResources> packs2) {
         this.dynamic_asset_generator$type = type;
-        this.dynamic_asset_generator$addPacksToTop();
+        return this.dynamic_asset_generator$addPacksToTop(packs);
     }
 
-    private void dynamic_asset_generator$addPacksToTop() {
-        if (!(this.packs instanceof ArrayList<PackResources>)) {
-            this.packs = new ArrayList<>(this.packs);
-        }
+    private List<PackResources> dynamic_asset_generator$addPacksToTop(List<PackResources> packs) {
+        packs = new ArrayList<>(packs);
         for (Pack pack : PackPlanner.forType(dynamic_asset_generator$type).plan()) {
             if (pack.getDefaultPosition() == Pack.Position.TOP) {
-                this.packs.add(pack.open());
+                packs.add(pack.open());
             } else {
-                this.packs.add(0, pack.open());
+                packs.add(0, pack.open());
             }
         }
+        return packs;
     }
 }
