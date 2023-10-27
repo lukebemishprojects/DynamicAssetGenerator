@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.forge;
+package dev.lukebemish.dynamicassetgenerator.impl.neoforge;
 
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.client.DynamicAssetGeneratorClient;
@@ -14,8 +14,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 @Mod(DynamicAssetGenerator.MOD_ID)
-public class DynamicAssetGeneratorForge {
-    public DynamicAssetGeneratorForge() {
+public class DynamicAssetGeneratorNeoForge {
+    public DynamicAssetGeneratorNeoForge() {
         IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
         DynamicAssetGenerator.init();
         if (FMLEnvironment.dist == Dist.CLIENT) {

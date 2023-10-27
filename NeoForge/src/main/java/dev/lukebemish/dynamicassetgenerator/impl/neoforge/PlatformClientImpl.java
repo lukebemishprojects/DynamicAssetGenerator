@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
 
-package dev.lukebemish.dynamicassetgenerator.impl.forge;
+package dev.lukebemish.dynamicassetgenerator.impl.neoforge;
 
 import com.google.auto.service.AutoService;
 import com.mojang.datafixers.util.Pair;

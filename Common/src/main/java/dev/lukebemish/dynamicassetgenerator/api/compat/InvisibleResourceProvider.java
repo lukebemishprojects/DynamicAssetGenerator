@@ -10,6 +10,7 @@ import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.Set;
@@ -22,7 +23,7 @@ import java.util.Set;
  */
 public interface InvisibleResourceProvider {
 
-    IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull ResourceLocation location);
+    @Nullable IoSupplier<InputStream> getResource(@NonNull PackType type, @NonNull ResourceLocation location);
 
     void listResources(@NonNull PackType type, @NonNull String namespace, @NonNull String path, PackResources.@NonNull ResourceOutput resourceOutput);
 
