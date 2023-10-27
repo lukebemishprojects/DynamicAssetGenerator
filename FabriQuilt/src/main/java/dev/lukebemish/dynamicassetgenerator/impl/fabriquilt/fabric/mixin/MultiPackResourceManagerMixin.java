@@ -20,22 +20,19 @@ import java.util.List;
 @Mixin(value = MultiPackResourceManager.class, priority = 950)
 public class MultiPackResourceManagerMixin {
 
-    @Unique
-    private PackType dynamic_asset_generator$type;
-
     @ModifyVariable(
         method = "<init>",
         at = @At("HEAD"),
         argsOnly = true
     )
-    private List<PackResources> dynamic_asset_generator$captureType(List<PackResources> packs, PackType type, List<PackResources> packs2) {
-        this.dynamic_asset_generator$type = type;
-        return this.dynamic_asset_generator$addPacksToTop(packs);
+    private static List<PackResources> dynamic_asset_generator$captureType(List<PackResources> packs, PackType type, List<PackResources> packs2) {
+        return dynamic_asset_generator$addPacksToTop(packs, type);
     }
 
-    private List<PackResources> dynamic_asset_generator$addPacksToTop(List<PackResources> packs) {
+    @Unique
+    private static List<PackResources> dynamic_asset_generator$addPacksToTop(List<PackResources> packs, PackType type) {
         packs = new ArrayList<>(packs);
-        for (Pack pack : PackPlanner.forType(dynamic_asset_generator$type).plan()) {
+        for (Pack pack : PackPlanner.forType(type).plan()) {
             if (pack.getDefaultPosition() == Pack.Position.TOP) {
                 packs.add(pack.open());
             } else {
