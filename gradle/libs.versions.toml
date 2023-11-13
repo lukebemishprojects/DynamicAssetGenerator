@@ -16,7 +16,7 @@ autoservice = "1.1.1"
 quilt_loom = "1.2.3"
 quilt_licenser = "2.0.1"
 
-forgegradle = "6.0.6"
+forgegradle = "6.0.16"
 librarian = "1.2.0"
 mixingradle = "0.7.36"
 
