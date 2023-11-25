@@ -16,7 +16,7 @@ javadoc {
 }
 
 base {
-    archivesName = "${mod_name}-${project.name}-${libs.versions.minecraft.get()}"
+    archivesName = "${artifact_id}-${project.name}-${libs.versions.minecraft.get()}"
 }
 
 repositories {
