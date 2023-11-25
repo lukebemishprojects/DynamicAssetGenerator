@@ -1,0 +1,88 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+}
+
+version = rootProject.version
+group = rootProject.group
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.withSourcesJar()
+java.withJavadocJar()
+
+javadoc {
+    include "**/api/**"
+}
+
+base {
+    archivesName = "${mod_name}-${project.name}-${libs.versions.minecraft.get()}"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'Architectury'
+        url "https://maven.architectury.dev/"
+    }
+    maven {
+        name = 'ParchmentMC'
+        url = 'https://maven.parchmentmc.org'
+    }
+}
+
+configurations {
+    rootProjectLicense.canBeResolved = true
+}
+
+dependencies {
+    compileOnly libs.jetbrains.annotations
+    compileOnly libs.jspecify
+    rootProjectLicense project(path: ':', configuration: 'license')
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId base.archivesName.get()
+            from components.java
+        }
+    }
+}
+
+sourcesJar {
+    dependsOn(configurations.rootProjectLicense)
+    from(configurations.rootProjectLicense) {
+        rename { "${it}_${mod_name}" }
+    }
+}
+
+jar {
+    dependsOn(configurations.rootProjectLicense)
+    from(configurations.rootProjectLicense) {
+        rename { "${it}_${mod_name}" }
+    }
+
+    manifest {
+        attributes([
+            'Specification-Title'     : mod_name,
+            'Specification-Vendor'    : mod_author,
+            'Specification-Version'   : rootProject.version,
+            'Implementation-Title'    : "$mod_name - ${project.name}",
+            'Implementation-Version'  : rootProject.version,
+            'Implementation-Vendor'   : mod_author,
+            'Built-On-Minecraft'      : libs.versions.minecraft.get()
+        ])
+    }
+}
+
+static def nextVersion(String version, int idx) {
+    def parts = version.split(/\./)
+    def part = parts[idx] as int
+    part += 1
+    parts[idx] = part as String
+    for (int i = idx + 1; i < parts.length; i++) {
+        parts[i] = "0"
+    }
+    return parts.join('.')
+}

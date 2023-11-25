@@ -1,45 +1,37 @@
 pluginManagement {
-
     repositories {
-
         maven {
-
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
 
         maven {
-
             name = 'Quilt (Release)'
             url = 'https://maven.quiltmc.org/repository/release'
         }
 
         maven {
-
-            name = 'Quilt (Snapshot)'
-            url = 'https://maven.quiltmc.org/repository/snapshot'
+            name = 'NeoForged'
+            url = 'https://maven.neoforged.net/'
         }
 
         maven {
-            name = 'TheModdingInquisition'
-            url = 'https://maven.moddinginquisition.org/releases'
+            name = "Luke's Maven"
+            url = 'https://maven.lukebemish.dev/releases'
         }
-        maven { url = 'https://maven.minecraftforge.net/' }
 
         maven {
             name = 'ParchmentMC'
             url = 'https://maven.parchmentmc.org'
         }
 
+        maven {
+            name = 'Architectury'
+            url "https://maven.architectury.dev/"
+        }
+
         mavenCentral()
         gradlePluginPortal()
-    }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.toString() == 'org.spongepowered.mixin') {
-                useModule("org.spongepowered:mixingradle:${requested.version}")
-            }
-        }
     }
 }
 
@@ -48,4 +40,4 @@ plugins {
 }
 
 rootProject.name = 'dynamicassetgenerator'
-include("Common", "Forge", "Quilt")
+include("common", "neoforge", "fabriquilt")

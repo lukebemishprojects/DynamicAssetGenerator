@@ -1,0 +1,90 @@
+plugins {
+    id 'convention.consumer'
+    alias libs.plugins.curseforgegradle
+    alias libs.plugins.minotaur
+    alias libs.plugins.architectury.loom
+}
+
+repositories {
+    maven { url 'https://maven.wispforest.io' }
+}
+
+dependencies {
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.mappings.get()}@zip")
+    }
+    minecraft libs.minecraft
+    modImplementation libs.fabric.loader
+    modImplementation libs.fabric.api
+
+    compileOnly libs.autoservice
+    annotationProcessor libs.autoservice
+
+    // Compat
+    modCompileOnly libs.owolib
+}
+
+loom {
+    mixin {
+        useLegacyMixinAp = true
+        defaultRefmapName.set("${mod_id}.refmap.json")
+    }
+    runs {
+        client {
+            client()
+            setConfigName("Fabric Client")
+            ideConfigGenerated(true)
+            runDir("run")
+            property 'dynamicassetgenerator.test', 'true'
+            property 'dynamicassetgenerator.time_resources', 'true'
+        }
+        server {
+            server()
+            setConfigName("Fabric Server")
+            ideConfigGenerated(true)
+            runDir("run")
+            property 'dynamicassetgenerator.test', 'true'
+            property 'dynamicassetgenerator.time_resources', 'true'
+        }
+    }
+}
+
+// Publishing
+
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
+
+if (System.getenv('CURSEFORGE_KEY')) {
+    tasks.register('curseforge', TaskPublishCurseForge) {
+        disableVersionDetection()
+        apiToken = System.getenv('CURSEFORGE_KEY')
+        def projectId = '577096'
+        def mainFile = upload(projectId, tasks.remapJar)
+        mainFile.displayName = "Dynamic Asset Generator [Fabric/Quilt] v$project.version"
+        mainFile.releaseType = "${project.release_type}"
+        mainFile.addModLoader('Fabric', 'Quilt')
+        mainFile.addGameVersion("${libs.versions.minecraft.get()}")
+        mainFile.addRequirement("fabric-api")
+        mainFile.changelog = ''
+    }
+
+    afterEvaluate {
+        tasks.curseforge.dependsOn tasks.remapJar
+    }
+}
+
+if (System.getenv('MODRINTH_KEY')) {
+	modrinth {
+		token = System.getenv('MODRINTH_KEY')
+		projectId = '83pFEQVb'
+		versionNumber = "$project.version"
+		versionType = "${project.release_type}"
+		detectLoaders = false
+		uploadFile = remapJar
+		gameVersions = ["${libs.versions.minecraft.get()}"]
+		loaders = ['quilt','fabric']
+		dependencies {
+			required.project 'fabric-api'
+		}
+	}
+}

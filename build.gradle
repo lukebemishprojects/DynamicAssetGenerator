@@ -1,19 +1,46 @@
 plugins {
     alias libs.plugins.quilt.licenser apply false
     alias libs.plugins.mdg.plugin
-    alias libs.plugins.quilt.loom apply false
+    alias libs.plugins.managedversioning
+    alias libs.plugins.architectury.loom apply false
 }
 
-apply from: 'version.gradle'
+managedVersioning {
+    versionFile.set rootProject.file('version.properties')
+    metadataVersion.set libs.versions.minecraft
+    if (System.getenv('PR_NUMBER')) {
+        suffix.set("pr${System.getenv('PR_NUMBER')}")
+    } else if (System.getenv('SNAPSHOT_MAVEN_URL')) {
+        suffix.set('SNAPSHOT')
+    }
+}
+
+managedVersioning.apply()
+
+println "Building: $version"
+
+configurations {
+    license {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    add 'license', file("LICENSE")
+}
 
 modsDotGroovy {
     dslVersion = libs.versions.mdg.dsl.get()
     platform 'multiloader'
+    multiloader {
+        forge = [project(':neoforge')]
+        fabric = [project(':fabriquilt')]
+        quilt = []
+    }
 }
 
 subprojects { p ->
-    apply plugin: 'java'
-    apply plugin: 'idea'
     apply plugin: 'maven-publish'
     apply plugin: 'java-library'
     apply plugin: libs.plugins.quilt.licenser.get().pluginId
@@ -21,10 +48,6 @@ subprojects { p ->
     java.toolchain.languageVersion = JavaLanguageVersion.of(17)
     java.withSourcesJar()
     java.withJavadocJar()
-
-    javadoc {
-        include "**/api/**"
-    }
 
     license {
         rule rootProject.file('header.txt')
@@ -35,52 +58,10 @@ subprojects { p ->
     jar {
         manifest {
             attributes([
-                    'Specification-Title'     : mod_name,
-                    'Specification-Vendor'    : mod_author,
-                    'Specification-Version'   : rootProject.version,
-                    'Implementation-Title'    : project.name,
-                    'Implementation-Version'  : rootProject.version,
-                    'Implementation-Vendor'   : mod_author,
-                    'Implementation-Commit-Time': versioning.getGitCommitDate(),
-                    'Implementation-Commit': versioning.getGitCommit(),
-                    'Build-On-Minecraft'      : libs.versions.minecraft.get(),
+                'Implementation-Commit-Time': managedVersioning.timestamp.get(),
+                'Implementation-Commit': managedVersioning.hash.get()
             ])
         }
-    }
-
-    repositories {
-        mavenCentral()
-
-        maven {
-            name = 'ParchmentMC'
-            url = 'https://maven.parchmentmc.org'
-        }
-
-        maven {
-            name 'Quilt (Release)'
-            url 'https://maven.quiltmc.org/repository/release/'
-        }
-
-        maven {
-            name = 'TheModdingInquisition'
-            url = 'https://maven.moddinginquisition.org/releases'
-        }
-    }
-
-    dependencies {
-        compileOnly libs.jetbrains.annotations
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        it.options.encoding = 'UTF-8'
-        it.options.release = 17
-    }
-
-    // Disables Gradle's custom module metadata from being published to maven. The
-    // metadata includes mapped dependencies which are not reasonably consumable by
-    // other mod developers.
-    tasks.withType(GenerateModuleMetadata) {
-        enabled = false
     }
 
     publishing {
@@ -90,13 +71,13 @@ subprojects { p ->
                     name = 'LocalMaven'
                     url = rootProject.layout.buildDirectory.dir('repo')
                 }
-            } else {
+            } else if (System.getenv('MAVEN_PASSWORD')) {
                 maven {
                     name = 'PersonalMaven'
-                    url = uri(System.getenv('SNAPSHOT_MAVEN_URL') ?: System.getenv('MAVEN_URL') ?: 'https://maven.lukebemish.dev/releases')
+                    url = uri(System.getenv('SNAPSHOT_MAVEN_URL') ?: System.getenv('MAVEN_URL'))
                     credentials {
-                        username = System.getenv('MAVEN_USER') ?: findProperty('lukebemishMavenUser') ?: ''
-                        password = System.getenv('MAVEN_PASSWORD') ?: findProperty('lukebemishMavenPassword') ?: ''
+                        username = System.getenv('MAVEN_USER')
+                        password = System.getenv('MAVEN_PASSWORD')
                     }
                 }
             }

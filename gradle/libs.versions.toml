@@ -1,52 +1,49 @@
 [versions]
-minecraft = "1.20.1"
-parchment_minecraft = "1.19.3"
-parchment_mappings = "2023.03.12"
+minecraft = "1.20.2"
+parchment_minecraft = "1.20.1"
+parchment_mappings = "2023.08.20"
 
-forge = "1.20.1-47.0.3"
-mixin = "0.8.4"
+neoforge = "20.2.59-beta"
 
-quilt_loader = "0.19.2"
-qsl = "6.0.4+1.20.1"
+fabric_loader = "0.14.24"
+fabric_api = "0.90.4+1.20.2"
 
-mdg_plugin = "1.4.1"
-mdg_dsl = "1.5.0"
+mdg_plugin = "1.4.3"
+mdg_dsl = "1.5.1"
 autoservice = "1.1.1"
 
-quilt_loom = "1.2.3"
+architectury_loom = "1.4.367"
 quilt_licenser = "2.0.1"
 
-forgegradle = "6.0.6"
-librarian = "1.2.0"
-mixingradle = "0.7.36"
-
 jetbrains_annotations = "24.0.1"
+jspecify = "0.3.0"
 
 minotaur = "2.8.3"
-cursegradle = "1.4.0"
 
 owolib = "0.11.0+1.20"
+
+managedversioning = "1.0.0"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
 
-quilt_loader = { module = "org.quiltmc:quilt-loader", version.ref = "quilt_loader" }
-qsl = { module = "org.quiltmc:qsl", version.ref = "qsl" }
+fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader" }
+fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
 
-forge = { module = "net.minecraftforge:forge", version.ref = "forge" }
+neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
 
 jetbrains_annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains_annotations" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
 autoservice = { module = "com.google.auto.service:auto-service", version.ref = "autoservice" }
 
 owolib = { module = "io.wispforest:owo-lib", version.ref = "owolib" }
 
 [plugins]
 
-mdg_plugin = { id = "io.github.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
-quilt_loom = { id = "org.quiltmc.loom", version.ref = "quilt_loom" }
+managedversioning = { id = "dev.lukebemish.managedversioning", version.ref = "managedversioning" }
+mdg_plugin = { id = "org.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
+architectury_loom = { id = "dev.architectury.loom", version.ref = "architectury_loom" }
 quilt_licenser = { id = "org.quiltmc.gradle.licenser", version.ref = "quilt_licenser" }
-forgegradle = { id = "net.minecraftforge.gradle", version.ref = "forgegradle" }
-librarian = { id = "org.parchmentmc.librarian.forgegradle", version.ref = "librarian" }
-mixingradle = { id = "org.spongepowered.mixin", version.ref = "mixingradle" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
-cursegradle = { id = "com.matthewprenger.cursegradle", version.ref = "cursegradle" }
+curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.16"}
