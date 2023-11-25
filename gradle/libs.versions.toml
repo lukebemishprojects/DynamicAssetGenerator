@@ -15,7 +15,7 @@ autoservice = "1.1.1"
 architectury_loom = "1.4.367"
 quilt_licenser = "2.0.1"
 
-jetbrains_annotations = "24.0.1"
+jetbrains_annotations = "24.1.0"
 jspecify = "0.3.0"
 
 minotaur = "2.8.3"
