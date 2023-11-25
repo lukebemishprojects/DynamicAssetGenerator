@@ -16,8 +16,18 @@ pluginManagement {
         }
 
         maven {
+            name = "Luke's Maven"
+            url = 'https://maven.lukebemish.dev/releases'
+        }
+
+        maven {
             name = 'ParchmentMC'
             url = 'https://maven.parchmentmc.org'
+        }
+
+        maven {
+            name = 'Architectury'
+            url "https://maven.architectury.dev/"
         }
 
         mavenCentral()
@@ -30,4 +40,4 @@ plugins {
 }
 
 rootProject.name = 'dynamicassetgenerator'
-include("Common", "NeoForge", "FabriQuilt")
+include("common", "neoforge", "fabriquilt")

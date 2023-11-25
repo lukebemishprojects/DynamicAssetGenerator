@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.lukebemish.dynamicassetgenerator.impl.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "PackRepositoryMixin",
+    "MultiPackResourceManagerMixin",
+    "ReloadableResourceManagerMixin"
+  ],
+  "client": [
+    "MinecraftMixin",
+    "SpriteSourcesAccessor",
+    "SpriteSourceListMixin"
+  ],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "dynamic_asset_generator.refmap.json"
+}
