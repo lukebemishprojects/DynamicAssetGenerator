@@ -12,7 +12,7 @@ registries:
   parchment:
     type: maven-repository
     url: https://maven.parchmentmc.org/
-  neoforge:
+  neoforged:
       type: maven-repository
       url: https://maven.neoforged.net/
   lukebemish:
