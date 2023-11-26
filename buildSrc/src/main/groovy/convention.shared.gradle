@@ -53,14 +53,14 @@ publishing {
 sourcesJar {
     dependsOn(configurations.rootProjectLicense)
     from(configurations.rootProjectLicense) {
-        rename { "${it}_${mod_name}" }
+        rename { "${it}_${artifact_id}" }
     }
 }
 
 jar {
     dependsOn(configurations.rootProjectLicense)
     from(configurations.rootProjectLicense) {
-        rename { "${it}_${mod_name}" }
+        rename { "${it}_${artifact_id}" }
     }
 
     manifest {
