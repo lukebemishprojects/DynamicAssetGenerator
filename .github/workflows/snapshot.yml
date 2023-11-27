@@ -39,7 +39,7 @@
                     "env": {
                         "SNAPSHOT_MAVEN_PASSWORD": "${{ secrets.SNAPSHOT_MAVEN_PASSWORD }}",
                         "SNAPSHOT_MAVEN_USER": "github",
-                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/snapshots/"
+                        "SNAPSHOT_MAVEN_URL": "https://maven.lukebemish.dev/snapshots/"
                     }
                 },
                 {
@@ -49,7 +49,7 @@
                     "env": {
                         "SNAPSHOT_MAVEN_PASSWORD": "${{ secrets.SNAPSHOT_MAVEN_PASSWORD }}",
                         "SNAPSHOT_MAVEN_USER": "github",
-                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/snapshots/"
+                        "SNAPSHOT_MAVEN_URL": "https://maven.lukebemish.dev/snapshots/"
                     }
                 }
             ]
