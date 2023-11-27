@@ -28,6 +28,9 @@ managedVersioning {
             workflowDispatch.set(true)
             gradleJob {
                 name.set 'build'
+                step {
+                    setupGitUser()
+                }
                 gradlew 'tagRelease'
                 gradlew 'Build', 'checkLicenses', 'build', 'prepareJavadoc'
                 readOnly.set false
@@ -121,9 +124,9 @@ subprojects { p ->
         }
     }
 
-    managedVersioning.publishing.mavenPulLRequest()
-    managedVersioning.publishing.mavenSnapshot()
-    managedVersioning.publishing.mavenRelease()
+    managedVersioning.publishing.mavenPulLRequest(publishing)
+    managedVersioning.publishing.mavenSnapshot(publishing)
+    managedVersioning.publishing.mavenRelease(publishing)
 }
 
 javadoc {

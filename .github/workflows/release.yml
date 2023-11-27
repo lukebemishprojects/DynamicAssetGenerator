@@ -34,6 +34,9 @@
                     "uses": "gradle/gradle-build-action@v2"
                 },
                 {
+                    "uses": "fregante/setup-git-user@v2"
+                },
+                {
                     "name": "tagRelease",
                     "run": "./gradlew ",
                     "id": "tagrelease",
