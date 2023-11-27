@@ -37,9 +37,7 @@
                     "run": "./gradlew checkLicenses build",
                     "id": "build",
                     "env": {
-                        "SNAPSHOT_MAVEN_PASSWORD": "${{ secrets.SNAPSHOT_MAVEN_PASSWORD }}",
-                        "SNAPSHOT_MAVEN_USER": "github",
-                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/snapshots/"
+                        "PR_NUMBER": "${{ github.event.pull_request.number }}"
                     }
                 },
                 {
@@ -47,24 +45,25 @@
                     "run": "./gradlew publish",
                     "id": "publish",
                     "env": {
-                        "SNAPSHOT_MAVEN_PASSWORD": "${{ secrets.SNAPSHOT_MAVEN_PASSWORD }}",
-                        "SNAPSHOT_MAVEN_USER": "github",
-                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/snapshots/"
+                        "PR_NUMBER": "${{ github.event.pull_request.number }}"
                     }
+                },
+                {
+                    "with": {
+                        "name": "artifacts",
+                        "path": "build/repo"
+                    },
+                    "name": "Archive Publishable Artifacts",
+                    "uses": "actions/upload-artifact@v3"
                 }
             ]
         }
     },
-    "name": "Snapshot",
+    "name": "Build PR",
     "concurrency": "ci-${{ github.ref }}",
     "on": {
-        "workflow_dispatch": {
+        "pull_request": {
             
-        },
-        "push": {
-            "branches": [
-                "1.*"
-            ]
         }
     }
 }

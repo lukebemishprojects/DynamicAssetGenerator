@@ -1,54 +1,101 @@
-name: Release
-concurrency: ci-${{ github.ref }}
-on:
-    workflow_dispatch:
-jobs:
-    build:
-        runs-on: ubuntu-22.04
-        steps:
-            - name: Setup Java
-              run: |
-                  echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
-            - uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - uses: fregante/setup-git-user@v2
-            - uses: actions/cache@v3
-              with:
-                  path: |
-                      **/.gradle/loom-cache
-                  key: ${{ runner.os }}-gradle-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
-                  restore-keys: ${{ runner.os }}-gradle-
-            - uses: gradle/gradle-build-action@v2
-              name: Setup Gradle
-              with:
-                  gradle-home-cache-cleanup: true
-            - name: Tag Release
-              run: |
-                  ./gradlew tagRelease
-            - name: Build
-              run: |
-                  ./gradlew checkLicenses build prepareJavadoc
-            - uses: andreiio/rclone-action@v1.2.0
-              with:
-                  args: copy build/prepareJavadoc r2:javadoc-lukebemish-dev
-              env:
-                  RCLONE_CONFIG_R2_TYPE: s3
-                  RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.JAVADOC_ACCESS_KEY_ID }}
-                  RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.JAVADOC_SECRET_ACCESS_KEY }}
-                  RCLONE_CONFIG_R2_PROVIDER: Cloudflare
-                  RCLONE_CONFIG_R2_REGION: auto
-                  RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.JAVADOC_ENDPOINT }}
-                  RCLONE_CONFIG_R2_ACL: private
-            - name: Publish
-              run: |
-                  ./gradlew publish curseforge modrinth
-              env:
-                  MAVEN_USER: github
-                  MAVEN_PASSWORD: ${{ secrets.RELEASE_MAVEN_PASSWORD }}
-                  CURSEFORGE_KEY: ${{ secrets.CURSEFORGE_KEY }}
-                  MODRINTH_KEY: ${{ secrets.MODRINTH_KEY }}
-                  MAVEN_URL: https://maven.lukebemish.dev/releases/
-            - run: |
-                  git push
-                  git push --tags
+{
+    "jobs": {
+        "build": {
+            "runs-on": "ubuntu-22.04",
+            "permissions": {
+                "contents": "write"
+            },
+            "steps": [
+                {
+                    "name": "Setup Java",
+                    "run": "echo \"JAVA_HOME=$JAVA_HOME_17_X64\" >> \"$GITHUB_ENV\""
+                },
+                {
+                    "with": {
+                        "fetch-depth": "0"
+                    },
+                    "name": "Checkout",
+                    "uses": "actions/checkout@v4"
+                },
+                {
+                    "with": {
+                        "path": "**/.gradle/loom-cache",
+                        "key": "${{ runner.os }}-gradle-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}",
+                        "restore-keys": "${{ runner.os }}-gradle-"
+                    },
+                    "name": "Cache",
+                    "uses": "actions/cache@v3"
+                },
+                {
+                    "with": {
+                        "gradle-home-cache-cleanup": true
+                    },
+                    "name": "Setup Gradle",
+                    "uses": "gradle/gradle-build-action@v2"
+                },
+                {
+                    "name": "tagRelease",
+                    "run": "./gradlew ",
+                    "id": "tagrelease",
+                    "env": {
+                        "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
+                        "RELEASE_MAVEN_USER": "github",
+                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/releases/",
+                        "CURSEFORGE_KEY": "${{ secrets.CURSEFORGE_KEY }}",
+                        "MODRINTH_KEY": "${{ secrets.MODRINTH_KEY }}"
+                    }
+                },
+                {
+                    "name": "Build",
+                    "run": "./gradlew checkLicenses build prepareJavadoc",
+                    "id": "build",
+                    "env": {
+                        "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
+                        "RELEASE_MAVEN_USER": "github",
+                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/releases/",
+                        "CURSEFORGE_KEY": "${{ secrets.CURSEFORGE_KEY }}",
+                        "MODRINTH_KEY": "${{ secrets.MODRINTH_KEY }}"
+                    }
+                },
+                {
+                    "with": {
+                        "args": "copy build/prepareJavadoc r2:javadoc-lukebemish-dev"
+                    },
+                    "name": "Upload Javadoc",
+                    "uses": "andreiio/rclone-action@v1.2.0",
+                    "env": {
+                        "RCLONE_CONFIG_R2_TYPE": "s3",
+                        "RCLONE_CONFIG_R2_ACCESS_KEY_ID": "${{ secrets.JAVADOC_ACCESS_KEY_ID }}",
+                        "RCLONE_CONFIG_R2_SECRET_ACCESS_KEY": "${{ secrets.JAVADOC_SECRET_ACCESS_KEY }}",
+                        "RCLONE_CONFIG_R2_ENDPOINT": "${{ secrets.JAVADOC_ENDPOINT }}",
+                        "RCLONE_CONFIG_R2_PROVIDER": "Cloudflare",
+                        "RCLONE_CONFIG_R2_REGION": "auto",
+                        "RCLONE_CONFIG_R2_ACL": "private"
+                    }
+                },
+                {
+                    "name": "Publish",
+                    "run": "./gradlew publish modrinth curseforge",
+                    "id": "publish",
+                    "env": {
+                        "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
+                        "RELEASE_MAVEN_USER": "github",
+                        "RELEASE_MAVEN_URL": "https://maven.lukebemish.dev/releases/",
+                        "CURSEFORGE_KEY": "${{ secrets.CURSEFORGE_KEY }}",
+                        "MODRINTH_KEY": "${{ secrets.MODRINTH_KEY }}"
+                    }
+                },
+                {
+                    "run": "git push && git push --tags"
+                }
+            ]
+        }
+    },
+    "name": "Release",
+    "concurrency": "ci-${{ github.ref }}",
+    "on": {
+        "workflow_dispatch": {
+            
+        }
+    }
+}

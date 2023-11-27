@@ -8,10 +8,67 @@ plugins {
 managedVersioning {
     versionFile.set rootProject.file('version.properties')
     metadataVersion.set libs.versions.minecraft
-    if (System.getenv('PR_NUMBER')) {
-        suffix.set("pr${System.getenv('PR_NUMBER')}")
-    } else if (System.getenv('SNAPSHOT_MAVEN_URL')) {
-        suffix.set('SNAPSHOT')
+    versionPRs()
+    versionSnapshots()
+
+    gitHubActions {
+        snapshot {
+            prettyName.set 'Snapshot'
+            workflowDispatch.set(true)
+            onBranches.add '1.*'
+            gradleJob {
+                name.set 'build'
+                gradlew 'Build', 'checkLicenses', 'build'
+                gradlew 'Publish', 'publish'
+                mavenSnapshot('github')
+            }
+        }
+        release {
+            prettyName.set 'Release'
+            workflowDispatch.set(true)
+            gradleJob {
+                name.set 'build'
+                gradlew 'tagRelease'
+                gradlew 'Build', 'checkLicenses', 'build', 'prepareJavadoc'
+                readOnly.set false
+                step {
+                    name.set 'Upload Javadoc'
+                    uses.set 'andreiio/rclone-action@v1.2.0'
+                    with['args'] = 'copy build/prepareJavadoc r2:javadoc-lukebemish-dev'
+                    env['RCLONE_CONFIG_R2_TYPE'] = 's3'
+                    secret 'RCLONE_CONFIG_R2_ACCESS_KEY_ID', 'JAVADOC_ACCESS_KEY_ID'
+                    secret 'RCLONE_CONFIG_R2_SECRET_ACCESS_KEY', 'JAVADOC_SECRET_ACCESS_KEY'
+                    secret 'RCLONE_CONFIG_R2_ENDPOINT', 'JAVADOC_ENDPOINT'
+                    env['RCLONE_CONFIG_R2_PROVIDER'] = 'Cloudflare'
+                    env['RCLONE_CONFIG_R2_REGION'] = 'auto'
+                    env['RCLONE_CONFIG_R2_ACL'] = 'private'
+                }
+                gradlew 'Publish', 'publish', 'modrinth', 'curseforge'
+                mavenRelease('github')
+                modPublishing()
+                step {
+                    run.set 'git push && git push --tags'
+                }
+            }
+        }
+        build_pr {
+            prettyName.set 'Build PR'
+            pullRequest.set(true)
+            gradleJob {
+                name.set 'build'
+                gradlew 'Build', 'checkLicenses', 'build'
+                gradlew 'Publish', 'publish'
+                pullRequestArtifact()
+            }
+        }
+        publish_pr {
+            prettyName.set 'Publish PR'
+            publishPullRequestAction(
+                'github',
+                'dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-*',
+                'Build PR'
+            )
+        }
     }
 }
 
@@ -64,25 +121,9 @@ subprojects { p ->
         }
     }
 
-    publishing {
-        repositories {
-            if (System.getenv('PR_NUMBER')) {
-                maven {
-                    name = 'LocalMaven'
-                    url = rootProject.layout.buildDirectory.dir('repo')
-                }
-            } else if (System.getenv('MAVEN_PASSWORD')) {
-                maven {
-                    name = 'PersonalMaven'
-                    url = uri(System.getenv('SNAPSHOT_MAVEN_URL') ?: System.getenv('MAVEN_URL'))
-                    credentials {
-                        username = System.getenv('MAVEN_USER')
-                        password = System.getenv('MAVEN_PASSWORD')
-                    }
-                }
-            }
-        }
-    }
+    managedVersioning.publishing.mavenPulLRequest()
+    managedVersioning.publishing.mavenSnapshot()
+    managedVersioning.publishing.mavenRelease()
 }
 
 javadoc {
@@ -94,5 +135,5 @@ javadoc {
 tasks.register('prepareJavadoc', Copy) {
     dependsOn tasks.javadoc
     from tasks.javadoc.outputs
-    into layout.buildDirectory.dir("prepareJavadoc/${project.group.replace('.','/')}/${project.version.split('\\.')[0]}")
+    into layout.buildDirectory.dir("prepareJavadoc/${project.group.replace('.','/')}/${project.version.split(/\./)[0]}")
 }

@@ -1,0 +1,56 @@
+{
+    "jobs": {
+        "publish": {
+            "runs-on": "ubuntu-22.04",
+            "steps": [
+                {
+                    "with": {
+                        "repository": "lukebemish/artifact-sync",
+                        "ref": "refs/heads/main",
+                        "persist-credentials": false
+                    },
+                    "name": "Checkout Artifact Sync",
+                    "uses": "actions/checkout@v4"
+                },
+                {
+                    "run": "mkdir repo"
+                },
+                {
+                    "with": {
+                        "script": "const pull_requests = ${{ toJSON(github.event.workflow_run.pull_requests) }};\nif (!pull_requests.length) {\n  return core.error(\"This workflow doesn't match any pull requests!\");\n}\nlet allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({\n   owner: context.repo.owner,\n   repo: context.repo.repo,\n   run_id: context.payload.workflow_run.id,\n});\nlet matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {\n  return artifact.name == \"artifacts\"\n})[0];\nlet download = await github.rest.actions.downloadArtifact({\n   owner: context.repo.owner,\n   repo: context.repo.repo,\n   artifact_id: matchArtifact.id,\n   archive_format: 'zip',\n});\nlet fs = require('fs');\nfs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/repo.zip`, Buffer.from(download.data));"
+                    },
+                    "name": "Download Artifacts",
+                    "uses": "actions/github-script@v6"
+                },
+                {
+                    "name": "Unpack Artifacts",
+                    "run": "unzip repo.zip -d repo"
+                },
+                {
+                    "name": "Publish Artifacts",
+                    "run": "python3 run.py",
+                    "env": {
+                        "MAVEN_USER": "github",
+                        "MAVEN_PASSWORD": "${{ secrets.PR_MAVEN_PASSWORD }}",
+                        "MAVEN_URL": "https://maven.lukebemish.dev/pullrequests/",
+                        "ALLOWED_VERSION": "*-pr${{ github.event.workflow_run.pull_requests[0].number }}",
+                        "ALLOWED_PATHS": "dev/lukebemish/dynamicassetgenerator/dynamicassetgenerator-*"
+                    }
+                }
+            ],
+            "if": "${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success' }}"
+        }
+    },
+    "name": "Publish PR",
+    "concurrency": "ci-${{ github.ref }}",
+    "on": {
+        "workflow_run": {
+            "types": [
+                "completed"
+            ],
+            "workflows": [
+                "Build PR"
+            ]
+        }
+    }
+}
