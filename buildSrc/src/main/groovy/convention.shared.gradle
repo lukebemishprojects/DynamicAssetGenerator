@@ -76,13 +76,3 @@ jar {
     }
 }
 
-static def nextVersion(String version, int idx) {
-    def parts = version.split(/\./)
-    def part = parts[idx] as int
-    part += 1
-    parts[idx] = part as String
-    for (int i = idx + 1; i < parts.length; i++) {
-        parts[i] = "0"
-    }
-    return parts.join('.')
-}
