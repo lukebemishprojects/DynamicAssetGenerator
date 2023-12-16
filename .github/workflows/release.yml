@@ -37,9 +37,9 @@
                     "uses": "fregante/setup-git-user@v2"
                 },
                 {
-                    "name": "tagRelease",
-                    "run": "./gradlew ",
-                    "id": "tagrelease",
+                    "name": "Tag Release",
+                    "run": "./gradlew tagRelease",
+                    "id": "tag_release",
                     "env": {
                         "RELEASE_MAVEN_PASSWORD": "${{ secrets.RELEASE_MAVEN_PASSWORD }}",
                         "RELEASE_MAVEN_USER": "github",
@@ -59,6 +59,9 @@
                         "CURSEFORGE_KEY": "${{ secrets.CURSEFORGE_KEY }}",
                         "MODRINTH_KEY": "${{ secrets.MODRINTH_KEY }}"
                     }
+                },
+                {
+                    "run": "git push && git push --tags"
                 },
                 {
                     "with": {
@@ -87,9 +90,6 @@
                         "CURSEFORGE_KEY": "${{ secrets.CURSEFORGE_KEY }}",
                         "MODRINTH_KEY": "${{ secrets.MODRINTH_KEY }}"
                     }
-                },
-                {
-                    "run": "git push && git push --tags"
                 }
             ]
         }

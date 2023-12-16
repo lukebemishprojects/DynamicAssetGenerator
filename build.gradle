@@ -31,9 +31,12 @@ managedVersioning {
                 step {
                     setupGitUser()
                 }
-                gradlew 'tagRelease'
-                gradlew 'Build', 'checkLicenses', 'build', 'prepareJavadoc'
                 readOnly.set false
+                gradlew 'Tag Release', 'tagRelease'
+                gradlew 'Build', 'checkLicenses', 'build', 'prepareJavadoc'
+                step {
+                    run.set 'git push && git push --tags'
+                }
                 step {
                     name.set 'Upload Javadoc'
                     uses.set 'andreiio/rclone-action@v1.2.0'
@@ -49,9 +52,6 @@ managedVersioning {
                 gradlew 'Publish', 'publish', 'modrinth', 'curseforge'
                 mavenRelease('github')
                 modPublishing()
-                step {
-                    run.set 'git push && git push --tags'
-                }
             }
         }
         build_pr {
