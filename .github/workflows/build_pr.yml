@@ -54,7 +54,7 @@
                         "path": "build/repo"
                     },
                     "name": "Archive Publishable Artifacts",
-                    "uses": "actions/upload-artifact@v3"
+                    "uses": "actions/upload-artifact@v4"
                 }
             ]
         }
