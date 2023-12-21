@@ -1,28 +1,28 @@
 [versions]
-minecraft = "1.20.2"
-parchment_minecraft = "1.20.1"
-parchment_mappings = "2023.08.20"
+minecraft = "1.20.4"
+parchment_minecraft = "1.20.2"
+parchment_mappings = "2023.12.10"
 
-neoforge = "20.2.59-beta"
+neoforge = "20.4.48-beta"
 
 fabric_loader = "0.14.24"
-fabric_api = "0.90.4+1.20.2"
+fabric_api = "0.91.3+1.20.4"
 
 mdg_plugin = "1.4.3"
 mdg_dsl = "1.5.1"
 autoservice = "1.1.1"
 
-architectury_loom = "1.4.367"
+architectury_loom = "1.4.373"
 quilt_licenser = "2.0.1"
 
-jetbrains_annotations = "24.0.1"
+jetbrains_annotations = "24.1.0"
 jspecify = "0.3.0"
 
-minotaur = "2.8.3"
+minotaur = "2.8.7"
 
-owolib = "0.11.0+1.20"
+owolib = "0.11.4+1.20.2"
 
-managedversioning = "1.2.2"
+managedversioning = "1.2.3"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -46,4 +46,4 @@ mdg_plugin = { id = "org.groovymc.modsdotgroovy", version.ref = "mdg_plugin" }
 architectury_loom = { id = "dev.architectury.loom", version.ref = "architectury_loom" }
 quilt_licenser = { id = "org.quiltmc.gradle.licenser", version.ref = "quilt_licenser" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
-curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.16"}
+curseforgegradle = {id = "net.darkhax.curseforgegradle", version = "1.1.18"}
