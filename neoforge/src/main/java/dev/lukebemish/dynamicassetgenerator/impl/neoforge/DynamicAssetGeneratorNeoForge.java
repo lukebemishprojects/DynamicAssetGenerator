@@ -10,20 +10,18 @@ import dev.lukebemish.dynamicassetgenerator.impl.client.DynamicAssetGeneratorCli
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 @Mod(DynamicAssetGenerator.MOD_ID)
 public class DynamicAssetGeneratorNeoForge {
-    public DynamicAssetGeneratorNeoForge() {
-        IEventBus modbus = FMLJavaModLoadingContext.get().getModEventBus();
+    public DynamicAssetGeneratorNeoForge(IEventBus modBus) {
         DynamicAssetGenerator.init();
         if (FMLEnvironment.dist == Dist.CLIENT) {
             DynamicAssetGeneratorClient.init();
         }
         if (FMLEnvironment.dist == Dist.CLIENT) {
-            modbus.addListener(PlatformClientImpl::reloadListenerListener);
+            modBus.addListener(PlatformClientImpl::reloadListenerListener);
         }
-        modbus.addListener(EventHandler::addResourcePack);
+        modBus.addListener(EventHandler::addResourcePack);
     }
 }

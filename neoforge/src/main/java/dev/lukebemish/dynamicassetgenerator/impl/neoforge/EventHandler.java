@@ -29,15 +29,13 @@ public class EventHandler {
                     var metadata = DynamicAssetGenerator.fromCache(info.cache());
                     var packInfo = new Pack.Info(
                         metadata.description(),
-                        metadata.packFormat(PackType.SERVER_DATA),
-                        metadata.packFormat(PackType.CLIENT_RESOURCES),
                         PackCompatibility.COMPATIBLE,
                         FeatureFlagSet.of(),
                         List.of(),
                         true
                     );
                     Pack pack = Pack.create(
-                        DynamicAssetGenerator.MOD_ID + ':' + info.cache().getName().toString(),
+                        DynamicAssetGenerator.MOD_ID + ':' + info.cache().getName(),
                         Component.literal(info.cache().getName().toString()),
                         true,
                         new Pack.ResourcesSupplier() {

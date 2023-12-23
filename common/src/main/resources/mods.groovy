@@ -1,4 +1,11 @@
 /*
+ * Copyright (C) 2023 Luke Bemish and contributors
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ */
+
+import modsdotgroovy.Dependency
+
+/*
  * Copyright (C) 2022-2023 Luke Bemish and contributors
  * SPDX-License-Identifier: LGPL-3.0-or-later
  */
@@ -36,6 +43,23 @@ ModsDotGroovy.make {
                 mod 'fabric-api', {
                     versionRange = ">=${this.libs.versions.fabric.api.split(/\+/)[0]}"
                 }
+            }
+        }
+
+        dependencies = dependencies.collect {dep ->
+            new Dependency() {
+                @Override
+                Map asForgeMap() {
+                    def map = super.asForgeMap()
+                    map.remove('mandatory')
+                    map.put('type', this.mandatory ? 'required' : 'optional')
+                }
+            }.tap {
+                it.modId = dep.modId
+                it.mandatory = dep.mandatory
+                it.versionRange = dep.versionRange
+                it.ordering = dep.ordering
+                it.side = dep.side
             }
         }
 
