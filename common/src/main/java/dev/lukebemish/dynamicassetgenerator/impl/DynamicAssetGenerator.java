@@ -18,6 +18,7 @@ import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.Pack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,15 +34,15 @@ public class DynamicAssetGenerator {
     public static final String SOURCE_JSON_DIR = MOD_ID +"/generators";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
-    public static PackMetadataSection fromCache(ResourceCache cache) {
+    public static PackMetadataSection makeMetadata(ResourceCache cache) {
         return new PackMetadataSection(
-            Component.literal("Dynamic Asset Generator: " + cache.getName()),
+            Component.literal(DynamicAssetGenerator.MOD_ID + '/' + cache.getName()),
                 SharedConstants.getCurrentVersion().getPackVersion(cache.getPackType()),
             Optional.empty()
         );
     }
 
-    private static ModConfig configs;
+    private static @Nullable ModConfig configs;
 
     public static ModConfig getConfig() {
         if (configs == null) {

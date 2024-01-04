@@ -26,7 +26,7 @@ public class EventHandler {
         DynamicAssetGenerator.CACHES.forEach((location, info) -> {
             if (info.cache().getPackType() == type) {
                 event.addRepositorySource(consumer -> {
-                    var metadata = DynamicAssetGenerator.fromCache(info.cache());
+                    var metadata = DynamicAssetGenerator.makeMetadata(info.cache());
                     var packInfo = new Pack.Info(
                         metadata.description(),
                         PackCompatibility.COMPATIBLE,
@@ -35,8 +35,8 @@ public class EventHandler {
                         true
                     );
                     Pack pack = Pack.create(
-                        DynamicAssetGenerator.MOD_ID + ':' + info.cache().getName(),
-                        Component.literal(info.cache().getName().toString()),
+                        DynamicAssetGenerator.MOD_ID + '/' + info.cache().getName(),
+                        Component.literal(DynamicAssetGenerator.MOD_ID+'/'+ info.cache().getName()),
                         true,
                         new Pack.ResourcesSupplier() {
                             @Override

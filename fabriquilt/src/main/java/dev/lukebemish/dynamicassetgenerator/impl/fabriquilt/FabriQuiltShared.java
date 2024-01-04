@@ -44,7 +44,7 @@ public interface FabriQuiltShared {
         getInstance().packForType(type, consumer ->
             DynamicAssetGenerator.CACHES.forEach(((location, info) -> {
                 if (info.cache().getPackType() == type) {
-                    var metadata = DynamicAssetGenerator.fromCache(info.cache());
+                    var metadata = DynamicAssetGenerator.makeMetadata(info.cache());
                     var packInfo = new Pack.Info(
                         metadata.description(),
                         PackCompatibility.COMPATIBLE,
@@ -52,8 +52,8 @@ public interface FabriQuiltShared {
                         List.of()
                     );
                     Pack pack = Pack.create(
-                        DynamicAssetGenerator.MOD_ID+'/'+info.cache().getName().toString(),
-                        Component.literal(info.cache().getName().toString()),
+                        DynamicAssetGenerator.MOD_ID+'/'+ info.cache().getName(),
+                        Component.literal(DynamicAssetGenerator.MOD_ID+'/'+ info.cache().getName()),
                         true,
                         new Pack.ResourcesSupplier() {
                             @Override

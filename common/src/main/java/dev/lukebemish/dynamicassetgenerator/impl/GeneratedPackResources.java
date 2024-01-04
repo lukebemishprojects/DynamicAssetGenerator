@@ -101,7 +101,7 @@ public class GeneratedPackResources implements PackResources {
     @Override
     public <T> T getMetadataSection(MetadataSectionSerializer<T> deserializer) {
         if (deserializer.getMetadataSectionName().equals("pack")) {
-            return (T) DynamicAssetGenerator.fromCache(cache);
+            return (T) DynamicAssetGenerator.makeMetadata(cache);
         }
         return null;
     }
