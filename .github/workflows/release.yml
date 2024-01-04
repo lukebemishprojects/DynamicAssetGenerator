@@ -5,6 +5,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    permissions:
+        contents: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -22,6 +24,9 @@ jobs:
         with:
           arguments: checkLicenses build prepareJavadoc
           cache-read-only: ${{ !startsWith(github.ref, 'refs/heads/1.') }}
+      - run: |
+            git push
+            git push --tags
       - uses: andreiio/rclone-action@v1.2.0
         with:
           args: copy build/prepareJavadoc r2:javadoc-lukebemish-dev
@@ -43,6 +48,3 @@ jobs:
           CURSEFORGE_KEY: ${{ secrets.CURSEFORGE_KEY }}
           MODRINTH_KEY: ${{ secrets.MODRINTH_KEY }}
           MAVEN_URL: https://maven.lukebemish.dev/releases/
-      - run: |
-          git push
-          git push --tags
