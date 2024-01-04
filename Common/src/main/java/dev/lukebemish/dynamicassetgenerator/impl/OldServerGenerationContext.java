@@ -26,13 +26,14 @@ public class OldServerGenerationContext extends OldResourceGenerationContext {
     public @Nullable IoSupplier<InputStream> getResource(@NotNull ResourceLocation location) {
         var packs = ServerPrePackRepository.getResources();
 
+        IoSupplier<InputStream> found = null;
         for (var pack : packs) {
             var resource = pack.getResource(PackType.SERVER_DATA, location);
             if (resource != null) {
-                return resource;
+                found = resource;
             }
         }
-        return null;
+        return found;
     }
 
     @Override
