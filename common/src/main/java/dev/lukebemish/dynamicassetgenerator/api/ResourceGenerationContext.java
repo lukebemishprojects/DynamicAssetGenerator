@@ -199,13 +199,14 @@ public interface ResourceGenerationContext {
 
                 @Override
                 public @Nullable IoSupplier<InputStream> getResource(@NonNull ResourceLocation location) {
+                    IoSupplier<InputStream> found = null;
                     for (PackResources pack : packs.get()) {
                         IoSupplier<InputStream> resource = pack.getResource(type, location);
                         if (resource != null) {
-                            return resource;
+                            found = resource;
                         }
                     }
-                    return null;
+                    return found;
                 }
 
                 @Override
@@ -217,6 +218,7 @@ public interface ResourceGenerationContext {
                             out.add(resource);
                         }
                     }
+                    Collections.reverse(out);
                     return out;
                 }
 
@@ -227,9 +229,7 @@ public interface ResourceGenerationContext {
                         for (String namespace : pack.getNamespaces(type)) {
                             pack.listResources(type, namespace, path, (rl, s) -> {
                                 if (filter.test(rl)) {
-                                    if (!resources.containsKey(rl)) {
-                                        resources.put(rl, s);
-                                    }
+                                    resources.put(rl, s);
                                 }
                             });
                         }
@@ -249,6 +249,9 @@ public interface ResourceGenerationContext {
                                 }
                             });
                         }
+                    }
+                    for (var list : resources.values()) {
+                        Collections.reverse(list);
                     }
                     return resources;
                 }
