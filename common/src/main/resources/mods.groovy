@@ -50,16 +50,11 @@ ModsDotGroovy.make {
             new Dependency() {
                 @Override
                 Map asForgeMap() {
-                    def map = super.asForgeMap()
+                    def map = dep.asForgeMap()
                     map.remove('mandatory')
                     map.put('type', this.mandatory ? 'required' : 'optional')
+                    return map
                 }
-            }.tap {
-                it.modId = dep.modId
-                it.mandatory = dep.mandatory
-                it.versionRange = dep.versionRange
-                it.ordering = dep.ordering
-                it.side = dep.side
             }
         }
 
