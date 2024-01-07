@@ -22,7 +22,7 @@ minotaur = "2.8.7"
 
 owolib = "0.11.4+1.20.2"
 
-managedversioning = "1.2.3"
+managedversioning = "1.2.4"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }

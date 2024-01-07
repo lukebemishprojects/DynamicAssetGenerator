@@ -124,7 +124,7 @@ subprojects { p ->
         }
     }
 
-    managedVersioning.publishing.mavenPulLRequest(publishing)
+    managedVersioning.publishing.mavenPullRequest(publishing)
     managedVersioning.publishing.mavenSnapshot(publishing)
     managedVersioning.publishing.mavenRelease(publishing)
 }
