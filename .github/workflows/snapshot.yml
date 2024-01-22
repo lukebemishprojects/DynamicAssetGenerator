@@ -22,7 +22,7 @@
                         "restore-keys": "${{ runner.os }}-gradle-"
                     },
                     "name": "Cache",
-                    "uses": "actions/cache/restore@v3"
+                    "uses": "actions/cache/restore@v4"
                 },
                 {
                     "with": {
