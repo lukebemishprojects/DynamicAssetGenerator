@@ -6,7 +6,7 @@ parchment_mappings = "2023.12.10"
 neoforge = "20.4.48-beta"
 
 fabric_loader = "0.15.3"
-fabric_api = "0.92.0+1.20.4"
+fabric_api = "0.96.3+"
 
 mdg_plugin = "1.4.3"
 mdg_dsl = "1.5.1"
