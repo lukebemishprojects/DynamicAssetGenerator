@@ -3,7 +3,7 @@ minecraft = "1.20.4"
 parchment_minecraft = "1.20.2"
 parchment_mappings = "2023.12.10"
 
-neoforge = "20.4.48-beta"
+neoforge = "20.4.198"
 
 fabric_loader = "0.15.3"
 fabric_api = "0.92.0+1.20.4"
