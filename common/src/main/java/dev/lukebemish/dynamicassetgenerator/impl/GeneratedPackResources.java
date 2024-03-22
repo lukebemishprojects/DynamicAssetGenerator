@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.MetadataSectionSerializer;
+import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.resources.IoSupplier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -24,9 +25,11 @@ public class GeneratedPackResources implements PackResources {
 
     private final ResourceCache cache;
     private @Nullable Map<ResourceLocation, IoSupplier<InputStream>> streams;
+    private final String name;
 
-    public GeneratedPackResources(ResourceCache cache) {
+    public GeneratedPackResources(String name, ResourceCache cache) {
         this.cache = cache;
+        this.name = name;
         cache.reset(cache.makeContext(true));
     }
 
@@ -108,7 +111,7 @@ public class GeneratedPackResources implements PackResources {
 
     @Override
     public @NonNull String packId() {
-        return DynamicAssetGenerator.MOD_ID + '/' + cache.getName();
+        return this.name;
     }
 
     @Override
@@ -123,4 +126,22 @@ public class GeneratedPackResources implements PackResources {
     private final ReentryDetector<ListResources> listResourcesDetector = new ReentryDetector<>();
 
     private final ReentryDetector<PackType> getNamespacesDetector = new ReentryDetector<>();
+
+    public static class GeneratedResourcesSupplier implements Pack.ResourcesSupplier {
+        private final ResourceCache cache;
+
+        public GeneratedResourcesSupplier(ResourceCache cache) {
+            this.cache = cache;
+        }
+
+        @Override
+        public PackResources openPrimary(String id) {
+            return new GeneratedPackResources(id, cache);
+        }
+
+        @Override
+        public PackResources openFull(String id, Pack.Info packInfo) {
+            return new GeneratedPackResources(id, cache);
+        }
+    }
 }

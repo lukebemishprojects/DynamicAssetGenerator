@@ -11,6 +11,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.RepositorySource;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -22,8 +23,8 @@ public class FabricPlatform implements FabriQuiltShared {
     public static final FabriQuiltShared INSTANCE = new FabricPlatform();
 
     private static final String GROUP_PACK_CLASS = "net.fabricmc.fabric.impl.resource.loader.GroupResourcePack";
-    private static final Class<?> GROUP_PACK_RESOURCES;
-    private static final MethodHandle GET_GROUP_PACK_PACKS;
+    private static final @Nullable Class<?> GROUP_PACK_RESOURCES;
+    private static final @Nullable MethodHandle GET_GROUP_PACK_PACKS;
 
     static {
         Class<?> clazz;
@@ -50,7 +51,7 @@ public class FabricPlatform implements FabriQuiltShared {
         }
         if (GROUP_PACK_RESOURCES == null || GET_GROUP_PACK_PACKS == null) {
             if (!FabricLoader.getInstance().isModLoaded("quilted_fabric_api")) {
-                DynamicAssetGenerator.LOGGER.error("On normal fabric API but could not find fabric internal class/field to unwrap grouped resources - Dynamic Asset Generator may not work right!");
+                DynamicAssetGenerator.LOGGER.warn("On normal fabric API but could not find fabric internal class/field to unwrap grouped resources - If you are using a recent fabric API version, this may be ignored");
             }
         }
     }
@@ -82,10 +83,10 @@ public class FabricPlatform implements FabriQuiltShared {
 
     private static final boolean[] LOGGED_ERROR = new boolean[1];
 
-    private synchronized void logError(int i) {
+    private synchronized void logError(@SuppressWarnings("SameParameterValue") int i) {
         if (!LOGGED_ERROR[i]) {
             if (i == 0) {
-                DynamicAssetGenerator.LOGGER.error("On fabric (not quilt) but could not properly use fabric internal class/field to unwrap grouped resources - Dynamic Asset Generator may not work right! (If you are seeing this message on quilt please open an issue on the DynamicAssetGenerator GitHub repository)");
+                DynamicAssetGenerator.LOGGER.error("Found fabric-api delegating pack but could not properly use fabric internal class/field to unwrap grouped resources - Dynamic Asset Generator may not work right!");
             }
             LOGGED_ERROR[i] = true;
         }

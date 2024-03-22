@@ -18,7 +18,6 @@ import net.minecraft.server.packs.repository.PackCompatibility;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.repository.RepositorySource;
 import net.minecraft.world.flag.FeatureFlagSet;
-import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -55,17 +54,7 @@ public interface FabriQuiltShared {
                         DynamicAssetGenerator.MOD_ID+'/'+ info.cache().getName(),
                         Component.literal(DynamicAssetGenerator.MOD_ID+'/'+ info.cache().getName()),
                         true,
-                        new Pack.ResourcesSupplier() {
-                            @Override
-                            public @NonNull PackResources openPrimary(@NonNull String s) {
-                                return new GeneratedPackResources(info.cache());
-                            }
-
-                            @Override
-                            public @NonNull PackResources openFull(@NonNull String s, Pack.@NonNull Info packInfo) {
-                                return new GeneratedPackResources(info.cache());
-                            }
-                        },
+                        new GeneratedPackResources.GeneratedResourcesSupplier(info.cache()),
                         packInfo,
                         info.position(),
                         true,

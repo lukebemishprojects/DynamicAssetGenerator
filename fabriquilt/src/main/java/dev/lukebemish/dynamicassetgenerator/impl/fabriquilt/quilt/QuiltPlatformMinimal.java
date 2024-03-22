@@ -9,6 +9,7 @@ import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.fabriquilt.fabric.FabricPlatform;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.packs.PackResources;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -21,8 +22,8 @@ public class QuiltPlatformMinimal extends FabricPlatform {
 
     private static final boolean isQFAPIPresent = FabricLoader.getInstance().isModLoaded("quilted_fabric_api");
     private static final String GROUP_PACK_CLASS = "org.quiltmc.qsl.resource.loader.api.GroupResourcePack";
-    private static final Class<?> GROUP_PACK_RESOURCES;
-    private static final MethodHandle GET_GROUP_PACK_PACKS;
+    private static final @Nullable Class<?> GROUP_PACK_RESOURCES;
+    private static final @Nullable MethodHandle GET_GROUP_PACK_PACKS;
 
     static {
         Class<?> clazz;
@@ -54,10 +55,10 @@ public class QuiltPlatformMinimal extends FabricPlatform {
 
     private static final boolean[] LOGGED_ERROR = new boolean[1];
 
-    private synchronized void logError(int i) {
+    private synchronized void logError(@SuppressWarnings("SameParameterValue") int i) {
         if (!LOGGED_ERROR[i]) {
             if (i == 0) {
-                DynamicAssetGenerator.LOGGER.error("On quilt but could not properly use quilt class/field to unwrap grouped resources - Dynamic Asset Generator may not work right!");
+                DynamicAssetGenerator.LOGGER.error("Found quilt delegating resources but could not properly use quilt class/field to unwrap grouped resources - Dynamic Asset Generator may not work right!");
             }
             LOGGED_ERROR[i] = true;
         }

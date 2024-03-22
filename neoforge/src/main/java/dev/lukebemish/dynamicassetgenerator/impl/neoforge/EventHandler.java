@@ -8,14 +8,12 @@ package dev.lukebemish.dynamicassetgenerator.impl.neoforge;
 import dev.lukebemish.dynamicassetgenerator.impl.DynamicAssetGenerator;
 import dev.lukebemish.dynamicassetgenerator.impl.GeneratedPackResources;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.PackResources;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackCompatibility;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
@@ -38,17 +36,7 @@ public class EventHandler {
                         DynamicAssetGenerator.MOD_ID + '/' + info.cache().getName(),
                         Component.literal(DynamicAssetGenerator.MOD_ID+'/'+ info.cache().getName()),
                         true,
-                        new Pack.ResourcesSupplier() {
-                            @Override
-                            public @NonNull PackResources openPrimary(@NonNull String s) {
-                                return new GeneratedPackResources(info.cache());
-                            }
-
-                            @Override
-                            public @NonNull PackResources openFull(@NonNull String s, Pack.@NonNull Info packInfo) {
-                                return new GeneratedPackResources(info.cache());
-                            }
-                        },
+                        new GeneratedPackResources.GeneratedResourcesSupplier(info.cache()),
                         packInfo,
                         info.position(),
                         true,
